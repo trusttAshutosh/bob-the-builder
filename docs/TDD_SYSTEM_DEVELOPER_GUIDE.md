@@ -13,7 +13,7 @@
 
 **Solution:** One **`ticket-spec.yaml`** per ticket, catalogs and stubs in **local Bob home**, automated **`bob validate-ticket`** runs, and an **evidence bundle** (`RUN_SUMMARY.md`, `REPORT.html`, `evidence/`). Cursor skills split **analyst / implementer / verifier**.
 
-**One-liner:** Stubs → only the **services your ticket needs** → gateway APIs → logs + DB → evidence.
+**One-liner:** Bob applies stubs → **bootRuns the Novopay services your ticket needs** → hits gateway APIs → checks logs + DB → evidence. You only bring **MySQL** (and Redis/Kafka if the ticket needs them). Bank/HDFC stays on **WireMock** — never real partner bootRun.
 
 ---
 
@@ -31,11 +31,13 @@ flowchart LR
     AS[assertion-catalog]
     PG[platform-graph]
   end
-  subgraph runtime["Services you start"]
-    S1[Service A]
-    S2[Service B]
+  subgraph runtime["Bob starts at validate-ticket (or ensure-peers)"]
+    S1[Service A bootRun]
+    S2[Service B bootRun]
     CFG[Config service optional]
     WM[WireMock]
+  end
+  subgraph you["You start once"]
     MY[(MySQL)]
   end
   subgraph proof["Evidence in ticket folder"]
@@ -85,7 +87,8 @@ ADR: [`ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md).
 | **Workspace root** | Parent folder of **all** service git clones | `BUILDER_WORKSPACE_ROOT` |
 | **BOB_HOME** | Shared catalogs (api, stubs, graph) | `bob-the-builder/assets` |
 | **BOB_LOCAL** | Secrets + agent session | `bob-the-builder/local/` (gitignored) |
-| **Workspace map** | Which repos exist, `application.properties` paths | `deploy/tdd/workspace-services.yaml` |
+| **Service boot** | Bob `bootRun`s Novopay peers (discovered or profile); WireMock for bank/HDFC | `run.auto_boot_services` / `ensure-peers` / `need-service` — see [Local stack](#local-stack-configured-not-fixed) |
+| **Workspace map** | Optional repo → properties map (profile-based boot) | `deploy/tdd/workspace-services.yaml` |
 | **Evidence** | Proof per scenario | `docs/tdd-runs/<id>/evidence/` |
 
 ### Agent roles
@@ -133,14 +136,15 @@ Host repos **may** keep `deploy/tdd/workspace-services.yaml` and `deploy/tdd/env
 **Workflow:**
 
 1. Read `ticket-spec.yaml` → `impacted.repos`, `gateway_apis`, `stubs`.
-2. **Start required services** — manually, or let Bob do it:
-   - `bob ensure-peers` — scan host Java + properties; boot peers not already up
-   - `bob need-service <hint>` — one peer (e.g. `notifications`, `consents`)
-   - `bob validate-ticket <id>` — auto-boot when `run.auto_boot_services: true` (default) + peer discovery when `run.auto_discover_services: true` (default)
-3. If the ticket uses external HTTP partners, run WireMock and apply **config URL overrides** from the spec (`masterdata:` section — only when your platform stores partner URLs in a config DB).
-4. Health checks use the **env profile** `services:` list when present, plus any **discovered** peers.
+2. **Bob starts runtime for you** (default — no manual `bootRun`):
+   - **`bob validate-ticket <id>`** — discovers peers, `bootRun`s Novopay services, starts WireMock, runs scenarios (`run.auto_boot_services: true`, `run.auto_discover_services: true` by default)
+   - **`bob ensure-peers`** — while implementing / writing tests / stubs (same discovery, boots only what is down)
+   - **`bob need-service <hint>`** — one extra peer Bob did not discover (e.g. `notifications`, `consents`, `masterdata`)
+3. **You still start:** MySQL (and Redis/Kafka only if the ticket needs them). Bank/HDFC is **never** bootRun — WireMock only.
+4. Config URL overrides from the spec (`masterdata:`) when your platform stores partner URLs in a config DB; Bob applies stub SQL during the run.
+5. Health checks use discovered peers plus any **env profile** `services:` entries.
 
-Decision trace shows **workspace_services**, **properties_to_review**, and **service_health** per entry in the profile.
+Decision trace shows **boot_services**, **wiremock_start**, **workspace_services**, and **service_health**.
 
 ### BOB_HOME vs BOB_LOCAL
 
@@ -166,10 +170,10 @@ Team workflow: publish `bob-the-builder` as one GitHub repo; `bob install` under
 
 ### Prerequisites
 
-- `bob setup` completed (`BUILDER_WORKSPACE_ROOT`, `BOB_HOME`, `BOB_LOCAL`, MySQL, log dir)
-- **Services required by the ticket** running locally (or use `bob ensure-peers` / `validate-ticket` auto-boot)
-- **MySQL** (schemas from env profile / ticket-spec `run.audit_db`)
-- **WireMock** when the ticket uses `stubs`
+- `bob setup` + `bob install` (`BUILDER_WORKSPACE_ROOT`, `BOB_HOME`, `BOB_LOCAL`, MySQL, log dir)
+- **MySQL** running (schemas from env profile / ticket-spec `run.audit_db`)
+- Service clones under `BUILDER_WORKSPACE_ROOT` with `gradlew` (Bob infers ports from `application.properties`)
+- **You do not** manually start Novopay microservices or WireMock for a normal ticket — `validate-ticket` does that
 - Python 3.11+ and `pip install pyyaml`
 - Git (optional): default `git.branch_policy: none` — Bob does not checkout branches. Novopay CC teams set `novopay-feature` in `ticket-spec.yaml` for `ddp-fea-*` checkout (still no commit)
 
@@ -200,10 +204,9 @@ Cheat sheet: [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md).
 2. `bob init-ticket <id> "<title>"` — edit `ticket-spec.yaml`; set `git.branch_policy: novopay-feature` only if your team wants feature-branch checkout
 3. Analyst: `ticket-spec.yaml`, `TEST_PLAN.md`, stubs under `BOB_HOME`
 4. `bob discover-apis` / `bob sync-graph` when orchestration changes
-5. Implementer: code in repos under `BUILDER_WORKSPACE_ROOT`; **no commit** unless asked
-6. Start services (`bob ensure-peers` or manual) + WireMock; config overrides from spec
-7. Verifier: `bob validate-ticket <id>` → `RUN_SUMMARY.md` / `REPORT.html`
-8. Share evidence folder or report only if the team wants ticket examples in git
+5. Implementer: code in repos under `BUILDER_WORKSPACE_ROOT`; **`bob ensure-peers`** if a new peer appears mid-work; **no commit** unless asked
+6. Verifier: **`bob validate-ticket <id>`** — Bob boots services + WireMock, applies config overrides, produces `RUN_SUMMARY.md` / `REPORT.html`
+7. Share evidence folder or report only if the team wants ticket examples in git
 
 ---
 
@@ -240,7 +243,7 @@ Session history: `{BOB_LOCAL}/agent/session-graph.yaml`.
 
 - `discover-apis` / `sync-graph` read **that** repo’s orchestration
 - `init-ticket` / `validate-ticket` use **that** repo’s `docs/tdd-runs/`
-- Sibling repos can be started via **`bob ensure-peers` / `need-service`** (dynamic) or **`workspace-services.yaml`** + ticket `impacted.repos` (profile-based)
+- Sibling Novopay repos are **bootRun by Bob** (`validate-ticket`, `ensure-peers`, `need-service`) — optional `workspace-services.yaml` only helps profile-based discovery
 
 Override: `BOB_HOST_REPO=/absolute/path/to/clone`.
 
@@ -274,7 +277,7 @@ Framework patterns in a host repo (e.g. `AbstractProcessor` vs transaction manag
 | WireMock stubs + URL rows in **configuration table** (Novopay pattern) | **Yes** — so the **primary service** can load stub URLs at runtime |
 | Direct mock in service config (no config DB) | **No** — set URLs in that service’s properties instead |
 
-Example: many credit-card flows load HDFC URLs from masterdata **configuration** — then both the **API service** and **config service** run for E2E. A bulk-upload or internal-only ticket might need **only** the API service.
+Example: many credit-card flows load HDFC URLs from masterdata **configuration** — Bob can **`need-service masterdata`** or discover it; WireMock serves bank URLs. A bulk-upload ticket might need **only** the host API service.
 
 `bob setup` may ask for a config-service base URL for health checks — **press Enter to skip** if your ticket does not use it.
 
@@ -282,31 +285,39 @@ Example: many credit-card flows load HDFC URLs from masterdata **configuration**
 
 ## Local stack (configured, not fixed)
 
-Example profile: [`deploy/tdd/env-local-dsa.yaml`](../deploy/tdd/env-local-dsa.yaml) — **rename or duplicate** for your tenant.
+Example profile: [`templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml`](../templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml) — **rename or duplicate** for your tenant.
+
+| Who starts it | Component | How |
+|---------------|-----------|-----|
+| **You** | MySQL | Local install / Docker; map `MYSQL_*` in `{BOB_LOCAL}/user.env` |
+| **You** (if needed) | Redis, Kafka, etc. | Only when the ticket’s stack requires them |
+| **Bob** | Novopay microservices | `bootRun` via `validate-ticket` or `ensure-peers` (health-gated) |
+| **Bob** | WireMock + bank stubs | `validate-ticket` → `start-wiremock-runtime.sh` + ticket `stubs` |
+| **Never** | Bank / HDFC partner APIs | Always WireMock — not real bootRun |
 
 | Profile block | Meaning |
 |---------------|---------|
-| `services.*` | Base URL env vars + health paths Bob probes |
+| `services.*` | Optional base URLs + health paths (merged with dynamic discovery) |
 | `mysql.schemas` | Example schema names for DB asserts |
 | `run.wiremock_port` | Stub port in ticket-spec |
+| `run.auto_boot_services` | Default `true` — Bob bootRuns before scenarios |
+| `run.auto_discover_services` | Default `true` — scan host code/properties + session registry |
 
-**Start order:**
+**Typical order (mostly automatic):**
 
-1. `bob setup`
-2. MySQL (+ Redis/Kafka only if your ticket needs them)
-3. **Novopay microservices:** `bob ensure-peers` or `validate-ticket` (auto-boot) — **not** bank/HDFC (WireMock only)
-4. WireMock when using `stubs`
-5. Apply config SQL from ticket run folder if generated
-6. Restart services after config URL changes
+1. `bob setup` + `bob install` (once)
+2. Start **MySQL** (you)
+3. **`bob validate-ticket <id>`** — Bob bootRuns peers, WireMock, stubs, APIs, evidence
+4. After masterdata URL SQL changes: re-run validate (Bob restarts services as needed)
 
-### Service boot commands
+### Service boot commands (when not running a full validate)
 
 | Command | When |
 |---------|------|
-| `bob ensure-peers` | Implementing / testing / stubs — scan host code + properties; boot what is down |
-| `bob need-service NAME` | You know one peer (`notifications`, `consents`, `masterdata`, …) |
+| `bob validate-ticket ID` | **Default path** — full run; Bob starts everything it can |
+| `bob ensure-peers` | Implementing / testing / stubs before a full validate |
+| `bob need-service NAME` | Bob missed a peer (`notifications`, `consents`, `masterdata`, …) |
 | `bob discover-services` | List peers only; `--boot` to start all |
-| `bob start-services` | Boot from env profile keys |
 | `bob stop-services` | Stop Bob-started `bootRun` processes |
 
 Discovery sources: env profile `services:`, host `application.properties` localhost URLs, Java imports (`in.novopay.infra.notifications`, …), `local/agent/required-services.yaml`. Peer repos must exist under `BUILDER_WORKSPACE_ROOT` with `gradlew`.
@@ -378,7 +389,7 @@ A: Catalogs belong in `{BOB_HOME}` only; host repo keeps README pointers.
 |---|--------|-----|
 | 1 | Problem / solution (any backend ticket) | 3 |
 | 2 | Architecture + Bob home vs service repo | 5 |
-| 3 | Workspace + `application.properties` | 5 |
+| 3 | Workspace + what Bob starts vs you (MySQL only) | 5 |
 | 4 | `setup` / `init-ticket` / `validate-ticket` / `ticket-status` demo | 8 |
 | 5 | ticket-spec walkthrough | 5 |
 | 6 | Agent roles | 4 |
