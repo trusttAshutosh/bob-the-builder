@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=703feac -->
+<!-- PRODUCT-VERIFY:COMMIT=63e5e9c -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,20 +28,18 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `703feac` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `63e5e9c` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `703feac` — chore: ignore .idea IDE metadata
+**Commit:** `63e5e9c` — docs: refresh NEXT.md product verify [bob]
 **Date:** 2026-05-23
 
 ### Files changed
-- `.gitignore`
-- `.idea/.gitignore`
-- `.idea/misc.xml`
+- `docs/NEXT.md`
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 
 ### Regression check
 - **16/16 registered features still intact** after this commit (see below).
