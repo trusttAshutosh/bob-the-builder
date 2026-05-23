@@ -26,5 +26,8 @@ __pycache__/
 .pytest_cache/
 *.hprof
 
+# IDE (IntelliJ / Cursor)
+.idea/
+
 # Marker file (runtime)
 assets/.bob-initialized
