@@ -10,7 +10,7 @@
 | **CI** | Every push checks features intact (`product-verify.yml`); stamp must match HEAD (`--strict`) |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=4d1eb57 -->
+<!-- PRODUCT-VERIFY:COMMIT=51294e5 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `4d1eb57` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `51294e5` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `4d1eb57` — Initial commit: Bob the Builder product repo
+**Commit:** `51294e5` — Initial commit: Bob the Builder product repo
 **Date:** 2026-05-23
 
 ### Files changed
