@@ -16,4 +16,9 @@ jobs:
           python-version: '3.11'
       - run: pip install pyyaml
       - name: Verify registered features intact
-        run: python3 runner/ci/verify-product.py --check --strict
+        run: |
+          python3 runner/ci/verify-product.py --check
+          python3 runner/ci/verify-product.py --update
+          if ! git diff --quiet docs/NEXT.md; then
+            echo "::warning::docs/NEXT.md auto-sections differ from HEAD — run locally: python bob.py verify-product --update"
+          fi

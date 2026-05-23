@@ -6,11 +6,11 @@
 |---|---|
 | **Read** | Before picking up Bob product work |
 | **Update** | When something ships → move it to **Done** with date; when you find a gap → add under **Now** / **Next** / **Later** |
-| **Verify** | Before each commit: `bob verify-product --update` then commit `docs/NEXT.md` with your code |
-| **CI** | Every push checks features intact (`product-verify.yml`); stamp must match HEAD (`--strict`) |
+| **Verify** | After changes: `python bob.py verify-product --update` and commit `docs/NEXT.md` (best: same push as your code) |
+| **CI** | Every push **blocks** if a registered feature is removed; NEXT.md drift is a warning only |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=f7170e4 -->
+<!-- PRODUCT-VERIFY:COMMIT=8661d2f -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `f7170e4` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `8661d2f` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `f7170e4` — docs: refresh product verify stamp
+**Commit:** `8661d2f` — docs: refresh product verify stamp
 **Date:** 2026-05-23
 
 ### Files changed

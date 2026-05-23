@@ -316,11 +316,12 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     if has_commits() and stored not in {head, head_short, "none"}:
         print(
-            f"WARN: NEXT.md verify stamp is `{stored}` but HEAD is `{head_short}`.",
+            f"NOTE: NEXT.md verify stamp is `{stored}`; HEAD is `{head_short}` "
+            "(normal after a new commit — run --update when convenient).",
             file=sys.stderr,
         )
-        print("Run: bob verify-product --update   then commit docs/NEXT.md.", file=sys.stderr)
         if args.strict:
+            print("Strict mode: run bob verify-product --update and commit docs/NEXT.md.", file=sys.stderr)
             return 1
 
     print(f"Product features OK ({len(ok_list)}/{len(ok_list)} intact).")
