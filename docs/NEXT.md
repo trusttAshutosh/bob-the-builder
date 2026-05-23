@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=87c4289 -->
+<!-- PRODUCT-VERIFY:COMMIT=476975f -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,29 +28,20 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `87c4289` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `476975f` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `87c4289` — feat: auto-refresh NEXT.md after git commit via post-commit hook
+**Commit:** `476975f` — chore: ignore .idea IDE metadata
 **Date:** 2026-05-23
 
 ### Files changed
-- `.cursor/rules/bob-zero-cognitive-load.mdc`
-- `README.md`
-- `docs/BOB_CHEATSHEET.md`
-- `docs/product-features.yaml`
-- `runner/ci/verify-product.py`
-- `runner/hooks/post-commit`
-- `runner/lib/builder_cli.py`
-- `runner/lib/git_hooks.py`
-- `runner/lib/install_workspace.py`
-- `runner/lib/product_reminder.py`
+- `.gitignore`
+- `.idea/.gitignore`
+- `.idea/misc.xml`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Workspace setup & install (`workspace-setup`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
+- (none mapped — docs-only or infra)
 
 ### Regression check
 - **16/16 registered features still intact** after this commit (see below).
