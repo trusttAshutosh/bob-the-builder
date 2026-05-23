@@ -1,0 +1,29 @@
+# Machine-local only (never push)
+local/
+# PATH shim marker + bob/bob.cmd launchers (created on first command)
+local/bin/
+local/.path-configured
+.local/
+
+# Session / agent scratch (per-developer, per-ticket runs)
+local/agent/
+
+# WireMock runtime (PID, logs, downloaded JAR when copied here)
+local/.runtime-wiremock/
+runner/.runtime-wiremock/
+runner/lib/wiremock-standalone-*.jar
+
+# Duplicate generated trees under runner/ (canonical copy is assets/)
+runner/api-catalog/
+runner/assertion-catalog/
+runner/stub-registry/bank-operations/
+runner/stub-profiles/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.hprof
+
+# Marker file (runtime)
+assets/.bob-initialized

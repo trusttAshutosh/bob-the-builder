@@ -1,0 +1,36 @@
+api_id: getLOCOffers
+service: credit-card-management
+source:
+  orchestration: deploy/application/orchestration/common_loanOnCards.xml
+  request_template: deploy/application/templates/request/product/getLOCOffers_requestTemplate.json
+http:
+  method: POST
+  path: /api/v1/getLOCOffers
+  base_env: CC_BASE
+envelope:
+  request_key: getLOCOffers
+header_defaults:
+  tenant_code: "{TENANT}"
+  client_code: "{CLIENT}"
+  channel_code: WEB
+  end_channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  operation_mode: SELF
+  user_id: LOCAL_QA
+  stan: "{STAN}"
+  transmission_datetime: "{STAN}"
+  locale: en
+  actor_type: AGENT
+  device_id: TDD-DEVICE
+request_defaults:
+  client_reference_code: "{CRN}"
+  mobile_no: "{MOBILE}"
+  dob: "{DOB}"
+  aan: "{AAN}"
+bank_calls:
+  - operation: getCardSummary
+    config_key: hdfc.soap.card.summary.url
+  - operation: inquireCreditCardProductEligibility
+    config_key: hdfc.rest.product.eligibility.url

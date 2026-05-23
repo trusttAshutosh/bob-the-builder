@@ -1,0 +1,12 @@
+fixture_id: reply-116
+bank_operation: submitInstaLoan
+masterdata_prop_key: hdfc.soap.insta.loan.url
+wiremock:
+  request:
+    method: POST
+    urlPath: /stub/submit-insta-loan
+  response:
+    status: 200
+    headers:
+      Content-Type: text/xml;charset=utf-8
+    bodyFile: submit-insta-error-116.xml

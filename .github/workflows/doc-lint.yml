@@ -1,0 +1,30 @@
+# Fail if legacy Novopay/TDD paths reappear in product docs and scripts.
+name: Bob doc lint
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '**/*.sh'
+      - '**/*.py'
+      - '.github/workflows/**'
+  push:
+    branches: [master, main]
+jobs:
+  stale-path-grep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject legacy product paths
+        run: |
+          set -e
+          PATTERNS='tools/tdd-runner|novopay-tdd\.py|novopay-tdd |novopay-bob/|bob-the-builder-bundle/'
+          if git grep -nE "$PATTERNS" -- \
+            ':!runner/lib/cleanup_workspace.py' \
+            ':!docs/BOB_CHEATSHEET.md' \
+            ':!docs/NEXT.md' \
+            ':!runner/lib/bob_home.py' \
+            ':!.github/workflows/doc-lint.yml'; then
+            echo "Legacy path references found (see grep output above)." >&2
+            exit 1
+          fi
+          echo "No stale legacy paths in tracked product files."

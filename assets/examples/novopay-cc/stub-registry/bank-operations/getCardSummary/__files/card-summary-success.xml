@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+  <S:Body>
+    <ns11:getActiveCreditCardsSummaryResponse xmlns:ns11="http://inquiry.service.cards.appx.cz.fc.ofss.com/" xmlns:responseservice="http://response.service.fc.ofss.com">
+      <return>
+        <responseservice:status>
+          <responseservice:replyCode>0</responseservice:replyCode>
+          <responseservice:replyText>0</responseservice:replyText>
+        </responseservice:status>
+        <responseXML><![CDATA[<?xml version="1.0"?><emsg><header><op>eCSF</op><version>2.0</version><data></data></header><msg><rec>                                                                000000050000000                                                                                                                                                                                                                                                                                     LOCAL TEST CARDHOLDER NAME                                                                                                                      </rec></msg></emsg>]]></responseXML>
+      </return>
+    </ns11:getActiveCreditCardsSummaryResponse>
+  </S:Body>
+</S:Envelope>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+  <S:Body>
+    <ns11:applyForInstaLoanResponse xmlns:ns11="http://transaction.service.cards.appx.cz.fc.ofss.com/" xmlns:responseservice="http://response.service.fc.ofss.com">
+      <return>
+        <responseservice:status>
+          <responseservice:replyCode>116</responseservice:replyCode>
+          <responseservice:replyText>Floater Add on Invalid request</responseservice:replyText>
+        </responseservice:status>
+      </return>
+    </ns11:applyForInstaLoanResponse>
+  </S:Body>
+</S:Envelope>

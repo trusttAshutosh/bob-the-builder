@@ -1,0 +1,16 @@
+# Bob workspace map — lives in the HOST service repo (edit repo_dir names).
+# Used by validate-ticket decision trace (properties_to_review) and multi-repo hints.
+
+services:
+  # Key must match ticket-spec impacted.repos entries OR service keys you reference.
+  primary:
+    repo_dir: REPLACE-WITH-YOUR-SERVICE-REPO-FOLDER
+    config_files:
+      - src/main/resources/application.properties
+      # - deploy/application/dist/application.properties
+
+  # Add sibling services your ticket may need (optional):
+  # masterdata:
+  #   repo_dir: novopay-platform-masterdata-management
+  #   config_files:
+  #     - src/main/resources/application.properties

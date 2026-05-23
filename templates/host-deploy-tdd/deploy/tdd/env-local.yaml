@@ -1,0 +1,36 @@
+# Generic local env profile for Bob validate-ticket.
+# In ticket-spec.yaml set:  env_profile: local
+# Health checks use base URL from bob setup (user.env) or default_base below.
+
+header_profile: dsa-agent-app
+
+# Must match a key under services: (used for primary health + API base_env fallback)
+primary_service: primary
+
+services:
+  primary:
+    base_env_var: SERVICE_BASE
+    default_base: http://localhost:8080/your-service-context
+    health_path: /actuator/health
+
+  # Optional second service (skip health if optional: true and env var unset):
+  # config_service:
+  #   base_env_var: CONFIG_BASE
+  #   default_base: http://localhost:8081/config
+  #   health_path: /actuator/health
+  #   optional: true
+
+mysql:
+  schemas:
+    audit: your_audit_schema
+    masterdata: your_masterdata_schema
+
+audit:
+  table: transaction_audit
+  crn_column: client_reference_code
+  order_by: updated_on DESC
+  columns:
+    - txn_status
+    - txn_result_code
+    - txn_result_description
+    - internal_txn_desc

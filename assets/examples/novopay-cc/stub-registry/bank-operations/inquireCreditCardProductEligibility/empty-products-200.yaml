@@ -1,0 +1,12 @@
+fixture_id: empty-products-200
+bank_operation: inquireCreditCardProductEligibility
+masterdata_prop_key: hdfc.rest.product.eligibility.url
+wiremock:
+  request:
+    method: POST
+    urlPath: /stub/product-eligibility
+  response:
+    status: 200
+    headers:
+      Content-Type: text/xml;charset=utf-8
+    bodyFile: product-eligibility-empty.xml

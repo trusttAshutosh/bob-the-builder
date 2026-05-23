@@ -1,0 +1,18 @@
+# Smoke-parse orchestration XML when this workflow is run against a host service checkout.
+# Typical: trigger from host repo PR; checkout host + bob-the-builder side by side.
+name: Bob orchestration smoke
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'deploy/application/orchestration/**'
+jobs:
+  orchestration-parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml
+      - run: python3 -c "import pathlib; p=pathlib.Path('deploy/application/orchestration'); assert not p.exists() or list(p.rglob('*.xml')), 'no orchestration XML'"

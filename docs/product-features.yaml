@@ -1,0 +1,118 @@
+# Canonical product feature registry — verified on every CI push and via `bob verify-product`.
+# Do not remove features without updating this file and docs/NEXT.md scorecard rationale.
+version: 1
+
+features:
+  - id: cli-core
+    name: Core CLI entry
+    paths:
+      - bob.py
+      - runner/bob-the-builder.py
+      - runner/lib/builder_cli.py
+
+  - id: workspace-setup
+    name: Workspace setup & install
+    commands: [setup, install]
+    paths:
+      - runner/lib/setup_prefs.py
+      - runner/lib/install_workspace.py
+      - runner/lib/bob_home.py
+
+  - id: ticket-lifecycle
+    name: Ticket init, validate, status, reports
+    commands: [init-ticket, validate-ticket, ticket-status, open-report, list-tickets]
+    paths:
+      - runner/lib/ticket_spec.py
+      - runner/lib/run_flow.py
+      - runner/lib/run_summary.py
+      - runner/lib/evidence.py
+      - runner/run-tdd.sh
+
+  - id: knowledge-graph
+    name: Knowledge graph (platform + session)
+    commands: [sync-graph, query-graph, update-graph]
+    paths:
+      - runner/lib/platform_graph.py
+      - runner/lib/session_graph.py
+      - runner/kg-query.sh
+      - runner/kg-update.sh
+      - assets/platform-graph/README.md
+
+  - id: api-discovery
+    name: API catalog discovery
+    commands: [discover-apis]
+    paths:
+      - runner/lib/tdd_engine.py
+      - runner/discover-apis.sh
+
+  - id: stub-wiremock
+    name: Stub registry & WireMock runtime
+    paths:
+      - runner/lib/stub_registry.py
+      - runner/start-wiremock-runtime.sh
+      - runner/lib/assertions.py
+
+  - id: git-branch-policy
+    name: Git branch policy (default none)
+    commands: []
+    paths:
+      - runner/lib/read-git-policy.sh
+      - runner/schemas/ticket-spec.schema.yaml
+      - runner/ensure-feature-branch.sh
+    file_contains:
+      - file: runner/schemas/ticket-spec.schema.yaml
+        needle: "branch_policy: none"
+
+  - id: assets-empty-live
+    name: Empty live BOB_HOME catalogs
+    paths:
+      - assets/README.md
+      - assets/api-catalog/index.yaml
+      - runner/_seed/api-catalog/index.yaml
+    file_contains:
+      - file: assets/api-catalog/index.yaml
+        needle: "apis: {}"
+
+  - id: examples-novopay-cc
+    name: CC reference pack (examples only)
+    paths:
+      - assets/examples/README.md
+      - assets/examples/novopay-cc/README.md
+      - assets/examples/novopay-cc/api-catalog/index.yaml
+
+  - id: improvement-backlog
+    name: Improvement backlog
+    commands: [next, verify-product]
+    paths:
+      - docs/NEXT.md
+
+  - id: host-deploy-template
+    name: Host deploy/tdd template
+    paths:
+      - templates/host-deploy-tdd/README.md
+      - templates/host-deploy-tdd/deploy/tdd/workspace-services.yaml
+
+  - id: agent-skills
+    name: Cursor builder skills
+    paths:
+      - skills/builder-analyst/SKILL.md
+      - skills/builder-implementer/SKILL.md
+      - skills/builder-verifier/SKILL.md
+      - skills/builder-one-shot/SKILL.md
+
+  - id: path-shim
+    name: PATH shim (bob on PATH)
+    paths:
+      - runner/lib/path_shim.py
+
+  - id: workspace-cleanup
+    name: Stale workspace cleanup
+    commands: [cleanup-workspace]
+    paths:
+      - runner/lib/cleanup_workspace.py
+
+  - id: product-verify
+    name: Feature integrity verifier
+    paths:
+      - runner/ci/verify-product.py
+      - docs/product-features.yaml

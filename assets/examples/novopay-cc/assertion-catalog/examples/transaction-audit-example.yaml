@@ -1,0 +1,16 @@
+# Example only — copy presets into your feature's assertion-catalog/<feature>.yaml
+feature: example-transaction-audit
+
+presets:
+  success_na:
+    expect:
+      txn_status: NA
+  fail_with_code:
+    expect:
+      txn_status: FAIL
+
+rules:
+  no_sorry_in_audit_columns:
+    must_not_contain:
+      txn_result_description: ["Sorry", "sorry"]
+      internal_txn_desc: ["Sorry", "sorry"]

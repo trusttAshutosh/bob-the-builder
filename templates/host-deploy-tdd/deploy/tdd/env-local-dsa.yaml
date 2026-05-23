@@ -1,0 +1,33 @@
+# Novopay DSA / credit-card local profile (example).
+# In ticket-spec.yaml set:  env_profile: local-dsa
+# Align run.audit_db in ticket-spec with mysql.schemas.audit below.
+
+header_profile: dsa-agent-app
+primary_service: credit_card_management
+
+services:
+  credit_card_management:
+    base_env_var: CC_BASE
+    default_base: http://localhost:8016/cc-mgmt
+    health_path: /actuator/health
+
+  masterdata_management:
+    base_env_var: MD_BASE
+    default_base: http://localhost:8015/masterdata
+    health_path: /actuator/health
+    optional: true
+
+mysql:
+  schemas:
+    audit: dsa_credit_card_mgmt
+    masterdata: dsa_masterdata
+
+audit:
+  table: transaction_audit
+  crn_column: client_reference_code
+  order_by: updated_on DESC
+  columns:
+    - txn_status
+    - txn_result_code
+    - txn_result_description
+    - internal_txn_desc

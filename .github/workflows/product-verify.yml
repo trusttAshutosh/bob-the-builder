@@ -1,0 +1,19 @@
+# Product feature integrity — runs on every push/PR with doc-lint.
+name: Bob product verify
+on:
+  pull_request:
+    paths:
+      - '**/*'
+  push:
+    branches: [master, main]
+jobs:
+  verify-features:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml
+      - name: Verify registered features intact
+        run: python3 runner/ci/verify-product.py --check --strict

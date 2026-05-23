@@ -1,0 +1,17 @@
+# Default gateway headers for dsa_agent_app (override per step only when needed)
+profile_id: dsa-agent-app
+headers:
+  tenant_code: "{TENANT}"
+  client_code: "{CLIENT}"
+  channel_code: WEB
+  end_channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  operation_mode: SELF
+  user_id: LOCAL_QA
+  stan: "{STAN}"
+  transmission_datetime: "{STAN}"
+  locale: en
+  actor_type: AGENT
+  device_id: TDD-DEVICE

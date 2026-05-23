@@ -1,0 +1,34 @@
+api_id: fintechOtp
+service: credit-card-management
+source:
+  orchestration: deploy/application/orchestration/common_vkyc_retrigger.xml
+  request_template: deploy/application/templates/request/product/fintechOtp_requestTemplate.json
+http:
+  method: POST
+  path: /api/v1/fintechOtp
+  base_env: CC_BASE
+envelope:
+  request_key: fintechOtp
+header_defaults:
+  tenant_code: '{TENANT}'
+  client_code: '{CLIENT}'
+  channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  user_id: LOCAL_QA
+  stan: '{STAN}'
+request_defaults:
+  client_code: ''
+  client_reference_number: ''
+  mobile_number: ''
+  full_name: ''
+  transaction_type: ''
+  transaction_sub_type: ''
+  transaction_id: ''
+  otp: ''
+  is_politically_exposed: ''
+  external_txn_id: ''
+  actor_id: ''
+  preferred_language: ''
+notes: "Auto-discovered \u2014 fill request_defaults and bank_calls for your ticket."

@@ -1,0 +1,53 @@
+# Ticket Spec (TS) — single source of truth per validation run (Bob the Builder)
+version: 2
+
+ticket:
+  id: TICKET-001
+  title: Short title
+  description: |
+    Acceptance criteria and context.
+  acceptance_criteria:
+    - Measurable outcome 1
+
+git:
+  branch_policy: none  # none | novopay-feature — Bob never commits; novopay-feature may checkout feature branch
+  base_branch: ddp-prod      # when branch_policy: novopay-feature
+  branch_prefix: ddp-fea-    # when branch_policy: novopay-feature
+  commit_policy: no_commit   # informational only
+
+env_profile: local-dsa
+
+impacted:
+  feature: ""  # optional tag for assertion-catalog/<feature>.yaml
+  gateway_apis: []
+  bank_operations: []
+  processor_beans: []
+  repos:
+    - novopay-platform-creditcard-management
+  channel_matrix: [DAP]
+
+run:
+  audit_db: dsa_credit_card_mgmt
+  wiremock_port: 9090
+
+# Stub registry refs: stub-registry/bank-operations/<op>/<fixture>.yaml
+stubs: []
+
+# Masterdata URL overrides when using WireMock (prop_key / prop_value; use {WIREMOCK_PORT})
+masterdata: []
+
+evidence_required:
+  - transaction_audit
+  - api_response
+  - logs
+
+scenarios:
+  - id: S1
+    name: Primary scenario
+    verification_level: e2e  # unit | integration | e2e
+    # gradle_tests: in.novopay.example.SomeTest  # required for verification_level: unit
+    steps: []
+    #  - api_id: <from api-catalog after discover>
+    log_patterns: []
+    db: {}
+    #  assertion_preset: <from assertion-catalog preset name>
