@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=7562d5e -->
+<!-- PRODUCT-VERIFY:COMMIT=fd510a7 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,20 +28,24 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `7562d5e` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `fd510a7` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `7562d5e` — fix(ci): product verify â€” features block, stamp drift warns only
+**Commit:** `fd510a7` — feat: zero-habit reminders â€” bob remind, auto NEXT.md refresh, CI fix
 **Date:** 2026-05-23
 
 ### Files changed
-- `.github/workflows/product-verify.yml`
+- `.cursor/rules/bob-zero-cognitive-load.mdc`
 - `docs/NEXT.md`
-- `runner/ci/verify-product.py`
+- `docs/product-features.yaml`
+- `runner/lib/builder_cli.py`
+- `runner/lib/product_reminder.py`
+- `skills/README.md`
 
 ### Features touched in this commit
-- Improvement backlog (`improvement-backlog`) — files touched
+- Core CLI entry (`cli-core`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 - Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
@@ -61,7 +65,7 @@
 | Git branch policy (default none) | `git-branch-policy` | intact |
 | Empty live BOB_HOME catalogs | `assets-empty-live` | intact |
 | CC reference pack (examples only) | `examples-novopay-cc` | intact |
-| Improvement backlog | `improvement-backlog` | intact |
+| Improvement backlog & reminders | `improvement-backlog` | intact |
 | Host deploy/tdd template | `host-deploy-template` | intact |
 | Cursor builder skills | `agent-skills` | intact |
 | PATH shim (bob on PATH) | `path-shim` | intact |
