@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=af7b077 -->
+<!-- PRODUCT-VERIFY:COMMIT=eef2046 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,24 +28,47 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `af7b077` · 16/16 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `eef2046` · 16/16 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `af7b077` — feat: zero-habit reminders â€” bob remind, auto NEXT.md refresh, CI fix
+**Commit:** `eef2046` — feat: dynamic peer service boot without deploy/tdd config
 **Date:** 2026-05-23
 
 ### Files changed
 - `.cursor/rules/bob-zero-cognitive-load.mdc`
+- `.gitignore`
+- `README.md`
+- `docs/BOB_CHEATSHEET.md`
+- `docs/DATA_LAYOUT.md`
 - `docs/NEXT.md`
+- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
 - `docs/product-features.yaml`
+- `runner/ARCHITECTURE.md`
+- `runner/README.md`
 - `runner/lib/builder_cli.py`
-- `runner/lib/product_reminder.py`
-- `skills/README.md`
+- `runner/lib/run_flow.py`
+- `runner/lib/service_boot.py`
+- `runner/lib/service_discovery.py`
+- `runner/lib/user-prefs.sh`
+- `runner/lib/workspace_services.py`
+- `runner/schemas/ticket-spec.schema.yaml`
+- `skills/builder-implementer/SKILL.md`
+- `skills/builder-one-shot/SKILL.md`
+- `templates/host-deploy-tdd/README.md`
+- `templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml`
+- `templates/host-deploy-tdd/deploy/tdd/env-local.yaml`
+- `templates/host-deploy-tdd/deploy/tdd/workspace-services.example-novopay-cc.yaml`
+- `templates/host-deploy-tdd/deploy/tdd/workspace-services.yaml`
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
+- Git branch policy (default none) (`git-branch-policy`) — files touched
 - Improvement backlog & reminders (`improvement-backlog`) — files touched
+- Host deploy/tdd template (`host-deploy-template`) — files touched
+- Cursor builder skills (`agent-skills`) — files touched
 - Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
