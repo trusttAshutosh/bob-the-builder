@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=d0b93b5 -->
+<!-- PRODUCT-VERIFY:COMMIT=6d408ef -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,18 +28,18 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `d0b93b5` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `6d408ef` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `d0b93b5` — docs: refresh NEXT.md product verify
+**Commit:** `6d408ef` — docs: Bob starts services and WireMock by default in developer guide
 **Date:** 2026-05-23
 
 ### Files changed
-- `docs/NEXT.md`
+- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
 
 ### Features touched in this commit
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
+- (none mapped — docs-only or infra)
 
 ### Regression check
 - **16/16 registered features still intact** after this commit (see below).
