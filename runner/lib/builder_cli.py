@@ -26,6 +26,7 @@ CMD_ALIASES: dict[str, str] = {
     "setup": "setup",
     "configure": "setup",
     "install": "install",
+    "install-hooks": "install-hooks",
     "cleanup-workspace": "cleanup-workspace",
     "init-ticket": "init-ticket",
     "validate-ticket": "validate-ticket",
@@ -98,7 +99,8 @@ def _print_help() -> None:
     print()
     print("Commands (name = purpose):")
     print("  setup              First-time: workspace root, MySQL, service URLs")
-    print("  install [--force] [--launchers]  Seed assets/local; optional ../bob.py shortcuts")
+    print("  install [--force] [--launchers]  Seed assets/local; install post-commit hook")
+    print("  install-hooks [--force]  Install git post-commit hook (auto NEXT.md refresh)")
     print("  cleanup-workspace [--apply]  Merge into bob-the-builder/; remove stale folders")
     print("  init-ticket ID \"Title\" [desc]")
     print("                     Create docs/tdd-runs/<ID>/ + ticket-spec.yaml")
@@ -263,6 +265,17 @@ def cmd_install(args: list[str]) -> int:
         force="--force" in args or "-f" in args,
         workspace_launchers="--launchers" in args,
     )
+
+
+def cmd_install_hooks(args: list[str]) -> int:
+    _banner("install-hooks")
+    from git_hooks import install_git_hooks
+
+    ok, msg = install_git_hooks(force="--force" in args or "-f" in args)
+    print(msg)
+    if ok:
+        print("After each git commit, Bob refreshes docs/NEXT.md (extra commit tagged [bob]).")
+    return 0 if ok else 1
 
 
 def cmd_cleanup_workspace(args: list[str]) -> int:
@@ -679,6 +692,7 @@ def main() -> int:
         "help": lambda a: (_print_help() or 0),
         "setup": cmd_setup,
         "install": cmd_install,
+        "install-hooks": cmd_install_hooks,
         "cleanup-workspace": cmd_cleanup_workspace,
         "init-ticket": cmd_init_ticket,
         "discover-apis": cmd_discover_apis,

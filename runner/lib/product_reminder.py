@@ -54,9 +54,18 @@ def next_md_stale() -> bool:
     if not head_short():
         return False
     stamp = next_stamp()
+    head = _git("rev-parse", "HEAD")
+    if stamp in {head_short(), head}:
+        return False
+    # Bob auto-docs commit: stamp documents the parent (feature) commit
+    subject = _git("log", "-1", "--format=%s")
+    if subject and "[bob]" in subject:
+        parent = _git("rev-parse", "HEAD^")
+        if parent and stamp in {parent[:7], parent}:
+            return False
     if not stamp or stamp == "none":
         return True
-    return stamp not in {head_short(), _git("rev-parse", "HEAD")}
+    return True
 
 
 def has_uncommitted() -> bool:
@@ -89,8 +98,12 @@ def refresh_next_md() -> bool:
 
 
 def auto_maintain_next_md() -> str | None:
-    """Refresh stale NEXT.md automatically. One-line message for user, or None."""
+    """Refresh stale NEXT.md during bob commands (pre-commit). Post-commit hook handles git commits."""
     if not is_product_git_repo() or not next_md_stale():
+        return None
+    from git_hooks import hooks_installed
+
+    if hooks_installed():
         return None
     if not refresh_next_md():
         return "Bob could not refresh docs/NEXT.md — run: python bob.py remind --fix"
@@ -110,9 +123,17 @@ def remind_message(*, fix: bool = False) -> tuple[str, int]:
             return ("Updated docs/NEXT.md. Commit it with your other changes, then push.", 0)
         return ("Could not update docs/NEXT.md.", 1)
 
+    from git_hooks import hooks_installed
+
+    if next_md_stale() and hooks_installed():
+        return (
+            "docs/NEXT.md will refresh on your next git commit (Bob post-commit hook).",
+            0,
+        )
+
     if next_md_stale():
         return (
-            "docs/NEXT.md is behind this commit — run: python bob.py remind --fix",
+            "docs/NEXT.md is behind — run: python bob.py install-hooks (auto after commit) or remind --fix",
             0,
         )
 

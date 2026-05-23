@@ -191,7 +191,7 @@ def _update_meta_lines(text: str, commit: str, checked: str) -> str:
 def render_scorecard_footer(ok: int, total: int, info: dict) -> str:
     return (
         f"*Last feature check: {info['date']} · commit `{info['hash_short']}` · "
-        f"{ok}/{total} features intact · run `bob verify-product --update` before commit*"
+        f"{ok}/{total} features intact · auto-refreshed after commit via post-commit hook*"
     )
 
 

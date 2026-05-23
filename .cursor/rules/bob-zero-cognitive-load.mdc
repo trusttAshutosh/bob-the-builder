@@ -11,8 +11,8 @@ The user does **not** memorize Bob habits. **You** (the agent) handle reminders,
 
 ## Before any git commit or push in `bob-the-builder/`
 
-1. Run: `python bob.py remind --fix` (or `bob remind --fix` if on PATH)
-2. If `docs/NEXT.md` changed, stage and include it in the same commit
+1. **You do not need to refresh `docs/NEXT.md` manually** — run `bob install-hooks` once; after each `git commit`, Bob adds a small `[bob]` docs commit automatically.
+2. Before **push**, run: `python bob.py remind` (optional sanity check)
 3. Tell the user in **one sentence** what you did — no checklists unless they ask
 
 ## When implementing / reading code / writing tests / stubs — peer services
@@ -48,7 +48,8 @@ Force re-boot: add `--force`
 
 ## Bob auto-behaviour (product CLI)
 
-- After most commands, Bob auto-refreshes stale `docs/NEXT.md`
+- After most commands, Bob auto-refreshes stale `docs/NEXT.md` when hooks are **not** installed
+- **`bob install-hooks`**: post-commit hook auto-commits NEXT.md refresh after every git commit
 - CI **blocks** only if a registered feature was removed (`docs/product-features.yaml`)
 - `validate-ticket` auto-boots when `run.auto_boot_services: true` (default) and discovers peers when `run.auto_discover_services: true` (default)
 

@@ -86,4 +86,11 @@ python "%~dp0bob-the-builder\bob.py" %*
     print()
     print(f"  BOB_HOME={product / 'assets'}")
     print(f"  BOB_LOCAL={product / LOCAL_SUB}")
+
+    from git_hooks import install_git_hooks
+
+    _ok, hook_msg = install_git_hooks(force=force)
+    print()
+    print(hook_msg)
+    print("  After each git commit, Bob auto-refreshes docs/NEXT.md (separate [bob] commit).")
     return 0

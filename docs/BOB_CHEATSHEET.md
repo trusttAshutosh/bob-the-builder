@@ -5,7 +5,8 @@
 | Command | What it does |
 |---------|----------------|
 | `bob setup` | Save workspace path, MySQL, URLs → `BOB_LOCAL/user.env` |
-| `bob install` | Seed **empty** `assets/` from `_seed` + `local/` (CC reference lives under `assets/examples/`) |
+| `bob install` | Seed **empty** `assets/` from `_seed` + `local/`; install post-commit hook |
+| `bob install-hooks` | Re-install git post-commit hook (auto NEXT.md after commit) |
 | `bob install --launchers` | Optional: also write `{workspace}/bob.py` + `bob.cmd` shortcuts |
 | `bob cleanup-workspace --apply` | One folder only: merge/remove stale `novopay-bob*`, `.bob-the-builder` |
 | `bob init-ticket ID "Title"` | New folder `docs/tdd-runs/ID/` in host repo |

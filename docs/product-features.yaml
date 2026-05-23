@@ -12,11 +12,13 @@ features:
 
   - id: workspace-setup
     name: Workspace setup & install
-    commands: [setup, install]
+    commands: [setup, install, install-hooks]
     paths:
       - runner/lib/setup_prefs.py
       - runner/lib/install_workspace.py
       - runner/lib/bob_home.py
+      - runner/lib/git_hooks.py
+      - runner/hooks/post-commit
 
   - id: ticket-lifecycle
     name: Ticket init, validate, status, reports

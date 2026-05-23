@@ -35,7 +35,7 @@ bob-the-builder/
    ```
 
    `setup` writes `local/user.env` with `BUILDER_WORKSPACE_ROOT`.  
-   `install` seeds `assets/` and creates `local/` only inside this repo. Optional: `bob install --launchers` writes `../bob.py` shortcuts in the workspace parent.
+   `install` seeds `assets/` and installs a **post-commit hook** that auto-refreshes `docs/NEXT.md` after each git commit. Optional: `bob install --launchers` writes `../bob.py` shortcuts in the workspace parent.
 
 3. Optional: copy `skills/builder-*` into your Cursor skills folder or open this repo in Cursor.
 

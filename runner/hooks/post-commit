@@ -1,0 +1,24 @@
+#!/bin/sh
+# Bob — refresh docs/NEXT.md after each commit (separate docs commit; no amend loop).
+# Installed by: bob install / bob install-hooks
+
+[ -n "$BOB_SKIP_POST_COMMIT" ] && exit 0
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$ROOT" || exit 0
+
+[ -f bob.py ] && [ -f docs/NEXT.md ] || exit 0
+
+LAST_MSG="$(git log -1 --format=%s 2>/dev/null)" || exit 0
+case "$LAST_MSG" in
+  *"[bob]"*) exit 0 ;;
+esac
+
+python bob.py verify-product --update >/dev/null 2>&1 || exit 0
+
+git diff --quiet docs/NEXT.md 2>/dev/null && exit 0
+
+export BOB_SKIP_POST_COMMIT=1
+git add docs/NEXT.md
+git commit -m "docs: refresh NEXT.md product verify [bob]" --no-verify
+unset BOB_SKIP_POST_COMMIT
