@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=63e5e9c -->
+<!-- PRODUCT-VERIFY:COMMIT=d0b93b5 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `63e5e9c` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `d0b93b5` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `63e5e9c` — docs: refresh NEXT.md product verify [bob]
+**Commit:** `d0b93b5` — docs: refresh NEXT.md product verify
 **Date:** 2026-05-23
 
 ### Files changed
