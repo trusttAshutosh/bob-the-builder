@@ -10,7 +10,7 @@
 | **CI** | Every push **blocks** if a registered feature is removed; NEXT.md drift is a warning only |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=8661d2f -->
+<!-- PRODUCT-VERIFY:COMMIT=e25a4ca -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,18 +28,21 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `8661d2f` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `e25a4ca` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `8661d2f` — docs: refresh product verify stamp
+**Commit:** `e25a4ca` — fix(ci): product verify â€” features block, stamp drift warns only
 **Date:** 2026-05-23
 
 ### Files changed
+- `.github/workflows/product-verify.yml`
 - `docs/NEXT.md`
+- `runner/ci/verify-product.py`
 
 ### Features touched in this commit
 - Improvement backlog (`improvement-backlog`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **15/15 registered features still intact** after this commit (see below).
