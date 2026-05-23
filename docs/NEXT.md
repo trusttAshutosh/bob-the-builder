@@ -6,11 +6,11 @@
 |---|---|
 | **Read** | Before picking up Bob product work |
 | **Update** | When something ships → move it to **Done** with date; when you find a gap → add under **Now** / **Next** / **Later** |
-| **Verify** | After changes: `python bob.py verify-product --update` and commit `docs/NEXT.md` (best: same push as your code) |
-| **CI** | Every push **blocks** if a registered feature is removed; NEXT.md drift is a warning only |
+| **Verify** | You don't — say **commit** or **push** in Cursor; agent runs `bob remind --fix`. Bob auto-refreshes stale `docs/NEXT.md` after most commands. |
+| **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=e25a4ca -->
+<!-- PRODUCT-VERIFY:COMMIT=7562d5e -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `e25a4ca` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `7562d5e` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `e25a4ca` — fix(ci): product verify â€” features block, stamp drift warns only
+**Commit:** `7562d5e` — fix(ci): product verify â€” features block, stamp drift warns only
 **Date:** 2026-05-23
 
 ### Files changed

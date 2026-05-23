@@ -1,0 +1,31 @@
+---
+description: Bob the Builder — agent reminds user; user does not memorize workflows
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+# Bob — zero cognitive load (agent duty)
+
+The user does **not** memorize Bob habits. **You** (the agent) handle reminders and doc upkeep.
+
+## Before any git commit or push in `bob-the-builder/`
+
+1. Run: `python bob.py remind --fix` (or `bob remind --fix` if on PATH)
+2. If `docs/NEXT.md` changed, stage and include it in the same commit
+3. Tell the user in **one sentence** what you did — no checklists unless they ask
+
+## When user finishes Bob product work
+
+- Run `python bob.py remind` and relay the single line Bob prints
+- Do **not** ask them to remember `verify-product`, stamp hashes, or CI flags
+
+## Bob auto-behaviour (product CLI)
+
+- After most commands, Bob auto-refreshes stale `docs/NEXT.md`
+- CI **blocks** only if a registered feature was removed (`docs/product-features.yaml`)
+- Scorecard grades in `docs/NEXT.md` are manual; feature table is automatic
+
+## User-facing phrase
+
+Prefer: *"Say commit or push and I'll handle Bob docs"* — not a list of commands.

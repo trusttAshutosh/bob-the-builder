@@ -81,8 +81,8 @@ features:
       - assets/examples/novopay-cc/api-catalog/index.yaml
 
   - id: improvement-backlog
-    name: Improvement backlog
-    commands: [next, verify-product]
+    name: Improvement backlog & reminders
+    commands: [next, remind, verify-product]
     paths:
       - docs/NEXT.md
 
@@ -115,4 +115,5 @@ features:
     name: Feature integrity verifier
     paths:
       - runner/ci/verify-product.py
+      - runner/lib/product_reminder.py
       - docs/product-features.yaml

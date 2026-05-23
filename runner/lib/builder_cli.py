@@ -41,6 +41,7 @@ CMD_ALIASES: dict[str, str] = {
     "roadmap": "next",
     "backlog": "next",
     "verify-product": "verify-product",
+    "remind": "remind",
     "help": "help",
     "bobhelp": "help",
     "bob-help": "help",
@@ -100,6 +101,7 @@ def _print_help() -> None:
     print("  list-tickets       List ticket folders in host repo")
     print("  next               Improvement backlog (docs/NEXT.md)")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
+    print("  remind [--fix]     One-line status; --fix refreshes docs/NEXT.md for you")
     print("  query-graph [kw]   Context slice for agents -> BOB_LOCAL/agent/")
     print("  update-graph ID [title]  Update session graph")
     print()
@@ -112,6 +114,7 @@ def _print_help() -> None:
     print("Bob never runs git commit or git push.")
     print("Guide: docs/TDD_SYSTEM_DEVELOPER_GUIDE.md")
     print("Backlog: docs/NEXT.md  (bob next)")
+    print("You do not memorize workflows — use bob remind, or ask Cursor to commit/push.")
 
 
 def _banner(command: str) -> None:
@@ -391,7 +394,7 @@ def cmd_verify_product(args: list[str]) -> int:
     _banner("verify-product")
     script = tdd_root() / "ci" / "verify-product.py"
     cmd = [sys.executable, str(script)]
-    if "--update" in args or "-u" in args:
+    if "--update" in args or "-u" in args or "--fix" in args:
         cmd.append("--update")
     elif "--strict" in args:
         cmd.extend(["--check", "--strict"])
@@ -400,6 +403,16 @@ def cmd_verify_product(args: list[str]) -> int:
     from bob_home import bob_product_root
 
     return subprocess.run(cmd, cwd=str(bob_product_root())).returncode
+
+
+def cmd_remind(args: list[str]) -> int:
+    _banner("remind")
+    from product_reminder import remind_message
+
+    fix = "--fix" in args or "-f" in args
+    msg, code = remind_message(fix=fix)
+    print(msg)
+    return code
 
 
 def cmd_version(_: list[str]) -> int:
@@ -479,6 +492,7 @@ def main() -> int:
         "open-report": cmd_open_report,
         "next": cmd_next,
         "verify-product": cmd_verify_product,
+        "remind": cmd_remind,
         "version": cmd_version,
     }
     h = handlers.get(cmd)
@@ -487,8 +501,11 @@ def main() -> int:
         _print_help()
         return 1
     rc = h(args)
-    if cmd not in ("help", "version", "next", "verify-product"):
+    if cmd not in ("help", "version", "next", "verify-product", "remind"):
         _print_next_steps(cmd, args, rc)
+    from product_reminder import print_nudge_after_command
+
+    print_nudge_after_command(cmd)
     from path_shim import ensure_bob_on_path
 
     ensure_bob_on_path(quiet=False)

@@ -9,6 +9,6 @@ Copy or symlink these into your Cursor skills folder, or open `bob-the-builder` 
 | `builder-verifier` | `validate-ticket`, evidence review — no product code changes |
 | `builder-one-shot` | full flow orchestration |
 
-Host service repos (e.g. credit-card-management) should **not** duplicate these — use the product repo only.
+**User habit:** none — agent runs `python bob.py remind --fix` before commit/push in this repo.
 
 Guide: [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
