@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=476975f -->
+<!-- PRODUCT-VERIFY:COMMIT=703feac -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `476975f` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `703feac` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `476975f` — chore: ignore .idea IDE metadata
+**Commit:** `703feac` — chore: ignore .idea IDE metadata
 **Date:** 2026-05-23
 
 ### Files changed
