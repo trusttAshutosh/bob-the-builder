@@ -10,7 +10,7 @@
 | **CI** | Every push checks features intact (`product-verify.yml`); stamp must match HEAD (`--strict`) |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=51294e5 -->
+<!-- PRODUCT-VERIFY:COMMIT=f7170e4 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,72 +28,18 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `51294e5` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `f7170e4` · 15/15 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `51294e5` — Initial commit: Bob the Builder product repo
+**Commit:** `f7170e4` — docs: refresh product verify stamp
 **Date:** 2026-05-23
 
 ### Files changed
-- `.github/workflows/doc-lint.yml`
-- `.github/workflows/orchestration-smoke.yml`
-- `.github/workflows/product-verify.yml`
-- `.gitignore`
-- `.idea/.gitignore`
-- `.idea/misc.xml`
-- `README.md`
-- `assets/README.md`
-- `assets/api-catalog/README.md`
-- `assets/api-catalog/index.yaml`
-- `assets/assertion-catalog/README.md`
-- `assets/examples/README.md`
-- `assets/examples/novopay-cc/README.md`
-- `assets/examples/novopay-cc/api-catalog/README.md`
-- `assets/examples/novopay-cc/api-catalog/apis/checkPerfiosTxnStatus.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/createOrUpdateLoanTransaction.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/creditCardTransactionReport.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/customerEmailValidationForCC.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/customerEmailValidationStatusForCC.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/customerOTPLoc.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/dvkycRetrigger.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fetchCustomerDetailsWithDedupe.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fetchCustomerPreapprovedOffers.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fetchDemogDetails.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fetchEkycDetailsForCC.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fetchEkycDetailsForCCDSA.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/fintechOtp.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/generatePerfiosLink.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getBankBranchDetails.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getBankMasterList.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getBkycFileList.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getBkycLeadList.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCCTransactionAttributes.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCompanyDomainId.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCompanyNameList.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCorporateInsuranceMappingList.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCreditCardStats.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCreditCardTransactionDetails.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCreditCardTransactionHistory.yaml`
-- `assets/examples/novopay-cc/api-catalog/apis/getCustomerLeadByDseCode.yaml`
-- … and 106 more
+- `docs/NEXT.md`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Workspace setup & install (`workspace-setup`) — files touched
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Knowledge graph (platform + session) (`knowledge-graph`) — files touched
-- API catalog discovery (`api-discovery`) — files touched
-- Stub registry & WireMock runtime (`stub-wiremock`) — files touched
-- Git branch policy (default none) (`git-branch-policy`) — files touched
-- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
-- CC reference pack (examples only) (`examples-novopay-cc`) — files touched
 - Improvement backlog (`improvement-backlog`) — files touched
-- Host deploy/tdd template (`host-deploy-template`) — files touched
-- Cursor builder skills (`agent-skills`) — files touched
-- PATH shim (bob on PATH) (`path-shim`) — files touched
-- Stale workspace cleanup (`workspace-cleanup`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **15/15 registered features still intact** after this commit (see below).
