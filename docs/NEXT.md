@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=5f76e2d -->
+<!-- PRODUCT-VERIFY:COMMIT=e917807 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,47 +28,28 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `5f76e2d` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-05-23 · commit `e917807` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `5f76e2d` — feat: dynamic peer service boot without deploy/tdd config
+**Commit:** `e917807` — feat: auto-refresh NEXT.md after git commit via post-commit hook
 **Date:** 2026-05-23
 
 ### Files changed
 - `.cursor/rules/bob-zero-cognitive-load.mdc`
-- `.gitignore`
 - `README.md`
 - `docs/BOB_CHEATSHEET.md`
-- `docs/DATA_LAYOUT.md`
-- `docs/NEXT.md`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
 - `docs/product-features.yaml`
-- `runner/ARCHITECTURE.md`
-- `runner/README.md`
+- `runner/ci/verify-product.py`
+- `runner/hooks/post-commit`
 - `runner/lib/builder_cli.py`
-- `runner/lib/run_flow.py`
-- `runner/lib/service_boot.py`
-- `runner/lib/service_discovery.py`
-- `runner/lib/user-prefs.sh`
-- `runner/lib/workspace_services.py`
-- `runner/schemas/ticket-spec.schema.yaml`
-- `skills/builder-implementer/SKILL.md`
-- `skills/builder-one-shot/SKILL.md`
-- `templates/host-deploy-tdd/README.md`
-- `templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml`
-- `templates/host-deploy-tdd/deploy/tdd/env-local.yaml`
-- `templates/host-deploy-tdd/deploy/tdd/workspace-services.example-novopay-cc.yaml`
-- `templates/host-deploy-tdd/deploy/tdd/workspace-services.yaml`
+- `runner/lib/git_hooks.py`
+- `runner/lib/install_workspace.py`
+- `runner/lib/product_reminder.py`
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
-- Git branch policy (default none) (`git-branch-policy`) — files touched
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
-- Host deploy/tdd template (`host-deploy-template`) — files touched
-- Cursor builder skills (`agent-skills`) — files touched
+- Workspace setup & install (`workspace-setup`) — files touched
 - Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
