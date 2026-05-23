@@ -12,6 +12,8 @@ services:
     base_env_var: SERVICE_BASE
     default_base: http://localhost:8080/your-service-context
     health_path: /actuator/health
+    boot:
+      task: bootRun
 
   # Optional second service (skip health if optional: true and env var unset):
   # config_service:

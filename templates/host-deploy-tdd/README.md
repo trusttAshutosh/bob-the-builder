@@ -31,6 +31,11 @@ Copy-Item "$Bob\templates\host-deploy-tdd\deploy\tdd\env-local.yaml" deploy\tdd\
 2. **`env-local.yaml`** (or `env-local-dsa.yaml`) — set service URLs, MySQL schema names, health paths.
 3. **`docs/tdd-runs/<ticket>/ticket-spec.yaml`** — set `env_profile:` to match the env file **basename** (without `.yaml`), e.g. `local` or `local-dsa`.
 4. Run **`bob setup`** once — map `CC_BASE`, `MD_BASE`, `MYSQL_*`, `LOGS_DIR` in `bob-the-builder/local/user.env`.
+5. Bob can **`bootRun` services for you** in two ways:
+   - **Dynamic (no config required):** `bob ensure-peers` or `bob need-service notifications` — scans host Java/properties + session registry; boots only what is down.
+   - **Profile-based (optional):** `deploy/tdd/workspace-services.yaml` + env profile `services.*.boot`; auto on `validate-ticket` when `run.auto_boot_services: true` (default) and `run.auto_discover_services: true` (default).
+
+Bank/HDFC stays on **WireMock** — never bootRun partner APIs.
 
 ## Verify
 
@@ -38,6 +43,7 @@ Copy-Item "$Bob\templates\host-deploy-tdd\deploy\tdd\env-local.yaml" deploy\tdd\
 cd your-host-service-repo
 bob init-ticket MY-123 "Title"
 bob discover-apis
+bob ensure-peers          # optional: boot discovered peers before validate
 bob validate-ticket MY-123
 ```
 

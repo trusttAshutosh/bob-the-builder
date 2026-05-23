@@ -21,11 +21,17 @@ Set `BUILDER_WORKSPACE_ROOT` via `bob setup` only — no hardcoded machine paths
 
 `python bob.py <command>` or `bob <command>` (after first-run PATH shim) — see `bob help`.
 
-Core commands: `setup`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`.
+Core commands: `setup`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`, `ensure-peers`, `need-service`, `discover-services`, `start-services`, `stop-services`.
 
-## Modules
+## Service boot
 
-`builder_cli.py`, `bob_home.py`, `host_repo.py`, `workspace_env.py`, `ticket_spec.py`, `run_flow.py`, `tdd_engine.py`, …
+| Module | Role |
+|--------|------|
+| `service_boot.py` | Gradle `bootRun`, health wait, pid/log under `local/.runtime-services/` |
+| `service_discovery.py` | Fuzzy repo find, port inference, property + Java scan, session registry |
+| `workspace_services.py` | Optional `deploy/tdd/workspace-services.yaml` map |
+
+Bank/HDFC: WireMock only — never bootRun partner APIs.
 
 ## Skills
 

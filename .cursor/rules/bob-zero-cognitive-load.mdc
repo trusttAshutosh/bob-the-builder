@@ -7,13 +7,39 @@ alwaysApply: false
 
 # Bob — zero cognitive load (agent duty)
 
-The user does **not** memorize Bob habits. **You** (the agent) handle reminders and doc upkeep.
+The user does **not** memorize Bob habits. **You** (the agent) handle reminders, peer services, and doc upkeep.
 
 ## Before any git commit or push in `bob-the-builder/`
 
 1. Run: `python bob.py remind --fix` (or `bob remind --fix` if on PATH)
 2. If `docs/NEXT.md` changed, stage and include it in the same commit
 3. Tell the user in **one sentence** what you did — no checklists unless they ask
+
+## When implementing / reading code / writing tests / stubs — peer services
+
+Bob can **bootRun Novopay microservices on its own**. No `deploy/tdd/workspace-services.yaml` entry is required.
+
+**Default agent behaviour** — run proactively when you notice another service is needed (imports, Feign clients, localhost URLs, config keys like `notification`, `consent`, `masterdata`):
+
+```bash
+cd ~/Desktop/novopay/bob-the-builder   # or product root from bob setup
+python bob.py ensure-peers
+```
+
+That scans host **Java + properties + session registry**, registers peers, and boots only what is not already healthy.
+
+For a **single** known peer:
+
+```bash
+python bob.py need-service notifications --reason "SMS in consent flow"
+python bob.py need-service consents
+python bob.py need-service masterdata
+```
+
+List without booting: `python bob.py discover-services`  
+Force re-boot: add `--force`
+
+**Never** bootRun bank/HDFC partner APIs — those stay on **WireMock**.
 
 ## When user finishes Bob product work
 
@@ -24,7 +50,7 @@ The user does **not** memorize Bob habits. **You** (the agent) handle reminders 
 
 - After most commands, Bob auto-refreshes stale `docs/NEXT.md`
 - CI **blocks** only if a registered feature was removed (`docs/product-features.yaml`)
-- Scorecard grades in `docs/NEXT.md` are manual; feature table is automatic
+- `validate-ticket` auto-boots when `run.auto_boot_services: true` (default) and discovers peers when `run.auto_discover_services: true` (default)
 
 ## User-facing phrase
 

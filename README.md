@@ -39,7 +39,7 @@ bob-the-builder/
 
 3. Optional: copy `skills/builder-*` into your Cursor skills folder or open this repo in Cursor.
 
-4. **Host service glue** (once per service repo): copy [`templates/host-deploy-tdd/`](templates/host-deploy-tdd/README.md) → `your-service/deploy/tdd/`.
+4. **Host service glue** (optional but recommended): copy [`templates/host-deploy-tdd/`](templates/host-deploy-tdd/README.md) → `your-service/deploy/tdd/`. Bob can also **discover and boot peer services without this** — see [Service boot](#service-boot-dynamic-peers) below.
 
 ## Daily use (any service repo)
 
@@ -55,6 +55,23 @@ bob validate-ticket MY-123
 Until then: `python bob.py <command>` from `bob-the-builder/`.
 
 Tickets and evidence live in the **host** repo: `docs/tdd-runs/<ticket-id>/`.
+
+## Service boot (dynamic peers)
+
+Bob can **`gradlew bootRun` Novopay microservices** when a ticket or agent session needs them — **no** `deploy/tdd/workspace-services.yaml` entry required.
+
+| Command | Purpose |
+|---------|---------|
+| `bob ensure-peers` | Scan host code + properties; boot peers not already healthy |
+| `bob need-service NAME` | Register + boot one repo by hint (`notifications`, `consents`, …) |
+| `bob discover-services` | List discovered peers; `--boot` to start all |
+| `bob start-services` | Boot from env profile / ticket spec |
+| `bob services-status` | Health + pid for profile services |
+| `bob stop-services` | Stop Bob-started bootRun processes |
+
+Bank/HDFC partner APIs stay on **WireMock** — never bootRun the real bank.
+
+`validate-ticket` auto-boots when `run.auto_boot_services: true` (default) and discovers peers when `run.auto_discover_services: true` (default). Session registry: `local/agent/required-services.yaml`.
 
 ## Environment
 

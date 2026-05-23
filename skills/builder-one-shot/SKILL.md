@@ -14,6 +14,7 @@ bob setup
 bob install          # optional workspace copy
 bob init-ticket ID "Title"
 # analyst fills ticket-spec; implementer codes; then:
+bob ensure-peers   # optional — boot discovered Novopay peers (not bank/HDFC)
 bob validate-ticket ID
 ```
 

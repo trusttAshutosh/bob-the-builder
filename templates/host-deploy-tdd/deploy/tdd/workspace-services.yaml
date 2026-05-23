@@ -2,12 +2,14 @@
 # Used by validate-ticket decision trace (properties_to_review) and multi-repo hints.
 
 services:
-  # Key must match ticket-spec impacted.repos entries OR service keys you reference.
+  # Key must match env profile service keys (or use workspace_key in env yaml).
   primary:
     repo_dir: REPLACE-WITH-YOUR-SERVICE-REPO-FOLDER
     config_files:
       - src/main/resources/application.properties
-      # - deploy/application/dist/application.properties
+    boot:
+      task: bootRun
+      args: []
 
   # Add sibling services your ticket may need (optional):
   # masterdata:

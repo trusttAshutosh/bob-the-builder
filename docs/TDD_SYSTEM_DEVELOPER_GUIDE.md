@@ -128,14 +128,17 @@ All service repositories sit under **one parent directory**. Bob asks for that p
   bob.py                     <- optional launcher (bob install --launchers)
 ```
 
-Host repos keep `deploy/tdd/workspace-services.yaml` and `deploy/tdd/env-*.yaml` — copy from [`templates/host-deploy-tdd/`](../templates/host-deploy-tdd/README.md) (~2 min).
+Host repos **may** keep `deploy/tdd/workspace-services.yaml` and `deploy/tdd/env-*.yaml` — copy from [`templates/host-deploy-tdd/`](../templates/host-deploy-tdd/README.md) (~2 min). This is **optional** for service boot: Bob can discover peers from host code and properties without any deploy/tdd entry.
 
 **Workflow:**
 
 1. Read `ticket-spec.yaml` → `impacted.repos`, `gateway_apis`, `stubs`.
-2. Start **only** required services; set DB URLs and ports in each repo’s properties.
+2. **Start required services** — manually, or let Bob do it:
+   - `bob ensure-peers` — scan host Java + properties; boot peers not already up
+   - `bob need-service <hint>` — one peer (e.g. `notifications`, `consents`)
+   - `bob validate-ticket <id>` — auto-boot when `run.auto_boot_services: true` (default) + peer discovery when `run.auto_discover_services: true` (default)
 3. If the ticket uses external HTTP partners, run WireMock and apply **config URL overrides** from the spec (`masterdata:` section — only when your platform stores partner URLs in a config DB).
-4. `validate-ticket <id>` — health checks use the **env profile** `services:` list (whatever you configure).
+4. Health checks use the **env profile** `services:` list when present, plus any **discovered** peers.
 
 Decision trace shows **workspace_services**, **properties_to_review**, and **service_health** per entry in the profile.
 
@@ -164,7 +167,7 @@ Team workflow: publish `bob-the-builder` as one GitHub repo; `bob install` under
 ### Prerequisites
 
 - `bob setup` completed (`BUILDER_WORKSPACE_ROOT`, `BOB_HOME`, `BOB_LOCAL`, MySQL, log dir)
-- **Services required by the ticket** running locally
+- **Services required by the ticket** running locally (or use `bob ensure-peers` / `validate-ticket` auto-boot)
 - **MySQL** (schemas from env profile / ticket-spec `run.audit_db`)
 - **WireMock** when the ticket uses `stubs`
 - Python 3.11+ and `pip install pyyaml`
@@ -180,6 +183,8 @@ python bob.py sync-graph
 python bob.py validate-ticket MY-123
 python bob.py ticket-status MY-123
 python bob.py open-report MY-123
+python bob.py ensure-peers
+python bob.py need-service notifications --reason "peer for this flow"
 python bob.py help
 ```
 
@@ -196,7 +201,7 @@ Cheat sheet: [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md).
 3. Analyst: `ticket-spec.yaml`, `TEST_PLAN.md`, stubs under `BOB_HOME`
 4. `bob discover-apis` / `bob sync-graph` when orchestration changes
 5. Implementer: code in repos under `BUILDER_WORKSPACE_ROOT`; **no commit** unless asked
-6. Start services + WireMock; config overrides from spec
+6. Start services (`bob ensure-peers` or manual) + WireMock; config overrides from spec
 7. Verifier: `bob validate-ticket <id>` → `RUN_SUMMARY.md` / `REPORT.html`
 8. Share evidence folder or report only if the team wants ticket examples in git
 
@@ -235,7 +240,7 @@ Session history: `{BOB_LOCAL}/agent/session-graph.yaml`.
 
 - `discover-apis` / `sync-graph` read **that** repo’s orchestration
 - `init-ticket` / `validate-ticket` use **that** repo’s `docs/tdd-runs/`
-- Sibling repos are still started via `workspace-services.yaml` + ticket `impacted.repos`
+- Sibling repos can be started via **`bob ensure-peers` / `need-service`** (dynamic) or **`workspace-services.yaml`** + ticket `impacted.repos` (profile-based)
 
 Override: `BOB_HOST_REPO=/absolute/path/to/clone`.
 
@@ -289,10 +294,22 @@ Example profile: [`deploy/tdd/env-local-dsa.yaml`](../deploy/tdd/env-local-dsa.y
 
 1. `bob setup`
 2. MySQL (+ Redis/Kafka only if your ticket needs them)
-3. Start services listed in `impacted.repos` / env profile
+3. **Novopay microservices:** `bob ensure-peers` or `validate-ticket` (auto-boot) — **not** bank/HDFC (WireMock only)
 4. WireMock when using `stubs`
 5. Apply config SQL from ticket run folder if generated
 6. Restart services after config URL changes
+
+### Service boot commands
+
+| Command | When |
+|---------|------|
+| `bob ensure-peers` | Implementing / testing / stubs — scan host code + properties; boot what is down |
+| `bob need-service NAME` | You know one peer (`notifications`, `consents`, `masterdata`, …) |
+| `bob discover-services` | List peers only; `--boot` to start all |
+| `bob start-services` | Boot from env profile keys |
+| `bob stop-services` | Stop Bob-started `bootRun` processes |
+
+Discovery sources: env profile `services:`, host `application.properties` localhost URLs, Java imports (`in.novopay.infra.notifications`, …), `local/agent/required-services.yaml`. Peer repos must exist under `BUILDER_WORKSPACE_ROOT` with `gradlew`.
 
 Prefs come from `bob setup` (`BOB_LOCAL/user.env`) — map to whatever appears in your env profile’s `base_env_var` names.
 

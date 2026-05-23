@@ -1,12 +1,19 @@
-# Novopay CC example — optional second file in workspace-services.yaml
-# Uncomment and set repo_dir to match your BUILDER_WORKSPACE_ROOT clone names.
+# Novopay DSA workspace map — copy to host repo deploy/tdd/workspace-services.yaml
+# Service keys must match deploy/tdd/env-local-dsa.yaml (or set workspace_key there).
 
-# services:
-#   credit_card_management:
-#     repo_dir: novopay-platform-creditcard-management
-#     config_files:
-#       - src/main/resources/application.properties
-#   masterdata_management:
-#     repo_dir: novopay-platform-masterdata-management
-#     config_files:
-#       - src/main/resources/application.properties
+services:
+  credit_card_management:
+    repo_dir: novopay-platform-creditcard-management
+    config_files:
+      - src/main/resources/application.properties
+    boot:
+      task: bootRun
+      args: []
+
+  masterdata_management:
+    repo_dir: novopay-platform-masterdata-management
+    config_files:
+      - src/main/resources/application.properties
+    boot:
+      task: bootRun
+      args: []

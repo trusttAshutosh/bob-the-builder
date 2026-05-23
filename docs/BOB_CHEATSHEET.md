@@ -19,7 +19,13 @@
 | `bob help` | Full command list (`bob bobhelp`, `bob h`, `bob ?`) |
 | `bob next` | Improvement backlog → [docs/NEXT.md](NEXT.md) |
 | `bob verify-product` | Check feature registry; `--update` refreshes scorecard sections in NEXT.md |
-| Host setup | Copy `templates/host-deploy-tdd/` → `deploy/tdd/` in service repo |
+| `bob ensure-peers` | Scan host code/properties; boot peer services not already up (no deploy/tdd required) |
+| `bob need-service NAME` | Register + boot one peer by hint (`notifications`, `consents`, `masterdata`, …) |
+| `bob discover-services` | List peers; add `--boot` to start all |
+| `bob start-services` | Gradle bootRun from env profile / ticket |
+| `bob services-status` | Health + pid |
+| `bob stop-services` | Stop Bob-started bootRun |
+| Host setup | Copy `templates/host-deploy-tdd/` → `deploy/tdd/` in service repo (optional; helps env profiles) |
 
 | Path | Contents |
 |------|----------|

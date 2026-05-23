@@ -131,7 +131,7 @@ run_prefs_wizard() {
 
   save_user_prefs
   echo ""
-  echo "Before bob validate-ticket: start required services, set application.properties + DB creds in each repo."
+  echo "Before bob validate-ticket: ensure deploy/tdd/ is configured; Bob can bootRun services automatically."
   echo "Reference: deploy/tdd/workspace-services.yaml"
   echo ""
 }

@@ -31,6 +31,12 @@ Run `python bob.py help`.
 | `validate-ticket` | Run + evidence |
 | `ticket-status` | Last run summary |
 | `open-report` | Paths to reports |
+| `ensure-peers` | Dynamic peer scan + bootRun |
+| `need-service` | Boot one peer by repo hint |
+| `discover-services` | List peers; `--boot` to start |
+| `start-services` | Boot from env profile |
+| `services-status` | Health + pid |
+| `stop-services` | Stop Bob-started bootRun |
 
 ## Skills
 

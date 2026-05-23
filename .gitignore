@@ -10,6 +10,7 @@ local/agent/
 
 # WireMock runtime (PID, logs, downloaded JAR when copied here)
 local/.runtime-wiremock/
+local/.runtime-services/
 runner/.runtime-wiremock/
 runner/lib/wiremock-standalone-*.jar
 

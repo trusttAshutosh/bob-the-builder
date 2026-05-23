@@ -26,6 +26,7 @@ from run_summary import RunRecorder, publish_run_summary  # noqa: E402
 from session_graph import query_slice, update as update_session  # noqa: E402
 from stub_registry import apply_registry_stubs, write_masterdata_sql  # noqa: E402
 from audit_config import audit_settings, build_audit_query, parse_audit_row  # noqa: E402
+from service_boot import auto_boot_enabled  # noqa: E402
 from ticket_spec import load_spec, scenarios, wiremock_port  # noqa: E402
 from workspace import list_service_hints, properties_files_for_ticket, workspace_root  # noqa: E402
 
@@ -135,6 +136,24 @@ def run(ticket_dir: Path) -> int:
     rec.set_decisions(wiremock_runtime=str(runtime))
     write_masterdata_sql(ticket_dir, spec, port)
     rec.end_step("pass", f"{len(stub_refs)} stub ref(s), port {port}")
+
+    if auto_boot_enabled(spec):
+        from service_boot import ensure_services_running
+
+        rec.begin_step("boot_services", "Boot services (profile + discovered peers)")
+        boot_out = ensure_services_running(spec)
+        ok_count = sum(1 for ok, _ in boot_out.values() if ok)
+        for _key, (ok, msg) in boot_out.items():
+            summary.append(f"  boot: {msg}")
+        if not boot_out:
+            rec.end_step("skip", "no peers discovered (run ensure-peers or need-service)")
+        elif ok_count == len(boot_out):
+            rec.end_step("pass", f"{ok_count}/{len(boot_out)} up")
+        else:
+            rec.end_step("fail", f"{ok_count}/{len(boot_out)} up")
+    else:
+        rec.begin_step("boot_services", "Boot Gradle services")
+        rec.end_step("skip", "run.auto_boot_services: false")
 
     rec.begin_step("wiremock_start", "Start WireMock")
     wm_sh = tdd_root() / "start-wiremock-runtime.sh"

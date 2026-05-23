@@ -14,6 +14,8 @@ By default **`git.branch_policy: none`** — `validate-ticket` does not checkout
 | `assets/stub-registry/` | Shared WireMock fixtures (starts **empty**) |
 | `assets/examples/novopay-cc/` | **Reference only** — CC/LOC catalog snapshot; not loaded by Bob |
 | `local/` | **Machine-only** — `user.env`, agent session, WireMock runtime (gitignored) |
+| `local/agent/required-services.yaml` | Session peer registry (from `need-service` / discovery) |
+| `local/.runtime-services/` | Bob-started `bootRun` pid + logs |
 | `local/bin/` | `bob` / `bob.cmd` shims; added to user PATH **once** on first command |
 
 Bob updates files under `assets/` and `local/` on disk. Whether those land in git is **your** decision, not Bob’s.

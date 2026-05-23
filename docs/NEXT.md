@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=fd510a7 -->
+<!-- PRODUCT-VERIFY:COMMIT=af7b077 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `fd510a7` · 15/15 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `af7b077` · 16/16 features intact · run `bob verify-product --update` before commit*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `fd510a7` — feat: zero-habit reminders â€” bob remind, auto NEXT.md refresh, CI fix
+**Commit:** `af7b077` — feat: zero-habit reminders â€” bob remind, auto NEXT.md refresh, CI fix
 **Date:** 2026-05-23
 
 ### Files changed
@@ -49,7 +49,7 @@
 - Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
-- **15/15 registered features still intact** after this commit (see below).
+- **16/16 registered features still intact** after this commit (see below).
 - Removing a feature requires updating `docs/product-features.yaml` and scorecard notes.
 <!-- LAST_COMMIT:END -->
 
@@ -61,6 +61,7 @@
 | Ticket init, validate, status, reports | `ticket-lifecycle` | intact |
 | Knowledge graph (platform + session) | `knowledge-graph` | intact |
 | API catalog discovery | `api-discovery` | intact |
+| Gradle bootRun + dynamic peer discovery | `service-boot` | intact |
 | Stub registry & WireMock runtime | `stub-wiremock` | intact |
 | Git branch policy (default none) | `git-branch-policy` | intact |
 | Empty live BOB_HOME catalogs | `assets-empty-live` | intact |
@@ -72,7 +73,7 @@
 | Stale workspace cleanup | `workspace-cleanup` | intact |
 | Feature integrity verifier | `product-verify` | intact |
 
-**Total:** 15 intact, 0 missing.
+**Total:** 16 intact, 0 missing.
 
 Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runner/ci/verify-product.py`
 <!-- FEATURES_INTACT:END -->

@@ -45,6 +45,14 @@ features:
       - runner/lib/tdd_engine.py
       - runner/discover-apis.sh
 
+  - id: service-boot
+    name: Gradle bootRun + dynamic peer discovery
+    commands: [start-services, stop-services, services-status, need-service, discover-services, ensure-peers]
+    paths:
+      - runner/lib/service_boot.py
+      - runner/lib/service_discovery.py
+      - runner/lib/workspace_services.py
+
   - id: stub-wiremock
     name: Stub registry & WireMock runtime
     paths:

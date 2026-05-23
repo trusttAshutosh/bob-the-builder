@@ -41,6 +41,15 @@ CMD_ALIASES: dict[str, str] = {
     "roadmap": "next",
     "backlog": "next",
     "verify-product": "verify-product",
+    "start-services": "start-services",
+    "boot-services": "start-services",
+    "need-service": "need-service",
+    "ensure-service": "need-service",
+    "discover-services": "discover-services",
+    "ensure-peers": "ensure-peers",
+    "peers": "ensure-peers",
+    "stop-services": "stop-services",
+    "services-status": "services-status",
     "remind": "remind",
     "help": "help",
     "bobhelp": "help",
@@ -102,6 +111,13 @@ def _print_help() -> None:
     print("  next               Improvement backlog (docs/NEXT.md)")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
     print("  remind [--fix]     One-line status; --fix refreshes docs/NEXT.md for you")
+    print("  start-services [--ticket ID | --profile NAME] [service-key...]")
+    print("                     Gradle bootRun for workspace services (health wait)")
+    print("  need-service NAME  Register + bootRun by repo hint (notifications, consents, …)")
+    print("  ensure-peers       Scan host code/properties; boot any peer not already up")
+    print("  discover-services [--boot]  List peers (properties + code + session registry)")
+    print("  stop-services      Stop Bob-started bootRun processes")
+    print("  services-status [--profile NAME]  Health + pid for env profile services")
     print("  query-graph [kw]   Context slice for agents -> BOB_LOCAL/agent/")
     print("  update-graph ID [title]  Update session graph")
     print()
@@ -194,6 +210,7 @@ def _next_steps(command: str, args: list[str], rc: int) -> list[tuple[str, str]]
             _step("Validate ticket", f"{CLI_SHORT} validate-ticket {tid}"),
         ],
         "validate-ticket": [
+            _step("Boot services if needed (or auto during validate)", f"{CLI_SHORT} start-services --ticket {tid}"),
             _step("Check PASS/FAIL summary", f"{CLI_SHORT} ticket-status {tid}"),
             _step("Open report paths", f"{CLI_SHORT} open-report {tid}"),
         ],
@@ -415,6 +432,188 @@ def cmd_remind(args: list[str]) -> int:
     return code
 
 
+def _parse_profile_ticket_args(args: list[str]) -> tuple[str | None, str | None, list[str], bool]:
+    profile: str | None = None
+    ticket_id: str | None = None
+    force = "--force" in args or "-f" in args
+    rest: list[str] = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ("--profile", "-p") and i + 1 < len(args):
+            profile = args[i + 1]
+            i += 2
+            continue
+        if a in ("--ticket", "-t") and i + 1 < len(args):
+            ticket_id = args[i + 1]
+            i += 2
+            continue
+        if a.startswith("-"):
+            i += 1
+            continue
+        rest.append(a)
+        i += 1
+    return profile, ticket_id, rest, force
+
+
+def cmd_start_services(args: list[str]) -> int:
+    _banner("start-services")
+    from setup_prefs import load_prefs_into_environ
+    from service_boot import boot_wait_seconds, ensure_services_running, load_env_profile, start_service
+    from ticket_spec import load_spec, ticket_dir
+
+    load_prefs_into_environ()
+    profile, ticket_id, keys, force = _parse_profile_ticket_args(args)
+    if ticket_id:
+        spec = load_spec(ticket_dir(ticket_id))
+    else:
+        from host_repo import host_repo_root
+
+        prof = profile or "local-dsa"
+        env_path = host_repo_root() / "deploy/tdd" / f"{prof}.yaml"
+        if not env_path.is_file():
+            print(f"Missing {env_path} — copy templates/host-deploy-tdd/", file=sys.stderr)
+            return 1
+        spec = {"env_profile": prof, "_env": load_env_profile(prof), "run": {"boot_wait_seconds": 180}, "impacted": {}}
+    wait = boot_wait_seconds(spec)
+    env_block = spec.get("_env") or {}
+    rc = 0
+    if keys:
+        for key in keys:
+            svc_cfg = (env_block.get("services") or {}).get(key) or {}
+            ok, msg = start_service(key, svc_cfg, wait_seconds=wait, force=force)
+            print(msg)
+            if not ok:
+                rc = 1
+    else:
+        for key, (ok, msg) in ensure_services_running(spec, force=force).items():
+            print(msg)
+            if not ok:
+                rc = 1
+    return rc
+
+
+def cmd_need_service(args: list[str]) -> int:
+    _banner("need-service")
+    from setup_prefs import load_prefs_into_environ
+    from service_boot import need_service
+
+    load_prefs_into_environ()
+    if not args or args[0].startswith("-"):
+        _usage("need-service", '<hint> [--reason "why"] [--force]')
+        return 1
+    hint = args[0]
+    reason = ""
+    force = "--force" in args
+    if "--reason" in args:
+        i = args.index("--reason")
+        if i + 1 < len(args):
+            reason = args[i + 1]
+    ok, msg = need_service(hint, reason=reason, force=force)
+    print(msg)
+    return 0 if ok else 1
+
+
+def cmd_discover_services(args: list[str]) -> int:
+    _banner("discover-services")
+    from setup_prefs import load_prefs_into_environ
+    from service_boot import ensure_services_running
+    from service_discovery import discover_for_session, register_required_service
+    from ticket_spec import load_spec, ticket_dir
+
+    load_prefs_into_environ()
+    spec: dict = {"run": {"boot_wait_seconds": 180}, "impacted": {}}
+    profile, ticket_id, _, force = _parse_profile_ticket_args(args)
+    if ticket_id:
+        spec = load_spec(ticket_dir(ticket_id))
+    elif profile:
+        from service_boot import load_env_profile
+
+        spec = {"env_profile": profile, "_env": load_env_profile(profile), "run": {"boot_wait_seconds": 180}, "impacted": {}}
+
+    found = discover_for_session(spec)
+    if not found:
+        print("No peer services discovered (check host application.properties / required-services.yaml).")
+        return 0
+    print(f"Discovered {len(found)} service(s):")
+    for cfg in found:
+        reason = cfg.get("reason", "")
+        print(f"  - {cfg.get('repo_dir')}: {cfg.get('default_base')}  ({reason})")
+        register_required_service(cfg.get("repo_dir") or cfg.get("service_key", ""), reason=reason)
+
+    if "--boot" in args or "-b" in args:
+        print()
+        rc = 0
+        for ok, msg in ensure_services_running(spec, force=force).values():
+            print(msg)
+            if not ok:
+                rc = 1
+        return rc
+    print()
+    print("Boot all: python bob.py discover-services --boot")
+    return 0
+
+
+def cmd_ensure_peers(args: list[str]) -> int:
+    _banner("ensure-peers")
+    from setup_prefs import load_prefs_into_environ
+    from service_boot import ensure_peers, load_env_profile
+    from ticket_spec import load_spec, ticket_dir
+
+    load_prefs_into_environ()
+    spec: dict = {"run": {"boot_wait_seconds": 180}, "impacted": {}}
+    profile, ticket_id, _, force = _parse_profile_ticket_args(args)
+    if ticket_id:
+        spec = load_spec(ticket_dir(ticket_id))
+    elif profile:
+        spec = {
+            "env_profile": profile,
+            "_env": load_env_profile(profile),
+            "run": {"boot_wait_seconds": 180},
+            "impacted": {},
+        }
+    outcomes = ensure_peers(spec, force=force)
+    if not outcomes:
+        print("No peer services discovered (clone repos under BUILDER_WORKSPACE_ROOT).")
+        return 0
+    rc = 0
+    for ok, msg in outcomes.values():
+        print(msg)
+        if not ok:
+            rc = 1
+    return rc
+
+
+def cmd_stop_services(_: list[str]) -> int:
+    _banner("stop-services")
+    from service_boot import stop_all
+
+    for line in stop_all():
+        print(line)
+    return 0
+
+
+def cmd_services_status(args: list[str]) -> int:
+    _banner("services-status")
+    from setup_prefs import load_prefs_into_environ
+    from service_boot import load_env_profile, status_report
+
+    load_prefs_into_environ()
+    profile, ticket_id, _, _ = _parse_profile_ticket_args(args)
+    if ticket_id:
+        from ticket_spec import load_spec, ticket_dir
+
+        spec = load_spec(ticket_dir(ticket_id))
+        env_block = spec.get("_env") or {}
+    else:
+        prof = profile or "local-dsa"
+        env_block = load_env_profile(prof)
+    print(f"Profile: {profile or ticket_id or 'local-dsa'}")
+    for line in status_report(env_block):
+        print(line)
+    return 0
+
+
 def cmd_version(_: list[str]) -> int:
     print(f"{PRODUCT_NAME} ({CLI_NAME}) v{VERSION}")
     print(TAGLINE)
@@ -493,6 +692,12 @@ def main() -> int:
         "next": cmd_next,
         "verify-product": cmd_verify_product,
         "remind": cmd_remind,
+        "start-services": cmd_start_services,
+        "need-service": cmd_need_service,
+        "discover-services": cmd_discover_services,
+        "ensure-peers": cmd_ensure_peers,
+        "stop-services": cmd_stop_services,
+        "services-status": cmd_services_status,
         "version": cmd_version,
     }
     h = handlers.get(cmd)

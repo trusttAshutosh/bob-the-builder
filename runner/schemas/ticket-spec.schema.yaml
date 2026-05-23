@@ -27,6 +27,9 @@ impacted:
   channel_matrix: [DAP]
 
 run:
+  auto_boot_services: true
+  auto_discover_services: true  # host properties + Java imports + local/agent/required-services.yaml
+  boot_wait_seconds: 180
   audit_db: dsa_credit_card_mgmt
   wiremock_port: 9090
 

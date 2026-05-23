@@ -10,12 +10,16 @@ services:
     base_env_var: CC_BASE
     default_base: http://localhost:8016/cc-mgmt
     health_path: /actuator/health
+    boot:
+      task: bootRun
 
   masterdata_management:
     base_env_var: MD_BASE
     default_base: http://localhost:8015/masterdata
     health_path: /actuator/health
     optional: true
+    boot:
+      task: bootRun
 
 mysql:
   schemas:
