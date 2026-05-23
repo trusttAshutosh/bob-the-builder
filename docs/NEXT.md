@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=eef2046 -->
+<!-- PRODUCT-VERIFY:COMMIT=5f76e2d -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
 
 <!-- SCORECARD:START -->
@@ -28,11 +28,11 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `eef2046` · 16/16 features intact · run `bob verify-product --update` before commit*
+*Last feature check: 2026-05-23 · commit `5f76e2d` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `eef2046` — feat: dynamic peer service boot without deploy/tdd config
+**Commit:** `5f76e2d` — feat: dynamic peer service boot without deploy/tdd config
 **Date:** 2026-05-23
 
 ### Files changed
