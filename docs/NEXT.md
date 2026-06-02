@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=37fc4c1 -->
+<!-- PRODUCT-VERIFY:COMMIT=75b9a49 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,67 +28,20 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `37fc4c1` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `75b9a49` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `37fc4c1` — docs: align all guides with REPORT + Kafka/Redis evidence
+**Commit:** `75b9a49` — fix(ci): pin sample REDIS_VERIFY.md â€” no live redis-cli probe on refresh
 **Date:** 2026-06-03
 
 ### Files changed
-- `assets/examples/sample-validate-output/KAFKA_VERIFY.md`
-- `assets/examples/sample-validate-output/MANIFEST.json`
-- `assets/examples/sample-validate-output/README.md`
 - `assets/examples/sample-validate-output/REDIS_VERIFY.md`
-- `assets/examples/sample-validate-output/REPORT.html`
-- `assets/examples/sample-validate-output/REPORT.md`
-- `assets/examples/sample-validate-output/evidence/kafka/capture-dsa_dev_sample_events-sample.jsonl`
-- `assets/examples/sample-validate-output/evidence/redis/capture-sample.json`
-- `assets/examples/sample-validate-output/run-summary.json`
-- `assets/examples/sample-validate-output/ticket-spec.yaml`
-- `docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md`
-- `docs/ARCHITECTURE_REVIEW.md`
-- `docs/BOB_CHEATSHEET.md`
-- `docs/BOB_CONTEXT_AND_EVAL.md`
-- `docs/DATA_LAYOUT.md`
-- `docs/EVIDENCE_AND_VERIFY.md`
-- `docs/GRAPH_OBSIDIAN.md`
-- `docs/KAFKA_FOR_BOB.md`
-- `docs/MCP_TOOL_BRIDGE.md`
-- `docs/README.md`
-- `docs/REDIS_FOR_BOB.md`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
-- `docs/WORKSPACE_AND_HOST_PROFILE.md`
-- `docs/product-features.yaml`
-- `docs/tdd-runs/adhoc-loc-failure-audit/TEST_PLAN.md`
-- `docs/tdd-runs/adhoc-loc-failure-audit/ticket-spec.yaml`
-- `runner/ARCHITECTURE.md`
-- `runner/README.md`
-- `runner/_seed/README.md`
-- `runner/lib/builder_cli.py`
-- `runner/lib/evidence.py`
-- `runner/lib/kafka_verify.py`
-- `runner/lib/redis_verify.py`
-- `runner/lib/run_flow.py`
-- `runner/lib/run_summary.py`
+- `runner/_seed/sample-validate-output/REDIS_VERIFY.md`
 - `runner/lib/sample_outputs.py`
-- `runner/lib/service_health_report.py`
-- `runner/publish-report.sh`
-- `runner/run-tdd.sh`
-- `runner/schemas/ticket-spec.schema.yaml`
-- … and 9 more
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Git branch policy (default none) (`git-branch-policy`) — files touched
 - Sample validate-ticket output bundle (`sample-validate-output`) — files touched
-- Host deploy/tdd template (`host-deploy-template`) — files touched
-- Cursor builder skills (`agent-skills`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
-- Evidence bundle + verify docs (DB, logs, Kafka, Redis) (`evidence-and-verify`) — files touched
-- Redis verify + evidence capture (`redis-verify`) — files touched
-- MCP-ready tool bridge (local default) (`mcp-tool-bridge`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
