@@ -20,6 +20,6 @@ cd bob-the-builder
 python bob.py refresh-samples
 ```
 
-_Last generated: 2026-06-03T02:11:04 · Bob 1.1.0 · commit `58edcf5`_
+_Last generated: 2026-06-03T02:19:22 · Bob 1.1.0 · commit `5dc390a`_
 
 See [docs/README.md](../../docs/README.md) for full documentation.

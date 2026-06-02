@@ -1,8 +1,8 @@
 {
   "ticket_id": "sample-gateway-health-check",
   "title": "Sample gateway health and audit proof",
-  "started_at": "2026-06-03T02:11:03",
-  "finished_at": "2026-06-03T02:11:03",
+  "started_at": "2026-06-03T02:19:21",
+  "finished_at": "2026-06-03T02:19:21",
   "duration_seconds": 42.5,
   "overall": "PASS",
   "exit_code": 0,

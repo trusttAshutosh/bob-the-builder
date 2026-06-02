@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=f1a4525 -->
+<!-- PRODUCT-VERIFY:COMMIT=2cbed89 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,72 +28,22 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `f1a4525` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `2cbed89` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `f1a4525` — feat: workspace-neutral host profile, Kafka, context/eval, and docs
+**Commit:** `2cbed89` — fix(ci): resolve sample-validate-output from git repo root
 **Date:** 2026-06-03
 
 ### Files changed
-- `README.md`
-- `assets/README.md`
-- `docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md`
-- `docs/BOB_CHEATSHEET.md`
-- `docs/BOB_CONTEXT_AND_EVAL.md`
-- `docs/DATA_LAYOUT.md`
-- `docs/GRAPH_OBSIDIAN.md`
-- `docs/KAFKA_FOR_BOB.md`
-- `docs/NEXT.md`
-- `docs/README.md`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
-- `docs/WORKSPACE_AND_HOST_PROFILE.md`
-- `runner/ARCHITECTURE.md`
-- `runner/README.md`
-- `runner/config/bob-defaults.yaml`
-- `runner/config/header-profiles/dsa-agent-app.yaml`
-- `runner/config/postman-url-defaults.yaml`
-- `runner/lib/assertions.py`
-- `runner/lib/audit_config.py`
-- `runner/lib/builder_cli.py`
-- `runner/lib/context_assembly.py`
-- `runner/lib/eval_regression.py`
-- `runner/lib/evidence.py`
-- `runner/lib/graph_obsidian.py`
-- `runner/lib/graph_retrieval.py`
-- `runner/lib/host_profile.py`
-- `runner/lib/host_repo.py`
-- `runner/lib/kafka_discovery.py`
-- `runner/lib/kafka_runtime.py`
-- `runner/lib/kafka_setup.py`
-- `runner/lib/kafka_verify.py`
-- `runner/lib/log_verify.py`
-- `runner/lib/mysql_runner.py`
-- `runner/lib/postman_export.py`
-- `runner/lib/run_flow.py`
-- `runner/lib/run_summary.py`
-- `runner/lib/service_boot.py`
-- `runner/lib/service_discovery.py`
-- `runner/lib/service_health_report.py`
-- `runner/lib/session_graph.py`
-- … and 18 more
+- `.github/workflows/product-verify.yml`
+- `runner/lib/sample_outputs.py`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Workspace setup & install (`workspace-setup`) — files touched
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Knowledge graph (platform + session) (`knowledge-graph`) — files touched
-- API catalog discovery (`api-discovery`) — files touched
-- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
-- Stub registry & WireMock runtime (`stub-wiremock`) — files touched
-- Git branch policy (default none) (`git-branch-policy`) — files touched
-- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
-- Host deploy/tdd template (`host-deploy-template`) — files touched
-- Cursor builder skills (`agent-skills`) — files touched
+- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
 
 ### Regression check
-- **16/16 registered features still intact** after this commit (see below).
+- **17/17 registered features still intact** after this commit (see below).
 - Removing a feature requires updating `docs/product-features.yaml` and scorecard notes.
 <!-- LAST_COMMIT:END -->
 
@@ -110,6 +60,7 @@
 | Git branch policy (default none) | `git-branch-policy` | intact |
 | Empty live BOB_HOME catalogs | `assets-empty-live` | intact |
 | CC reference pack (examples only) | `examples-novopay-cc` | intact |
+| Sample validate-ticket output bundle | `sample-validate-output` | intact |
 | Improvement backlog & reminders | `improvement-backlog` | intact |
 | Host deploy/tdd template | `host-deploy-template` | intact |
 | Cursor builder skills | `agent-skills` | intact |
@@ -117,7 +68,7 @@
 | Stale workspace cleanup | `workspace-cleanup` | intact |
 | Feature integrity verifier | `product-verify` | intact |
 
-**Total:** 16 intact, 0 missing.
+**Total:** 17 intact, 0 missing.
 
 Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runner/ci/verify-product.py`
 <!-- FEATURES_INTACT:END -->
