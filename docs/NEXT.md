@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=874880d -->
+<!-- PRODUCT-VERIFY:COMMIT=8d17df1 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,23 +28,40 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `874880d` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `8d17df1` · 18/18 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `874880d` — fix(ci): use repo-relative path in KAFKA_VERIFY docker compose line
+**Commit:** `8d17df1` — feat: add MCP-ready tool bridge with local-first default
 **Date:** 2026-06-03
 
 ### Files changed
-- `assets/examples/sample-validate-output/KAFKA_VERIFY.md`
-- `runner/lib/kafka_verify.py`
-- `runner/lib/sample_outputs.py`
+- `docs/BOB_CONTEXT_AND_EVAL.md`
+- `docs/MCP_TOOL_BRIDGE.md`
+- `docs/README.md`
+- `docs/product-features.yaml`
+- `runner/config/mcp-servers.yaml`
+- `runner/config/tool-bridge.yaml`
+- `runner/lib/builder_cli.py`
+- `runner/lib/context_assembly.py`
+- `runner/lib/mysql_runner.py`
+- `runner/lib/run_summary.py`
+- `runner/lib/tool_bridge/__init__.py`
+- `runner/lib/tool_bridge/local_handlers.py`
+- `runner/lib/tool_bridge/mcp_client.py`
+- `runner/lib/tool_bridge/registry.py`
+- `runner/lib/tool_bridge/router.py`
+- `runner/lib/tool_bridge/types.py`
+- `runner/mcp/bob_tools_server.py`
 
 ### Features touched in this commit
-- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
+- Core CLI entry (`cli-core`) — files touched
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
+- MCP-ready tool bridge (local default) (`mcp-tool-bridge`) — files touched
 
 ### Regression check
-- **17/17 registered features still intact** after this commit (see below).
+- **18/18 registered features still intact** after this commit (see below).
 - Removing a feature requires updating `docs/product-features.yaml` and scorecard notes.
 <!-- LAST_COMMIT:END -->
 
@@ -68,8 +85,9 @@
 | PATH shim (bob on PATH) | `path-shim` | intact |
 | Stale workspace cleanup | `workspace-cleanup` | intact |
 | Feature integrity verifier | `product-verify` | intact |
+| MCP-ready tool bridge (local default) | `mcp-tool-bridge` | intact |
 
-**Total:** 17 intact, 0 missing.
+**Total:** 18 intact, 0 missing.
 
 Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runner/ci/verify-product.py`
 <!-- FEATURES_INTACT:END -->
