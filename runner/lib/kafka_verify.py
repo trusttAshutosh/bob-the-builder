@@ -5,8 +5,25 @@ import shlex
 from pathlib import Path
 from typing import Any
 
+from bob_home import bob_product_root
 from kafka_discovery import KafkaDiscoveryResult, discover_kafka_for_ticket
 from kafka_runtime import bootstrap_servers, compose_file, kafka_ui_url
+
+
+def _compose_path_for_doc(compose: Path) -> str:
+    """Repo-relative path for docs (same on Windows dev and Linux CI)."""
+    resolved = compose.resolve()
+    for root in (bob_product_root(),):
+        try:
+            return resolved.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+    try:
+        from host_repo import runner_bootstrap_repo
+
+        return resolved.relative_to(runner_bootstrap_repo().resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
 
 
 def write_kafka_verify_commands(
@@ -52,7 +69,7 @@ def write_kafka_verify_commands(
         "## Docker",
         "",
         "```bash",
-        f"docker compose -f {compose} up -d",
+        f"docker compose -f {_compose_path_for_doc(compose)} up -d",
         "```",
         "",
         "## Consume (per discovered topic)",

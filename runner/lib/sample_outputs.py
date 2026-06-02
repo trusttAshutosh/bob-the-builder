@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import time
 from pathlib import Path
@@ -359,6 +360,7 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
     from run_summary import ensure_test_plan, publish_run_summary
 
     root = sample_repo_root(product_root)
+    os.environ.setdefault("BOB_PRODUCT_ROOT", str(root))
     ticket_dir = sample_output_dir(root)
     ticket_dir.mkdir(parents=True, exist_ok=True)
 

@@ -22,7 +22,7 @@ bob kafka down
 ## Docker
 
 ```bash
-docker compose -f C:\Users\ashutosh.kumar\Desktop\novopay\bob-the-builder\runner\kafka\docker-compose.yml up -d
+docker compose -f runner/kafka/docker-compose.yml up -d
 ```
 
 ## Consume (per discovered topic)
