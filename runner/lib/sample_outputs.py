@@ -80,7 +80,7 @@ def _normalize_bundle_lf(ticket_dir: Path) -> None:
 def _copy_pinned_from_seed(ticket_dir: Path, product_root: Path | None) -> None:
     """Copy machine-independent artifacts (context pack, Postman) from runner/_seed/."""
     seed = sample_seed_dir(product_root)
-    for rel in ("CONTEXT_PACK.md", "postman"):
+    for rel in ("CONTEXT_PACK.md", "REDIS_VERIFY.md", "postman"):
         src = seed / rel
         dst = ticket_dir / rel
         if not src.exists():
@@ -290,39 +290,6 @@ def _write_log_verify(ticket_dir: Path, spec: dict) -> Path:
     return path
 
 
-def _write_redis_verify_sample(ticket_dir: Path, spec: dict) -> Path:
-    from redis_verify import write_redis_verify_commands
-
-    (ticket_dir / "evidence" / "redis").mkdir(parents=True, exist_ok=True)
-    _write_text(
-        ticket_dir / "evidence" / "redis" / "capture-sample.json",
-        json.dumps(
-            {
-                "host": "127.0.0.1",
-                "port": "6379",
-                "db": 2,
-                "pattern": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_*",
-                "keys": [
-                    {
-                        "key": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_sample_prop",
-                        "type": "string",
-                        "ttl": "-1",
-                        "value_preview": "(JDK-serialized — sample)",
-                    }
-                ],
-            },
-            indent=2,
-        )
-        + "\n",
-    )
-    return write_redis_verify_commands(
-        ticket_dir,
-        spec,
-        capture_results=[{"ok": True, "detail": "1 key(s) on db=2 (sample)", "evidence": "evidence/redis/capture-sample.json"}],
-        prime_message="Sample: would prime from masterdata[] when redis-cli is available",
-    )
-
-
 def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> None:
     ev = ticket_dir / "evidence"
     for sub in ("api", "db", "logs", "unit", "kafka", "redis"):
@@ -353,6 +320,27 @@ def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> Non
     _write_text(
         ev / "kafka" / "capture-dsa_dev_sample_events-sample.jsonl",
         json.dumps({"sample": True, "topic": "dsa_dev_sample_events", "payload": {"status": "ok"}})
+        + "\n",
+    )
+    _write_text(
+        ev / "redis" / "capture-sample.json",
+        json.dumps(
+            {
+                "host": "127.0.0.1",
+                "port": "6379",
+                "db": 2,
+                "pattern": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_*",
+                "keys": [
+                    {
+                        "key": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_sample_prop",
+                        "type": "string",
+                        "ttl": "-1",
+                        "value_preview": "(JDK-serialized — sample)",
+                    }
+                ],
+            },
+            indent=2,
+        )
         + "\n",
     )
 
@@ -416,6 +404,7 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
     _write_evidence_samples(ticket_dir, spec, run_data)
     _copy_pinned_from_seed(ticket_dir, root)
     run_data["decisions"]["context_pack"] = "CONTEXT_PACK.md"
+    run_data["decisions"]["redis_verify_commands"] = "REDIS_VERIFY.md"
 
     disc = _demo_kafka_discovery()
     write_discovery_artifact(ticket_dir, disc)
@@ -435,10 +424,6 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
             }
         ],
     )
-    rv_path = _write_redis_verify_sample(ticket_dir, spec)
-    if rv_path:
-        run_data["decisions"]["redis_verify_commands"] = rv_path.name
-
     _write_db_verify(ticket_dir, spec, run_data)
     _write_log_verify(ticket_dir, spec)
 
