@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=2cbed89 -->
+<!-- PRODUCT-VERIFY:COMMIT=64dee0f -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,19 +28,31 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `2cbed89` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `64dee0f` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `2cbed89` — fix(ci): resolve sample-validate-output from git repo root
+**Commit:** `64dee0f` — chore: refresh sample bundle and NEXT.md verify sections
 **Date:** 2026-06-03
 
 ### Files changed
-- `.github/workflows/product-verify.yml`
-- `runner/lib/sample_outputs.py`
+- `assets/examples/sample-validate-output/CONTEXT_PACK.md`
+- `assets/examples/sample-validate-output/EVAL_REGRESSION.md`
+- `assets/examples/sample-validate-output/MANIFEST.json`
+- `assets/examples/sample-validate-output/README.md`
+- `assets/examples/sample-validate-output/REPORT.html`
+- `assets/examples/sample-validate-output/REPORT.md`
+- `assets/examples/sample-validate-output/eval-baseline.json`
+- `assets/examples/sample-validate-output/postman/local.postman_environment.json`
+- `assets/examples/sample-validate-output/postman/qa.postman_environment.json`
+- `assets/examples/sample-validate-output/postman/sample-gateway-health-check.postman_collection.json`
+- `assets/examples/sample-validate-output/postman/uat.postman_environment.json`
+- `assets/examples/sample-validate-output/run-summary.json`
+- `docs/NEXT.md`
 
 ### Features touched in this commit
 - Sample validate-ticket output bundle (`sample-validate-output`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 
 ### Regression check
 - **17/17 registered features still intact** after this commit (see below).

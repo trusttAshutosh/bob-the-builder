@@ -1,8 +1,8 @@
 # Validation report: sample-gateway-health-check
 
 - **Title:** Sample gateway health and audit proof
-- **Started:** 2026-06-03T02:19:21
-- **Finished:** 2026-06-03T02:19:21
+- **Started:** 2026-06-01T12:00:00
+- **Finished:** 2026-06-01T12:00:00
 - **Duration:** 42.5s
 - **Overall:** **PASS** (exit 0)
 - **Branch:** `main`
@@ -22,8 +22,8 @@ _One row per scenario: description, expected DB outcome, actual DB row, and over
 
 | Scenario ID | Description | Level | APIs | CRN | DB expected | DB actual | DB check | Overall | Duration | Execution detail |
 |-------------|-------------|-------|------|-----|-------------|-----------|----------|---------|----------|------------------|
-| S1 | S1: Happy path — eligibility inquiry | e2e | inquireCardEligibility | `BOB-SAMPLE-20260603-S1` | expect: txn_status=SUCCESS, txn_result_code=000 | txn_status=SUCCESS; txn_result_code=000 | PASS | **PASS** | 1500ms | API 200; DB expect txn_status=SUCCESS |
-| S2 | S2: Integration — processor unit scope | integration | — | `BOB-SAMPLE-20260603-S2` | — | — | N/A | **PASS** | — | Recorded as pass in sample bundle |
+| S1 | S1: Happy path — eligibility inquiry | e2e | inquireCardEligibility | `BOB-SAMPLE-20260601-S1` | expect: txn_status=SUCCESS, txn_result_code=000 | txn_status=SUCCESS; txn_result_code=000 | PASS | **PASS** | 1500ms | API 200; DB expect txn_status=SUCCESS |
+| S2 | S2: Integration — processor unit scope | integration | — | `BOB-SAMPLE-20260601-S2` | — | — | N/A | **PASS** | — | Recorded as pass in sample bundle |
 
 ## Decision trace
 
@@ -32,12 +32,12 @@ _How the runner chose APIs, stubs, and environment._
 - **api_catalog:** BOB_HOME/api-catalog (from discover-apis on host)
 - **branch:** main
 - **context_pack:** CONTEXT_PACK.md
-- **crn:** BOB-SAMPLE-20260603
+- **crn:** BOB-SAMPLE-20260601
 - **env_profile:** local-dsa
 - **eval_regression_md:** EVAL_REGRESSION.md
 - **kafka_verify_commands:** True
 - **primary_service:** credit_card_management
-- **scenario_crns:** {'S1': 'BOB-SAMPLE-20260603-S1', 'S2': 'BOB-SAMPLE-20260603-S2'}
+- **scenario_crns:** {'S1': 'BOB-SAMPLE-20260601-S1', 'S2': 'BOB-SAMPLE-20260601-S2'}
 - **stubs_applied:** bank-operations/getCardSummary/success-200
 - **wiremock_detail:** 127.0.0.1:9090 (sample — not started for doc bundle)
 - **wiremock_status:** UP
@@ -95,8 +95,8 @@ This bundle is for documentation; run validate-ticket on your host repo for real
 
 | Scenario | CRN |
 |----------|-----|
-| S1 | `BOB-SAMPLE-20260603-S1` |
-| S2 | `BOB-SAMPLE-20260603-S2` |
+| S1 | `BOB-SAMPLE-20260601-S1` |
+| S2 | `BOB-SAMPLE-20260601-S2` |
 
 ## Related artifacts
 

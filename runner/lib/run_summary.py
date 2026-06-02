@@ -372,13 +372,17 @@ def publish_run_summary(
     *,
     spec: dict | None = None,
     execution_log: list[str] | None = None,
+    relative_paths: bool = False,
 ) -> tuple[Path, Path, Path | None]:
     """Write REPORT.md (single human report), run-summary.json, and REPORT.html."""
     ticket_dir.mkdir(parents=True, exist_ok=True)
     if spec:
         ensure_test_plan(ticket_dir, spec)
         run_data = dict(run_data)
-        run_data["test_plan_path"] = str((ticket_dir / "TEST_PLAN.md").resolve())
+        test_plan = ticket_dir / "TEST_PLAN.md"
+        run_data["test_plan_path"] = (
+            test_plan.name if relative_paths else str(test_plan.resolve())
+        )
 
     json_path = ticket_dir / "run-summary.json"
     json_path.write_text(json.dumps(run_data, indent=2), encoding="utf-8")

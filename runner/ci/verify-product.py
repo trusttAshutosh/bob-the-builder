@@ -10,6 +10,10 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+_RUNNER_LIB = ROOT / "runner" / "lib"
+if str(_RUNNER_LIB) not in sys.path:
+    sys.path.insert(0, str(_RUNNER_LIB))
+
 FEATURES_YAML = ROOT / "docs" / "product-features.yaml"
 NEXT_MD = ROOT / "docs" / "NEXT.md"
 BUILDER_CLI = ROOT / "runner" / "lib" / "builder_cli.py"

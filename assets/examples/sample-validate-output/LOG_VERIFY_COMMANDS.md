@@ -6,3 +6,4 @@ Run on the host where application logs are written (`LOGS_DIR` from `bob setup`)
 cd "$LOGS_DIR"
 rg -n "inquireCardEligibility" . --glob "*.log" | head -50
 ```
+

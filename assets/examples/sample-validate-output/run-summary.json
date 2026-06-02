@@ -1,18 +1,18 @@
 {
   "ticket_id": "sample-gateway-health-check",
   "title": "Sample gateway health and audit proof",
-  "started_at": "2026-06-03T02:19:21",
-  "finished_at": "2026-06-03T02:19:21",
+  "started_at": "2026-06-01T12:00:00",
+  "finished_at": "2026-06-01T12:00:00",
   "duration_seconds": 42.5,
   "overall": "PASS",
   "exit_code": 0,
   "branch": "main",
   "decisions": {
     "branch": "main",
-    "crn": "BOB-SAMPLE-20260603",
+    "crn": "BOB-SAMPLE-20260601",
     "scenario_crns": {
-      "S1": "BOB-SAMPLE-20260603-S1",
-      "S2": "BOB-SAMPLE-20260603-S2"
+      "S1": "BOB-SAMPLE-20260601-S1",
+      "S2": "BOB-SAMPLE-20260601-S2"
     },
     "wiremock_status": "UP",
     "wiremock_detail": "127.0.0.1:9090 (sample \u2014 not started for doc bundle)",
@@ -114,5 +114,5 @@
     "_Sample bundle \u2014 illustrative only._",
     ""
   ],
-  "test_plan_path": "C:\\Users\\ashutosh.kumar\\Desktop\\novopay\\bob-the-builder\\assets\\examples\\sample-validate-output\\TEST_PLAN.md"
+  "test_plan_path": "TEST_PLAN.md"
 }

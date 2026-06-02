@@ -1,9 +1,9 @@
 # Eval regression
 
-**Checked:** 2026-06-03 02:19:22
+**Checked:** 2026-06-01 12:00:00
 **Result:** PASS — 0 regression(s), 0 fixed, 0 new scenario(s)
 
-**Baseline:** `eval-baseline.json` captured 2026-06-03T02:19:22
+**Baseline:** `eval-baseline.json` captured 2026-06-01T12:00:00
 
 ## Current run
 

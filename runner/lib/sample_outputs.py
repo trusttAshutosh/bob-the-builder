@@ -2,12 +2,17 @@
 from __future__ import annotations
 
 import json
-import subprocess
+import shutil
 import time
 from pathlib import Path
 from typing import Any
 
 SAMPLE_TICKET_ID = "sample-gateway-health-check"
+# Pinned so `bob refresh-samples` matches on CI (Linux) and developer machines (Windows).
+SAMPLE_FROZEN_TS = "2026-06-01T12:00:00"
+SAMPLE_FROZEN_TS_EVAL = "2026-06-01 12:00:00"
+SAMPLE_FROZEN_DATE = "20260601"
+SAMPLE_MANIFEST_COMMIT = "sample-pinned"
 # Committed under the bob-the-builder git root (not BOB_HOME live catalogs).
 SAMPLE_REL = Path("assets/examples/sample-validate-output")
 
@@ -39,23 +44,56 @@ def sample_output_dir(product_root: Path | None = None) -> Path:
     return sample_repo_root(product_root) / SAMPLE_REL
 
 
-def _git_head_short(root: Path) -> str:
-    try:
-        r = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        return (r.stdout or "").strip() or "unknown"
-    except (OSError, subprocess.SubprocessError):
-        return "unknown"
+def sample_seed_dir(product_root: Path | None = None) -> Path:
+    return sample_repo_root(product_root) / "runner" / "_seed" / "sample-validate-output"
 
 
-def _load_sample_spec(ticket_dir: Path) -> dict:
+def _write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def _normalize_bundle_lf(ticket_dir: Path) -> None:
+    """Force LF in committed sample bundle (Windows dev + Linux CI)."""
+    for path in ticket_dir.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in {
+            ".md",
+            ".html",
+            ".json",
+            ".sql",
+            ".txt",
+            ".yaml",
+            ".yml",
+        }:
+            continue
+        raw = path.read_bytes()
+        if b"\r" not in raw:
+            continue
+        text = raw.decode("utf-8")
+        _write_text(path, text.replace("\r\n", "\n").replace("\r", "\n"))
+
+
+def _copy_pinned_from_seed(ticket_dir: Path, product_root: Path | None) -> None:
+    """Copy machine-independent artifacts (context pack, Postman) from runner/_seed/."""
+    seed = sample_seed_dir(product_root)
+    for rel in ("CONTEXT_PACK.md", "postman"):
+        src = seed / rel
+        dst = ticket_dir / rel
+        if not src.exists():
+            raise FileNotFoundError(f"Missing sample seed: {src}")
+        if src.is_dir():
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
+        else:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+
+
+def _load_sample_spec(ticket_dir: Path, product_root: Path | None = None) -> dict:
     from _yaml_util import load
-    from host_profile import effective_env_block
     from ticket_spec import load_env_profile_block
 
     spec_path = ticket_dir / "ticket-spec.yaml"
@@ -66,8 +104,12 @@ def _load_sample_spec(ticket_dir: Path) -> dict:
     spec = load(spec_path)
     spec.setdefault("version", 2)
     prof = spec.get("env_profile", "local-dsa")
-    tpl_root = sample_repo_root() / "templates/host-deploy-tdd"
-    block = load_env_profile_block(prof, base=tpl_root) or effective_env_block(profile=prof)
+    tpl_root = sample_repo_root(product_root) / "templates/host-deploy-tdd"
+    block = load_env_profile_block(prof, base=tpl_root)
+    if not block:
+        raise FileNotFoundError(
+            f"Sample env profile `{prof}` not found under {tpl_root / 'deploy/tdd'}"
+        )
     spec["_env"] = block
     spec["ticket_id"] = (spec.get("ticket") or {}).get("id") or ticket_dir.name
     return spec
@@ -76,8 +118,8 @@ def _load_sample_spec(ticket_dir: Path) -> dict:
 def _demo_run_data(spec: dict, ticket_dir: Path) -> dict:
     ticket = spec.get("ticket") or {}
     tid = ticket.get("id", ticket_dir.name)
-    now = time.strftime("%Y-%m-%dT%H:%M:%S")
-    base_crn = f"BOB-SAMPLE-{time.strftime('%Y%m%d')}"
+    now = SAMPLE_FROZEN_TS
+    base_crn = f"BOB-SAMPLE-{SAMPLE_FROZEN_DATE}"
     scenario_crns = {"S1": f"{base_crn}-S1", "S2": f"{base_crn}-S2"}
 
     return {
@@ -242,7 +284,7 @@ def _write_log_verify(ticket_dir: Path, spec: dict) -> Path:
         lines.append(f'rg -n "{p}" . --glob "*.log" | head -50')
     lines.extend(["```", ""])
     path = ticket_dir / "LOG_VERIFY_COMMANDS.md"
-    path.write_text("\n".join(lines), encoding="utf-8")
+    _write_text(path, "\n".join(lines) + "\n")
     return path
 
 
@@ -252,7 +294,8 @@ def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> Non
         (ev / sub).mkdir(parents=True, exist_ok=True)
 
     s1_crn = run_data["decisions"]["scenario_crns"]["S1"]
-    (ev / "api" / "S1-response.json").write_text(
+    _write_text(
+        ev / "api" / "S1-response.json",
         json.dumps(
             {
                 "status": "SUCCESS",
@@ -263,15 +306,14 @@ def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> Non
             indent=2,
         )
         + "\n",
-        encoding="utf-8",
     )
-    (ev / "db" / "S1-audit-row.txt").write_text(
+    _write_text(
+        ev / "db" / "S1-audit-row.txt",
         f"client_reference_code={s1_crn}\ntxn_status=SUCCESS\ntxn_result_code=000\n",
-        encoding="utf-8",
     )
-    (ev / "logs" / "S1-snippet.txt").write_text(
+    _write_text(
+        ev / "logs" / "S1-snippet.txt",
         "INFO inquireCardEligibility — sample log line for documentation\n",
-        encoding="utf-8",
     )
 
 
@@ -305,13 +347,12 @@ def _write_readme(ticket_dir: Path, manifest: dict) -> Path:
         "",
     ]
     path = ticket_dir / "README.md"
-    path.write_text("\n".join(lines), encoding="utf-8")
+    _write_text(path, "\n".join(lines) + "\n")
     return path
 
 
 def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = False) -> list[Path]:
-    """Rewrite sample bundle using current run_summary / context / eval / kafka writers."""
-    from context_assembly import assemble_context_pack
+    """Rewrite sample bundle using current run_summary / eval / kafka writers (pinned for CI)."""
     from eval_regression import capture_baseline, compare_to_baseline, write_eval_regression_md
     from kafka_discovery import write_discovery_artifact
     from kafka_verify import write_kafka_verify_commands
@@ -321,7 +362,7 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
     ticket_dir = sample_output_dir(root)
     ticket_dir.mkdir(parents=True, exist_ok=True)
 
-    spec = _load_sample_spec(ticket_dir)
+    spec = _load_sample_spec(ticket_dir, root)
     run_data = _demo_run_data(spec, ticket_dir)
     execution_log = [
         "=== Bob sample-validate-output (synthetic PASS run) ===",
@@ -331,17 +372,8 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
 
     ensure_test_plan(ticket_dir, spec)
     _write_evidence_samples(ticket_dir, spec, run_data)
-
-    imp = spec.get("impacted") or {}
-    keywords = " ".join(
-        [
-            run_data["ticket_id"],
-            run_data.get("title", ""),
-            *list(imp.get("gateway_apis") or []),
-        ]
-    )
-    pack_path, _, _ = assemble_context_pack(spec, ticket_dir, keywords)
-    run_data["decisions"]["context_pack"] = pack_path.name
+    _copy_pinned_from_seed(ticket_dir, root)
+    run_data["decisions"]["context_pack"] = "CONTEXT_PACK.md"
 
     disc = _demo_kafka_discovery()
     write_discovery_artifact(ticket_dir, disc)
@@ -356,16 +388,21 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
     _write_db_verify(ticket_dir, spec, run_data)
     _write_log_verify(ticket_dir, spec)
 
-    capture_baseline(ticket_dir, run_data)
+    capture_baseline(ticket_dir, run_data, captured_at=SAMPLE_FROZEN_TS)
     eval_result = compare_to_baseline(ticket_dir, run_data)
-    write_eval_regression_md(ticket_dir, eval_result, run_data)
-
-    (ticket_dir / "execution-summary.txt").write_text(
-        "\n".join(execution_log) + "\n",
-        encoding="utf-8",
+    write_eval_regression_md(
+        ticket_dir, eval_result, run_data, checked_at=SAMPLE_FROZEN_TS_EVAL
     )
 
-    publish_run_summary(ticket_dir, run_data, spec=spec, execution_log=execution_log)
+    _write_text(ticket_dir / "execution-summary.txt", "\n".join(execution_log) + "\n")
+
+    publish_run_summary(
+        ticket_dir,
+        run_data,
+        spec=spec,
+        execution_log=execution_log,
+        relative_paths=True,
+    )
 
     try:
         from builder_cli import VERSION as bob_version
@@ -373,9 +410,9 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
         bob_version = "?"
 
     manifest = {
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "generated_at": SAMPLE_FROZEN_TS,
         "bob_version": bob_version,
-        "git_commit": _git_head_short(root),
+        "git_commit": SAMPLE_MANIFEST_COMMIT,
         "ticket_id": run_data["ticket_id"],
         "files": sorted(
             str(p.relative_to(ticket_dir)).replace("\\", "/")
@@ -384,18 +421,10 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
         ),
     }
     manifest_path = ticket_dir / "MANIFEST.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
-    try:
-        from postman_export import export_postman_for_ticket
-
-        wm = int((spec.get("run") or {}).get("wiremock_port", 9090))
-        export_postman_for_ticket(spec, ticket_dir, wiremock_port=wm)
-    except Exception as exc:
-        if not quiet:
-            print(f"Sample: Postman export skipped ({exc})")
+    _write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
 
     _write_readme(ticket_dir, manifest)
+    _normalize_bundle_lf(ticket_dir)
 
     written = [p for p in ticket_dir.rglob("*") if p.is_file()]
     if not quiet:

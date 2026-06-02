@@ -26,7 +26,6 @@ jobs:
             git diff --stat assets/examples/sample-validate-output
             exit 1
           fi
-          python3 runner/ci/verify-product.py --update
           if ! git diff --quiet docs/NEXT.md; then
-            echo "::warning::docs/NEXT.md auto-sections differ from HEAD — run locally: python bob.py verify-product --update"
+            echo "::warning::docs/NEXT.md verify stamp differs from HEAD — run locally: python bob.py verify-product --update && commit"
           fi

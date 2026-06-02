@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-03T02:19:22",
+  "generated_at": "2026-06-01T12:00:00",
   "bob_version": "1.1.0",
-  "git_commit": "5dc390a",
+  "git_commit": "sample-pinned",
   "ticket_id": "sample-gateway-health-check",
   "files": [
     "CONTEXT_PACK.md",

@@ -17,10 +17,10 @@ code { font-size: 0.85rem; word-break: break-all; }
 </head>
 <body>
 <h1>Run: sample-gateway-health-check</h1>
-<p class="meta">Sample gateway health and audit proof · 2026-06-03T02:19:21 → 2026-06-03T02:19:21 · 42.5s · branch <code>main</code></p>
+<p class="meta">Sample gateway health and audit proof · 2026-06-01T12:00:00 → 2026-06-01T12:00:00 · 42.5s · branch <code>main</code></p>
 <p class="overall">Overall: PASS</p>
 
-<section><h2>Decision trace</h2><ul><li><b>api_catalog:</b> BOB_HOME/api-catalog (from discover-apis on host)</li><li><b>branch:</b> main</li><li><b>context_pack:</b> CONTEXT_PACK.md</li><li><b>crn:</b> BOB-SAMPLE-20260603</li><li><b>env_profile:</b> local-dsa</li><li><b>eval_regression_md:</b> EVAL_REGRESSION.md</li><li><b>kafka_verify_commands:</b> True</li><li><b>primary_service:</b> credit_card_management</li><li><b>scenario_crns:</b> {'S1': 'BOB-SAMPLE-20260603-S1', 'S2': 'BOB-SAMPLE-20260603-S2'}</li><li><b>stubs_applied:</b> ['bank-operations/getCardSummary/success-200']</li><li><b>wiremock_detail:</b> 127.0.0.1:9090 (sample — not started for doc bundle)</li><li><b>wiremock_status:</b> UP</li></ul></section>
+<section><h2>Decision trace</h2><ul><li><b>api_catalog:</b> BOB_HOME/api-catalog (from discover-apis on host)</li><li><b>branch:</b> main</li><li><b>context_pack:</b> CONTEXT_PACK.md</li><li><b>crn:</b> BOB-SAMPLE-20260601</li><li><b>env_profile:</b> local-dsa</li><li><b>eval_regression_md:</b> EVAL_REGRESSION.md</li><li><b>kafka_verify_commands:</b> True</li><li><b>primary_service:</b> credit_card_management</li><li><b>scenario_crns:</b> {'S1': 'BOB-SAMPLE-20260601-S1', 'S2': 'BOB-SAMPLE-20260601-S2'}</li><li><b>stubs_applied:</b> ['bank-operations/getCardSummary/success-200']</li><li><b>wiremock_detail:</b> 127.0.0.1:9090 (sample — not started for doc bundle)</li><li><b>wiremock_status:</b> UP</li></ul></section>
 
 <section><h2>Pipeline steps</h2>
 <table><thead><tr><th>Step</th><th>Status</th><th>Duration</th><th>Detail</th></tr></thead>
@@ -29,7 +29,7 @@ code { font-size: 0.85rem; word-break: break-all; }
 <section><h2>Test plan</h2><p><a href="TEST_PLAN.md">TEST_PLAN.md</a> — planned scenarios</p></section>
 
 <section><h2>Scenario results</h2>
-<table><thead><tr><th>ID</th><th>Description</th><th>Level</th><th>APIs</th><th>CRN</th><th>DB expected</th><th>DB actual</th><th>DB</th><th>Overall</th><th>Time</th></tr></thead><tbody><tr><td>S1</td><td>S1: Happy path — eligibility inquiry</td><td>e2e</td><td>inquireCardEligibility</td><td><code>BOB-SAMPLE-20260603-S1</code></td><td><small>expect: txn_status=SUCCESS, txn_result_code=000</small></td><td><small>txn_status=SUCCESS; txn_result_code=000</small></td><td>PASS</td><td><b>PASS</b></td><td>1500ms</td></tr><tr><td>S2</td><td>S2: Integration — processor unit scope</td><td>integration</td><td>—</td><td><code>BOB-SAMPLE-20260603-S2</code></td><td><small>—</small></td><td><small>—</small></td><td>N/A</td><td><b>PASS</b></td><td>—</td></tr></tbody></table>
+<table><thead><tr><th>ID</th><th>Description</th><th>Level</th><th>APIs</th><th>CRN</th><th>DB expected</th><th>DB actual</th><th>DB</th><th>Overall</th><th>Time</th></tr></thead><tbody><tr><td>S1</td><td>S1: Happy path — eligibility inquiry</td><td>e2e</td><td>inquireCardEligibility</td><td><code>BOB-SAMPLE-20260601-S1</code></td><td><small>expect: txn_status=SUCCESS, txn_result_code=000</small></td><td><small>txn_status=SUCCESS; txn_result_code=000</small></td><td>PASS</td><td><b>PASS</b></td><td>1500ms</td></tr><tr><td>S2</td><td>S2: Integration — processor unit scope</td><td>integration</td><td>—</td><td><code>BOB-SAMPLE-20260601-S2</code></td><td><small>—</small></td><td><small>—</small></td><td>N/A</td><td><b>PASS</b></td><td>—</td></tr></tbody></table>
 </section>
 
 <section><h2>Evidence</h2><ul></ul>

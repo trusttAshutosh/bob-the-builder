@@ -69,12 +69,12 @@ def _snapshots_from_run_data(run_data: dict) -> dict[str, ScenarioSnapshot]:
     return out
 
 
-def capture_baseline(ticket_dir: Path, run_data: dict) -> Path:
+def capture_baseline(ticket_dir: Path, run_data: dict, *, captured_at: str | None = None) -> Path:
     path = baseline_path(ticket_dir)
     snaps = _snapshots_from_run_data(run_data)
     payload = {
         "version": 1,
-        "captured_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "captured_at": captured_at or time.strftime("%Y-%m-%dT%H:%M:%S"),
         "ticket_id": run_data.get("ticket_id", ticket_dir.name),
         "branch": run_data.get("branch", ""),
         "overall": run_data.get("overall", ""),
@@ -178,12 +178,19 @@ def auto_eval_after_run(ticket_dir: Path, run_data: dict, spec: dict) -> EvalCom
     return compare_to_baseline(ticket_dir, run_data)
 
 
-def write_eval_regression_md(ticket_dir: Path, result: EvalCompareResult, run_data: dict) -> Path:
+def write_eval_regression_md(
+    ticket_dir: Path,
+    result: EvalCompareResult,
+    run_data: dict,
+    *,
+    checked_at: str | None = None,
+) -> Path:
     path = ticket_dir / "EVAL_REGRESSION.md"
+    checked = checked_at or time.strftime("%Y-%m-%d %H:%M:%S")
     lines = [
         "# Eval regression",
         "",
-        f"**Checked:** {time.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"**Checked:** {checked}",
         f"**Result:** {'PASS' if result.ok else 'FAIL'} — {result.message}",
         "",
     ]
