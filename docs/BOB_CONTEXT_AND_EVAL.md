@@ -73,7 +73,15 @@ run:
 | `CONTEXT_PACK.md` | Prefs + stale + hybrid KG |
 | `EVAL_REGRESSION.md` | Baseline comparison |
 | `eval-baseline.json` | Machine-readable snapshot |
+| `REPORT.md` / `REPORT.html` / `run-summary.json` | Run report (not `RUN_SUMMARY.md`) |
+| `DB_VERIFY_QUERIES.sql` | DB verification SQL |
+| `LOG_VERIFY_COMMANDS.md` | Log grep/rg commands |
+| `KAFKA_VERIFY.md` | Kafka verify + `evidence/kafka/` links |
+| `REDIS_VERIFY.md` | Redis verify + `evidence/redis/` links |
+| `evidence/` | `api/`, `db/`, `logs/`, `kafka/`, `redis/`, `unit/` |
 | `kg-context-last.md` | Agent slice (in BOB_LOCAL) |
+
+Full map: [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).
 
 ## Not included (by design)
 
@@ -82,6 +90,8 @@ run:
 
 ## See also
 
+- [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) — DB / logs / Kafka / Redis proof
+- [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) · [REDIS_FOR_BOB.md](REDIS_FOR_BOB.md)
 - [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) — visual graph in Obsidian
 - [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) — host profile and setup URLs
 - [README.md](README.md) — full doc index

@@ -11,7 +11,8 @@ It shows what Bob produces after a fictional requirement — without needing you
 | `bob init-ticket` / analyst fills spec | Same + scenarios, stubs, `run.*` flags |
 | `bob validate-ticket <id>` on a **host** repo | [REPORT.md](./REPORT.md), [REPORT.html](./REPORT.html), [run-summary.json](./run-summary.json) |
 | (same run) | [CONTEXT_PACK.md](./CONTEXT_PACK.md), [EVAL_REGRESSION.md](./EVAL_REGRESSION.md), [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) |
-| (same run) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql), [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md), [evidence/](./evidence/) |
+| (same run) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql), [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md), [REDIS_VERIFY.md](./REDIS_VERIFY.md) |
+| (same run) | [evidence/](./evidence/) — api, db, logs, kafka, redis |
 
 ## Regenerate
 

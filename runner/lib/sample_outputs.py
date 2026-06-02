@@ -33,6 +33,7 @@ REFRESH_TRIGGER_GLOBS = (
     "runner/lib/context_assembly.py",
     "runner/lib/eval_regression.py",
     "runner/lib/kafka_verify.py",
+    "runner/lib/redis_verify.py",
     "runner/lib/kafka_discovery.py",
     "runner/lib/audit_config.py",
     "runner/lib/postman_export.py",
@@ -289,9 +290,42 @@ def _write_log_verify(ticket_dir: Path, spec: dict) -> Path:
     return path
 
 
+def _write_redis_verify_sample(ticket_dir: Path, spec: dict) -> Path:
+    from redis_verify import write_redis_verify_commands
+
+    (ticket_dir / "evidence" / "redis").mkdir(parents=True, exist_ok=True)
+    _write_text(
+        ticket_dir / "evidence" / "redis" / "capture-sample.json",
+        json.dumps(
+            {
+                "host": "127.0.0.1",
+                "port": "6379",
+                "db": 2,
+                "pattern": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_*",
+                "keys": [
+                    {
+                        "key": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_sample_prop",
+                        "type": "string",
+                        "ttl": "-1",
+                        "value_preview": "(JDK-serialized — sample)",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    return write_redis_verify_commands(
+        ticket_dir,
+        spec,
+        capture_results=[{"ok": True, "detail": "1 key(s) on db=2 (sample)", "evidence": "evidence/redis/capture-sample.json"}],
+        prime_message="Sample: would prime from masterdata[] when redis-cli is available",
+    )
+
+
 def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> None:
     ev = ticket_dir / "evidence"
-    for sub in ("api", "db", "logs", "unit"):
+    for sub in ("api", "db", "logs", "unit", "kafka", "redis"):
         (ev / sub).mkdir(parents=True, exist_ok=True)
 
     s1_crn = run_data["decisions"]["scenario_crns"]["S1"]
@@ -316,6 +350,11 @@ def _write_evidence_samples(ticket_dir: Path, spec: dict, run_data: dict) -> Non
         ev / "logs" / "S1-snippet.txt",
         "INFO inquireCardEligibility — sample log line for documentation\n",
     )
+    _write_text(
+        ev / "kafka" / "capture-dsa_dev_sample_events-sample.jsonl",
+        json.dumps({"sample": True, "topic": "dsa_dev_sample_events", "payload": {"status": "ok"}})
+        + "\n",
+    )
 
 
 def _write_readme(ticket_dir: Path, manifest: dict) -> Path:
@@ -333,7 +372,8 @@ def _write_readme(ticket_dir: Path, manifest: dict) -> Path:
         "| `bob init-ticket` / analyst fills spec | Same + scenarios, stubs, `run.*` flags |",
         "| `bob validate-ticket <id>` on a **host** repo | [REPORT.md](./REPORT.md), [REPORT.html](./REPORT.html), [run-summary.json](./run-summary.json) |",
         "| (same run) | [CONTEXT_PACK.md](./CONTEXT_PACK.md), [EVAL_REGRESSION.md](./EVAL_REGRESSION.md), [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) |",
-        "| (same run) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql), [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md), [evidence/](./evidence/) |",
+        "| (same run) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql), [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md), [REDIS_VERIFY.md](./REDIS_VERIFY.md) |",
+        "| (same run) | [evidence/](./evidence/) — api, db, logs, kafka, redis |",
         "",
         "## Regenerate",
         "",
@@ -385,7 +425,19 @@ def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = Fa
         discovery=disc,
         setup_fixes=["Sample: would run `bob kafka up` when Docker is available"],
         setup_issues=[],
+        scenario_results=[
+            {
+                "id": "K1",
+                "pass": True,
+                "topic": "dsa_dev_sample_events",
+                "detail": ["sample scenario"],
+                "evidence": "evidence/kafka/capture-dsa_dev_sample_events-sample.jsonl",
+            }
+        ],
     )
+    rv_path = _write_redis_verify_sample(ticket_dir, spec)
+    if rv_path:
+        run_data["decisions"]["redis_verify_commands"] = rv_path.name
 
     _write_db_verify(ticket_dir, spec, run_data)
     _write_log_verify(ticket_dir, spec)

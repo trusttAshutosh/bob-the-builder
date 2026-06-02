@@ -9,4 +9,6 @@ Copied into `assets/` on first `bob install` (empty catalogs).
 | `platform-graph/` | `assets/platform-graph/` — fill with `bob sync-graph` |
 | `assertion-catalog/` | `assets/assertion-catalog/` |
 
+| `sample-validate-output/` | Not copied to `assets/` — committed under `assets/examples/`; see `bob refresh-samples` |
+
 Novopay CC reference snapshot (not seeded): `assets/examples/novopay-cc/`.

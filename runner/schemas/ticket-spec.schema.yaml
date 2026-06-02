@@ -34,6 +34,10 @@ run:
   boot_wait_seconds: 180
   audit_db: dsa_credit_card_mgmt  # override per service; see deploy/tdd mysql.schemas.audit
   wiremock_port: 9090
+  kafka:
+    mode: auto  # auto | on | off
+  redis:
+    mode: auto  # auto | on | off — CC config cache when masterdata/stubs
 
 # Stub registry refs: stub-registry/bank-operations/<op>/<fixture>.yaml
 stubs: []
@@ -41,10 +45,13 @@ stubs: []
 # Masterdata URL overrides when using WireMock (prop_key / prop_value; use {WIREMOCK_PORT})
 masterdata: []
 
+# transaction_audit | api_response | logs | kafka | redis
 evidence_required:
   - transaction_audit
   - api_response
   - logs
+  # - kafka
+  # - redis
 
 scenarios:
   - id: S1

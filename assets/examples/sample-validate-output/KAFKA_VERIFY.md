@@ -47,3 +47,19 @@ Artifact: [kafka-discovered.json](./kafka-discovered.json)
 
 - Sample: would run `bob kafka up` when Docker is available
 
+## kafka_scenarios
+
+| ID | Pass | Topic | Detail |
+|----|------|-------|--------|
+| K1 | PASS | `dsa_dev_sample_events` | sample scenario [evidence](./evidence/kafka/capture-dsa_dev_sample_events-sample.jsonl) |
+
+## Captured evidence
+
+Files under [evidence/kafka/](./evidence/kafka/):
+
+| File |
+|------|
+| [capture-dsa_dev_sample_events-sample.jsonl](./evidence/kafka/capture-dsa_dev_sample_events-sample.jsonl) |
+
+_Scenario runs and `capture_after_scenarios` write JSONL/JSON here._
+

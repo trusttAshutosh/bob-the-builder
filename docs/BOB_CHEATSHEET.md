@@ -16,8 +16,9 @@
 | `bob graph sync-obsidian` | Export platform/session graph → `local/obsidian-vault/` |
 | `bob context --ticket ID` | Write `CONTEXT_PACK.md` (prefs, stale, hybrid KG) |
 | `bob eval baseline\|check\|update ID` | REPORT artifact regression vs baseline |
-| `bob kafka discover\|setup\|up …` | Flow-scoped Kafka bindings (see KAFKA_FOR_BOB.md) |
-| `bob validate-ticket ID` | Run ticket + evidence (+ context pack, eval check by default) |
+| `bob kafka discover\|setup\|up …` | Flow-scoped Kafka bindings (see [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md)) |
+| `bob tools list\|run\|backend` | Tool bridge: git, MySQL, context (local default; optional MCP) |
+| `bob validate-ticket ID` | Run ticket + evidence: api/db/logs/kafka/redis (+ context, eval) |
 | `bob ticket-status ID` | PASS/FAIL + decision trace |
 | `bob open-report ID` | Paths to HTML / summary |
 | `bob list-tickets` | List ticket IDs |
@@ -36,9 +37,9 @@
 | Path | Contents |
 |------|----------|
 | `BOB_HOME` | Shared catalogs (`bob-the-builder/assets/`) — starts empty; version in git if your team chooses |
-| `assets/examples/` | Reference packs only (e.g. `novopay-cc/`) — Bob does not load these automatically |
+| `assets/examples/` | Reference only: `sample-validate-output/` (generated bundle), `novopay-cc/` (CC catalog snapshot) |
 | `BOB_LOCAL` | `bob-the-builder/local/` — secrets + `agent/` (never commit) |
 
 Short: `s` `i` `d` `r` `st` `o` `l` map to the above.
 
-Guides: [README.md](README.md) (index) · [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) · [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md)
+Guides: [README.md](README.md) (index) · [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) · [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) · [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md)

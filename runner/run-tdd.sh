@@ -67,8 +67,8 @@ if [[ -f "$TDD_RUN_DIR/masterdata-stub-urls.sql" && -n "${MYSQL_BIN:-}" ]]; then
 fi
 
 echo "Report: $TDD_RUN_DIR/REPORT.md"
-echo "Run summary: $TDD_RUN_DIR/RUN_SUMMARY.md"
 echo "HTML report: $TDD_RUN_DIR/REPORT.html"
+echo "Machine summary: $TDD_RUN_DIR/run-summary.json"
 echo "Evidence: $TDD_RUN_DIR/evidence/"
 echo ""
 echo "Judge run: bob ticket-status ${TICKET_ID:-}"

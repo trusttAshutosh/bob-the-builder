@@ -164,7 +164,7 @@ def evidence_index(ticket_dir: Path) -> dict[str, str]:
         paths["test_plan_md"] = _fmt_path(ticket_dir / "TEST_PLAN.md")
     if ev.exists():
         paths["evidence_dir"] = _fmt_path(ev)
-        for sub in ("api", "db", "logs", "unit"):
+        for sub in ("api", "db", "logs", "unit", "kafka", "redis"):
             d = ev / sub
             if d.exists() and any(d.iterdir()):
                 paths[f"evidence_{sub}"] = _fmt_path(d)
@@ -174,7 +174,9 @@ def evidence_index(ticket_dir: Path) -> dict[str, str]:
         "db-verify.txt",
         "DB_VERIFY_QUERIES.sql",
         "LOG_VERIFY_COMMANDS.md",
-        "log-search.txt",
+        "REDIS_VERIFY.md",
+        "KAFKA_VERIFY.md",
+        "kafka-discovered.json",
         "masterdata-stub-urls.sql",
         "branch.txt",
     ):
@@ -559,14 +561,24 @@ def _render_markdown(
     ]
     if dec.get("kafka_verify_commands"):
         lines.append(
-            "| Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) |"
+            "| Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) · [evidence/kafka/](./evidence/kafka/) |"
+        )
+    if dec.get("redis_verify_commands"):
+        lines.append(
+            "| Redis (config cache / redis-cli) | [REDIS_VERIFY.md](./REDIS_VERIFY.md) · [evidence/redis/](./evidence/redis/) |"
         )
     if dec.get("context_pack"):
         lines.append("| Context (prefs + stale + KG) | [CONTEXT_PACK.md](./CONTEXT_PACK.md) |")
     if dec.get("eval_regression_md"):
         lines.append("| Eval regression | [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) |")
     if (d.get("evidence") or {}).get("evidence_logs") or dec.get("log_search_ran"):
-        lines.append(f"| Log search output (if LOGS_DIR set) | [log-search.txt](./log-search.txt) or [evidence/logs/](./evidence/logs/) |")
+        lines.append(
+            "| Log search output (if LOGS_DIR set) | [log-search.txt](./log-search.txt) or [evidence/logs/](./evidence/logs/) |"
+        )
+    if (d.get("evidence") or {}).get("evidence_kafka"):
+        lines.append("| Kafka captures | [evidence/kafka/](./evidence/kafka/) |")
+    if (d.get("evidence") or {}).get("evidence_redis"):
+        lines.append("| Redis snapshots | [evidence/redis/](./evidence/redis/) |")
     if scenario_crns:
         lines += ["", "| Scenario | CRN |", "|----------|-----|"]
         for sid, sc_crn in sorted(scenario_crns.items()):
@@ -581,7 +593,8 @@ def _render_markdown(
         "- [TEST_PLAN.md](./TEST_PLAN.md) — planned scenarios (updated each validate-ticket)",
         "- [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) — MySQL dashboard + per-scenario SELECTs",
         "- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep/rg for applogs",
-        "- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce (when run.kafka.enabled)",
+        "- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce; captures in [evidence/kafka/](./evidence/kafka/)",
+        "- [REDIS_VERIFY.md](./REDIS_VERIFY.md) — redis-cli commands; snapshots in [evidence/redis/](./evidence/redis/)",
         "- [CONTEXT_PACK.md](./CONTEXT_PACK.md) — prefs, staleness, hybrid KG retrieval",
         "- [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) — scenario baseline comparison",
         "- [ticket-spec.yaml](./ticket-spec.yaml)",

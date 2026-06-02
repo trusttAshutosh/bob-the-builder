@@ -24,9 +24,11 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 
 | Doc | Use when |
 |-----|----------|
+| [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) | **Master map** — DB / logs / Kafka / Redis verify files + `evidence/` subdirs |
 | [DATA_LAYOUT.md](DATA_LAYOUT.md) | Where Bob writes files; git policy |
 | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) | `CONTEXT_PACK.md`, hybrid graph retrieval, `bob eval` regression |
-| [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) | `run.kafka.mode`, `bob kafka discover/setup/up`, `KAFKA_VERIFY.md` |
+| [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) | `run.kafka.mode`, `bob kafka discover/setup/up`, `KAFKA_VERIFY.md`, `evidence/kafka/` |
+| [REDIS_FOR_BOB.md](REDIS_FOR_BOB.md) | `run.redis.mode`, `REDIS_VERIFY.md`, `evidence/redis/`, `redis_scenarios` |
 | [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) | `bob graph sync-obsidian`, live graph in Obsidian |
 
 ## Architecture diagrams

@@ -30,12 +30,18 @@ Bob updates files under `assets/` and `local/` on disk. Whether those land in gi
 | Path | Purpose |
 |------|---------|
 | `docs/tdd-runs/<ticket-id>/ticket-spec.yaml` | Ticket definition |
-| `docs/tdd-runs/<ticket-id>/evidence/` | API/DB/log proof from `validate-ticket` |
-| `docs/tdd-runs/<ticket-id>/REPORT.*`, `RUN_SUMMARY.*` | Run output |
+| `docs/tdd-runs/<ticket-id>/evidence/` | Proof from `validate-ticket` (`api/`, `db/`, `logs/`, `kafka/`, `redis/`, `unit/`) |
+| `docs/tdd-runs/<ticket-id>/REPORT.md`, `REPORT.html`, `run-summary.json` | Single human + machine report (`RUN_SUMMARY.md` not used) |
+| `docs/tdd-runs/<ticket-id>/DB_VERIFY_QUERIES.sql` | MySQL dashboard + per-scenario SELECTs |
+| `docs/tdd-runs/<ticket-id>/LOG_VERIFY_COMMANDS.md` | Copy-paste grep/rg for applogs (`LOGS_DIR`) |
 | `docs/tdd-runs/<ticket-id>/CONTEXT_PACK.md` | Prefs, stale warnings, hybrid KG slice (`bob context` / validate) |
 | `docs/tdd-runs/<ticket-id>/KAFKA_VERIFY.md` | Kafka bindings + verify notes when `run.kafka.mode` is on/auto |
+| `docs/tdd-runs/<ticket-id>/REDIS_VERIFY.md` | Redis redis-cli commands + capture notes when `run.redis` / `evidence_required: redis` |
 | `docs/tdd-runs/<ticket-id>/EVAL_REGRESSION.md` | Eval drift vs `eval-baseline.json` when `run.eval.mode: check` |
 | `docs/tdd-runs/<ticket-id>/kafka-discovered.json` | Discovered topics/listeners for the ticket flow |
+| `docs/tdd-runs/<ticket-id>/log-search.txt` | Log grep output when `LOGS_DIR` is set |
+
+Full verify/evidence map: [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).
 
 Ticket folders stay in the **service** repo. Generated proof is gitignored in the host repo so it stays local.
 

@@ -83,7 +83,7 @@ TS="$(date -Iseconds)"
 
 echo "Published $REPORT"
 
-# Enrich with RUN_SUMMARY / HTML when Python available
+# Enrich with REPORT.md / REPORT.html when Python available
 if command -v python3 >/dev/null; then
   python3 -c "
 import sys
@@ -94,6 +94,6 @@ td = Path('$TDD_RUN_DIR')
 data = build_summary_from_artifacts(td)
 if data:
     publish_run_summary(td, data)
-    print('Published RUN_SUMMARY.md and REPORT.html')
+    print('Published REPORT.md and REPORT.html')
 " 2>/dev/null || true
 fi

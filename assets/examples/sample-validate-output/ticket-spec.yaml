@@ -34,6 +34,8 @@ run:
   audit_db: dsa_credit_card_mgmt
   kafka:
     mode: auto
+  redis:
+    mode: auto
   graph:
     sync_obsidian: false
   eval:
@@ -73,3 +75,5 @@ evidence_required:
   - transaction_audit
   - api_response
   - logs
+  - kafka
+  - redis

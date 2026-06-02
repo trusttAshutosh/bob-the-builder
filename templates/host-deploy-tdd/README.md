@@ -55,6 +55,7 @@ bob validate-ticket MY-123
 | `env-local.yaml` | Generic env profile (ports, health checks, audit DB) |
 | `env-local-generic.yaml` | Template placeholders for a new service (`your_service_key`, `YOUR_SERVICE_BASE`) |
 | `env-local-dsa.yaml` | Novopay CC + masterdata (`env_profile: local-dsa`) — CC dogfood default |
-| `INFRA_FOR_BOB.md` | Kafka, Redis, MySQL notes for ticket-spec |
+| `INFRA_FOR_BOB.md` | Kafka, Redis, MySQL, logs — verify + evidence notes |
+| (Bob docs) | [EVIDENCE_AND_VERIFY.md](../../docs/EVIDENCE_AND_VERIFY.md) — DB / logs / Kafka / Redis proof layout |
 
 See `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md` in the Bob repo for the full workflow.

@@ -54,4 +54,4 @@ Postman gateway paths and API catalog `base_env` come from the host profile (`pr
 - **Generic:** discovery, graph, Kafka, eval, and catalogs follow `BOB_HOST_REPO`.
 - **CC default:** `bob setup` reads `deploy/tdd/env-*.yaml` and prompts labeled URLs (`CC_BASE`, `MD_BASE`, …). Product fallbacks stay in `bob-defaults.yaml` when a field is missing.
 
-See also [ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) · [README.md](README.md) (full doc index).
+See also [ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) · [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) (DB/logs/Kafka/Redis proof) · [README.md](README.md) (full doc index).

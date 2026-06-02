@@ -71,4 +71,4 @@ run:
 
 [MiroFish](https://github.com/666ghj/MiroFish) builds LLM-extracted graphs from documents and runs agent **simulations**. Bob exports **code-derived** API/processor topology for **backend TDD**. Use Obsidian on Bob's vault, not MiroFish, for this workflow.
 
-See [README.md](README.md) (doc index) · [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md).
+See [README.md](README.md) (doc index) · [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) · [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).

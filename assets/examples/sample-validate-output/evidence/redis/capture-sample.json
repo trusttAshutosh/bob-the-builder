@@ -1,0 +1,14 @@
+{
+  "host": "127.0.0.1",
+  "port": "6379",
+  "db": 2,
+  "pattern": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_*",
+  "keys": [
+    {
+      "key": "dev_dsa_config_CREDIT-CARD-MANAGEMENT_sample_prop",
+      "type": "string",
+      "ttl": "-1",
+      "value_preview": "(JDK-serialized \u2014 sample)"
+    }
+  ]
+}

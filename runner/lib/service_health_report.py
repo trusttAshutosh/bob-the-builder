@@ -1,4 +1,4 @@
-"""Format UP/DOWN service lists for Bob RUN_SUMMARY and pipeline steps."""
+"""Format UP/DOWN service lists for Bob REPORT.md and pipeline steps."""
 from __future__ import annotations
 
 from typing import Any
@@ -85,7 +85,7 @@ def format_markdown_section(
     wiremock_detail: str = "",
     e2e_blockers: list[str] | None = None,
 ) -> list[str]:
-    """Lines for RUN_SUMMARY.md ## Service health."""
+    """Lines for REPORT.md ## Service health."""
     lines = ["", "## Service health", ""]
     if boot_summary and boot_summary.get("total"):
         lines += [

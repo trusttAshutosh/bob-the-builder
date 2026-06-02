@@ -82,3 +82,8 @@ Bob CLI with `BOB_TOOL_BACKEND=mcp` spawns the same server from `mcp-servers.yam
 - **Local must always work** — CI and developers without MCP use `local`.
 - **One tool ID** — same name in YAML, Python, and MCP `tools/call`.
 - **Migrate incrementally** — wrap one tool at a time; use `auto` during transition.
+
+## See also
+
+- [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) — validate-ticket proof (DB, logs, Kafka, Redis)
+- [README.md](README.md) — documentation index

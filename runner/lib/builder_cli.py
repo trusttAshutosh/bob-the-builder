@@ -120,7 +120,7 @@ def _print_help() -> None:
     print("  sync-graph         Refresh platform graph in BOB_HOME")
     print("  validate-ticket ID Run stubs, APIs, DB checks; write evidence/")
     print("  ticket-status ID   Show last run PASS/FAIL + decision trace")
-    print("  open-report ID     Print paths to RUN_SUMMARY, REPORT.html")
+    print("  open-report ID     Print paths to REPORT.md, REPORT.html, run-summary.json")
     print("  list-tickets       List ticket folders in host repo")
     print("  next               Improvement backlog (docs/NEXT.md)")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")

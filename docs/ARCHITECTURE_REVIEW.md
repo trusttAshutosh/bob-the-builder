@@ -22,17 +22,31 @@ Publish **`bob-the-builder`** containing `runner/`, `assets/`, `skills/`, `docs/
 |-------|------|
 | `builder-analyst` | Spec + plan |
 | `builder-implementer` | Code |
-| `builder-verifier` | `validate-ticket` |
+| `builder-verifier` | `validate-ticket` + evidence review |
 | `builder-one-shot` | Full flow |
 
 ## Commands (name = purpose)
 
-See `bob help` — e.g. `init-ticket`, `validate-ticket`, `discover-apis`, `sync-graph`, `host`, `context`, `eval`, `kafka`, `graph sync-obsidian`, `ensure-peers`.
+See `bob help` — e.g. `init-ticket`, `validate-ticket`, `discover-apis`, `sync-graph`, `host`, `context`, `eval`, `kafka`, `tools`, `graph sync-obsidian`, `ensure-peers`.
 
 ## Diagrams
 
-End-to-end **mermaid** diagram: [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md#architecture-end-to-end).  
+End-to-end **mermaid** diagram: [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md#architecture-end-to-end) — includes `evidence/kafka` and `evidence/redis` nodes.  
 Runtime **topology graph**: `bob graph sync-obsidian` → see [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md).
+
+## Evidence and verification
+
+`validate-ticket` writes verify docs and `evidence/` subdirs in the host ticket folder:
+
+| Kind | Doc | Folder |
+|------|-----|--------|
+| DB | `DB_VERIFY_QUERIES.sql` | `evidence/db/` |
+| Logs | `LOG_VERIFY_COMMANDS.md` | `evidence/logs/` |
+| Kafka | `KAFKA_VERIFY.md` | `evidence/kafka/` |
+| Redis | `REDIS_VERIFY.md` | `evidence/redis/` |
+
+Canonical map: [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).  
+Human report: `REPORT.md` (not legacy `RUN_SUMMARY.md`).
 
 ## Host service repo
 

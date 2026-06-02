@@ -2,6 +2,8 @@
 
 Bob discovers **Kafka producers, consumers, and topics from the code you are changing** (any Novopay repo/flow), then prepares local Docker Kafka and highlights or fixes setup gaps.
 
+For the full evidence model (verify doc + `evidence/kafka/`), see [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).
+
 ## Modes (`ticket-spec.yaml`)
 
 ```yaml
@@ -42,7 +44,12 @@ Then scans (in scope packages + MessageBroker):
 | `NovopayKafkaProducer.sendMessage` | Literal or dynamic producers |
 | `AbstractTypedRecordConsumer` | Consumer + payload type |
 
-Outputs: `docs/tdd-runs/<ticket>/kafka-discovered.json`, `KAFKA_VERIFY.md`, REPORT section **Kafka (discovered from impacted code)**.
+Outputs:
+
+- `docs/tdd-runs/<ticket>/kafka-discovered.json`
+- `KAFKA_VERIFY.md` (commands + links to captures)
+- `evidence/kafka/` — JSONL/JSON from `kafka_scenarios` and `run.kafka.capture_after_scenarios`
+- REPORT section **Manual verification** (Kafka row + evidence path)
 
 ## CLI
 

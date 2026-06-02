@@ -24,7 +24,8 @@
       "bank-operations/getCardSummary/success-200"
     ],
     "env_profile": "local-dsa",
-    "primary_service": "credit_card_management"
+    "primary_service": "credit_card_management",
+    "redis_verify_commands": "REDIS_VERIFY.md"
   },
   "steps": [
     {

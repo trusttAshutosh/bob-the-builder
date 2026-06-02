@@ -11,9 +11,9 @@
 
 **Problem:** Backend tickets need repeatable local proof — correct gateway APIs, partner/bank stub behavior, DB rows, logs — without manual Postman + grep + SQL every time.
 
-**Solution:** One **`ticket-spec.yaml`** per ticket, catalogs and stubs in **local Bob home**, automated **`bob validate-ticket`** runs, and an **evidence bundle** (`RUN_SUMMARY.md`, `REPORT.html`, `evidence/`). Cursor skills split **analyst / implementer / verifier**.
+**Solution:** One **`ticket-spec.yaml`** per ticket, catalogs and stubs in **local Bob home**, automated **`bob validate-ticket`** runs, and an **evidence bundle** (`REPORT.md`, `REPORT.html`, `run-summary.json`, `evidence/`). Cursor skills split **analyst / implementer / verifier**.
 
-**One-liner:** Bob applies stubs → **bootRuns the Novopay services your ticket needs** → hits gateway APIs → checks logs + DB → evidence. You only bring **MySQL** (and Redis/Kafka if the ticket needs them). Bank/HDFC stays on **WireMock** — never real partner bootRun.
+**One-liner:** Bob applies stubs → **bootRuns the Novopay services your ticket needs** → hits gateway APIs → checks **DB, logs, Kafka, Redis** (when in scope) → writes verify docs + `evidence/`. You bring **MySQL** (and Redis/Kafka when the ticket needs them). Bank/HDFC stays on **WireMock** — never real partner bootRun.
 
 ---
 
@@ -44,7 +44,9 @@ flowchart LR
     API[evidence/api]
     DB[evidence/db]
     LOG[evidence/logs]
-    RPT[RUN_SUMMARY]
+    KFK[evidence/kafka]
+    RDS[evidence/redis]
+    RPT[REPORT.md]
   end
   TS --> AC
   TS --> SR
@@ -54,10 +56,14 @@ flowchart LR
   CFG --> S1
   S1 --> API
   S1 --> LOG
+  S1 --> KFK
+  S1 --> RDS
   S1 --> MY
   MY --> DB
   API --> RPT
   DB --> RPT
+  KFK --> RPT
+  RDS --> RPT
   PG -.->|query-kg| TS
 ```
 
@@ -92,7 +98,7 @@ ADR: [`ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md).
 | **BOB_LOCAL** | Secrets + agent session | `bob-the-builder/local/` (gitignored) |
 | **Service boot** | Bob `bootRun`s Novopay peers (discovered or profile); WireMock for bank/HDFC | `run.auto_boot_services` / `ensure-peers` / `need-service` — see [Local stack](#local-stack-configured-not-fixed) |
 | **Workspace map** | Optional repo → properties map (profile-based boot) | `deploy/tdd/workspace-services.yaml` |
-| **Evidence** | Proof per scenario | `docs/tdd-runs/<id>/evidence/` |
+| **Evidence** | Proof per scenario | `docs/tdd-runs/<id>/evidence/` (`api/`, `db/`, `logs/`, `kafka/`, `redis/`, `unit/`) — see [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) |
 
 ### Agent roles
 
@@ -209,7 +215,7 @@ Cheat sheet: [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md).
 3. Analyst: `ticket-spec.yaml`, `TEST_PLAN.md`, stubs under `BOB_HOME`
 4. `bob discover-apis` / `bob sync-graph` when orchestration changes
 5. Implementer: code in repos under `BUILDER_WORKSPACE_ROOT`; **`bob ensure-peers`** if a new peer appears mid-work; **no commit** unless asked
-6. Verifier: **`bob validate-ticket <id>`** — Bob boots services + WireMock, applies config overrides, produces `RUN_SUMMARY.md` / `REPORT.html`
+6. Verifier: **`bob validate-ticket <id>`** — Bob boots services + WireMock, applies config overrides, produces `REPORT.md` / `REPORT.html` + verify docs (`DB_VERIFY_QUERIES.sql`, `LOG_VERIFY_COMMANDS.md`, `KAFKA_VERIFY.md`, `REDIS_VERIFY.md` when applicable)
 7. Share evidence folder or report only if the team wants ticket examples in git
 
 ---
@@ -218,9 +224,16 @@ Cheat sheet: [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md).
 
 | Artifact | Use |
 |----------|-----|
-| **RUN_SUMMARY.md** | Decision trace, timings, assertions |
+| **REPORT.md** | Decision trace, scenarios, manual verification links |
 | **REPORT.html** | Browser-friendly review |
-| **evidence/** | Raw API, DB, logs |
+| **run-summary.json** | Machine-readable run (CI/agents) |
+| **DB_VERIFY_QUERIES.sql** | MySQL Workbench / manual DB checks |
+| **LOG_VERIFY_COMMANDS.md** | grep/rg on applogs (`LOGS_DIR`) |
+| **KAFKA_VERIFY.md** | Kafka CLI + links to `evidence/kafka/` |
+| **REDIS_VERIFY.md** | redis-cli + links to `evidence/redis/` |
+| **evidence/** | Raw API, DB, logs, Kafka, Redis, unit outputs |
+
+Index: [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md).
 
 ```bash
 python bob.py ticket-status MY-123
@@ -295,7 +308,7 @@ Example profile: [`templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml`](../
 |---------------|-----------|-----|
 | **You** | MySQL | Local install / Docker; map `MYSQL_*` in `{BOB_LOCAL}/user.env` |
 | **You** (if needed) | Redis | When CC config cache is required |
-| **Bob or you** | Kafka | `bob kafka up` or `run.kafka.enabled` in ticket-spec (bulk/async) |
+| **Bob or you** | Kafka | `bob kafka up` or `run.kafka.mode: auto` in ticket-spec (bulk/async) |
 | **Bob** | Novopay microservices | `bootRun` via `validate-ticket` or `ensure-peers` (health-gated) |
 | **Bob** | WireMock + bank stubs | `validate-ticket` → `start-wiremock-runtime.sh` + ticket `stubs` |
 | **Never** | Bank / HDFC partner APIs | Always WireMock — not real bootRun |
@@ -381,11 +394,13 @@ A: Catalogs belong in `{BOB_HOME}` only; host repo keeps README pointers.
 |---------|-------------------|-----|
 | Hybrid KG + stale checks | `bob context --ticket ID` → `CONTEXT_PACK.md` | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) |
 | REPORT regression | `bob eval baseline\|check\|update ID` | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) |
+| Evidence + verify (all kinds) | `validate-ticket` | [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) |
 | Kafka (impacted code only) | `bob kafka discover`, `run.kafka.mode: auto` | [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) |
+| Redis (config cache) | `run.redis.mode: auto`, `REDIS_VERIFY.md` | [REDIS_FOR_BOB.md](REDIS_FOR_BOB.md) |
 | Visual graph | `bob graph sync-obsidian` (also on `sync-graph` / validate if enabled) | [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) |
 | Multi-repo + CC defaults | `bob host`, `BUILDER_WORKSPACE_ROOT` | [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) |
 
-Defaults on `validate-ticket`: context pack, eval `check` (if baseline exists), Kafka `auto` when bindings found, Obsidian export when `run.graph.sync_obsidian` is not `false`.
+Defaults on `validate-ticket`: context pack, eval `check` (if baseline exists), Kafka `auto` when bindings found, Redis `auto` when masterdata/stubs/CC config path, Obsidian export when `run.graph.sync_obsidian` is not `false`.
 
 ---
 
@@ -396,6 +411,7 @@ Defaults on `validate-ticket`: context pack, eval `check` (if baseline exists), 
 | [README.md](README.md) | **Doc index** (all guides) |
 | [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md) | Short commands |
 | [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) | Workspace root, host profile, CC defaults |
+| [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md) | DB / logs / Kafka / Redis proof |
 | [ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) | Non-CC services |
 | [runner/README.md](../runner/README.md) | Quick start |
 | [runner/ARCHITECTURE.md](../runner/ARCHITECTURE.md) | Internals |

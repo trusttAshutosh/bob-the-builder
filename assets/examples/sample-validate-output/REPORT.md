@@ -37,6 +37,7 @@ _How the runner chose APIs, stubs, and environment._
 - **eval_regression_md:** EVAL_REGRESSION.md
 - **kafka_verify_commands:** True
 - **primary_service:** credit_card_management
+- **redis_verify_commands:** REDIS_VERIFY.md
 - **scenario_crns:** {'S1': 'BOB-SAMPLE-20260601-S1', 'S2': 'BOB-SAMPLE-20260601-S2'}
 - **stubs_applied:** bank-operations/getCardSummary/success-200
 - **wiremock_detail:** 127.0.0.1:9090 (sample — not started for doc bundle)
@@ -89,7 +90,8 @@ This bundle is for documentation; run validate-ticket on your host repo for real
 |------|------|
 | DB (MySQL Workbench) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) |
 | Logs (grep/rg on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |
-| Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) |
+| Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) · [evidence/kafka/](./evidence/kafka/) |
+| Redis (config cache / redis-cli) | [REDIS_VERIFY.md](./REDIS_VERIFY.md) · [evidence/redis/](./evidence/redis/) |
 | Context (prefs + stale + KG) | [CONTEXT_PACK.md](./CONTEXT_PACK.md) |
 | Eval regression | [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) |
 
@@ -105,7 +107,8 @@ _Single report file: this `REPORT.md` (no separate RUN_SUMMARY.md)._
 - [TEST_PLAN.md](./TEST_PLAN.md) — planned scenarios (updated each validate-ticket)
 - [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) — MySQL dashboard + per-scenario SELECTs
 - [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep/rg for applogs
-- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce (when run.kafka.enabled)
+- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce; captures in [evidence/kafka/](./evidence/kafka/)
+- [REDIS_VERIFY.md](./REDIS_VERIFY.md) — redis-cli commands; snapshots in [evidence/redis/](./evidence/redis/)
 - [CONTEXT_PACK.md](./CONTEXT_PACK.md) — prefs, staleness, hybrid KG retrieval
 - [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) — scenario baseline comparison
 - [ticket-spec.yaml](./ticket-spec.yaml)

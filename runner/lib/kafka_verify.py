@@ -121,10 +121,34 @@ def write_kafka_verify_commands(
         lines += ["## kafka_scenarios", "", "| ID | Pass | Topic | Detail |", "|----|------|-------|--------|"]
         for r in scenario_results:
             detail = "; ".join(str(x) for x in (r.get("detail") or []))[:100]
+            ev_link = r.get("evidence")
+            ev_cell = ""
+            if ev_link:
+                ev_path = Path(str(ev_link))
+                if ev_path.is_absolute():
+                    try:
+                        rel = ev_path.relative_to(ticket_dir).as_posix()
+                    except ValueError:
+                        rel = ev_path.name
+                else:
+                    rel = ev_path.as_posix()
+                ev_cell = f" [evidence](./{rel})"
             lines.append(
                 f"| {r.get('id', '?')} | {'PASS' if r.get('pass') else 'FAIL'} | "
-                f"`{r.get('topic', '')}` | {detail} |"
+                f"`{r.get('topic', '')}` | {detail}{ev_cell} |"
             )
+        lines.append("")
+
+    ev_kafka = ticket_dir / "evidence" / "kafka"
+    if ev_kafka.is_dir() and any(ev_kafka.iterdir()):
+        lines += ["## Captured evidence", "", "Files under [evidence/kafka/](./evidence/kafka/):", ""]
+        lines += ["| File |", "|------|"]
+        for f in sorted(ev_kafka.iterdir()):
+            if f.is_file() and f.name != "INDEX.txt":
+                rel = f.relative_to(ticket_dir).as_posix()
+                lines.append(f"| [{f.name}](./{rel}) |")
+        lines.append("")
+        lines.append("_Scenario runs and `capture_after_scenarios` write JSONL/JSON here._")
         lines.append("")
 
     path = ticket_dir / "KAFKA_VERIFY.md"

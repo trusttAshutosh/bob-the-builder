@@ -16,5 +16,6 @@ disable-model-invocation: true
 4. `bob discover-apis` if new gateway APIs; `bob sync-graph` when orchestration/processors change
 5. `bob init-ticket <id> "<title>"` — **id is any slug** (Jira optional); for informal reqs use `adhoc-<topic>` (see host repo `.cursor/skills/bob-adhoc-requirement`)
 6. Fill `docs/tdd-runs/<id>/ticket-spec.yaml` + `TEST_PLAN.md` from user requirement text when no formal ticket exists (`env_profile` must match host `deploy/tdd/env-*.yaml`)
+7. When the flow touches messaging or cache: set `evidence_required` (`kafka`, `redis` as needed) and `run.kafka.mode` / `run.redis.mode` — see Bob `docs/EVIDENCE_AND_VERIFY.md`
 
 Pair: `builder-implementer`, `builder-verifier`

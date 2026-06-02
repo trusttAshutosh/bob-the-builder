@@ -13,4 +13,4 @@ Copy or symlink these into your Cursor skills folder, or open `bob-the-builder` 
 
 Before scoping work, check [`docs/NEXT.md`](../docs/NEXT.md) (`bob next`).
 
-Guides: [`docs/README.md`](../docs/README.md) (index) · [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
+Guides: [`docs/README.md`](../docs/README.md) (index) · [`docs/EVIDENCE_AND_VERIFY.md`](../docs/EVIDENCE_AND_VERIFY.md) · [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)

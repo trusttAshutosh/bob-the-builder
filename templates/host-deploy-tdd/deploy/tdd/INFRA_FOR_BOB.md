@@ -9,9 +9,9 @@ Bob `validate-ticket` automates what it can locally. Use this map to know what t
 | **Spring services** | Boots CC, masterdata (from `deploy/tdd/env-*.yaml`); health UP/DOWN | `bob setup` → `CC_BASE`, `MD_BASE`; services on 8016/8015 |
 | **MySQL** | Seed SQL, API DB asserts, `DB_VERIFY_QUERIES.sql` | `MYSQL_*` in `bob-the-builder/local/user.env` |
 | **WireMock** | HDFC bank stubs (card summary, product eligibility) | Port from `run.wiremock_port` (default 9090) |
-| **Redis (config cache)** | Primes `dev_<tenant>_config_*` keys so CC reads WireMock URLs | Local Redis on 6379; tenant DB index from `platform_master.tenant_master` (dsa=2) |
-| **Log files** | Writes `LOG_VERIFY_COMMANDS.md`; runs `search-logs.sh` if `LOGS_DIR` set | `bob setup` → `LOGS_DIR` = e.g. `/apps/applogs/dsa` on QA jump host |
-| **Kafka** | `bob kafka up` or `run.kafka.enabled` on validate-ticket | Docker; UI :8090, broker :9092 |
+| **Redis (config cache)** | Primes keys; writes `REDIS_VERIFY.md` + `evidence/redis/` | Local Redis on 6379; tenant DB index from `platform_master.tenant_master` (dsa=2) |
+| **Log files** | Writes `LOG_VERIFY_COMMANDS.md`; `evidence/logs/`; runs `search-logs.sh` if `LOGS_DIR` set | `bob setup` → `LOGS_DIR` = e.g. `/apps/applogs/dsa` on QA jump host |
+| **Kafka** | `bob kafka up` or `run.kafka.mode: auto` on validate-ticket; `KAFKA_VERIFY.md` + `evidence/kafka/` | Docker; UI :8090, broker :9092 |
 | **Elasticsearch** | Not started (draft app / ES-backed reads) | Optional index or skip ES scenarios |
 | **api-gateway / actor** | Not booted by default; Postman prerequisites may call gateway | Local gateway 8080 or QA `ddp-qa.novopay.in` |
 
@@ -64,11 +64,17 @@ bob kafka produce bulk-upload-leads-dsa_dev bulk-lead-min.json
 ```yaml
 run:
   kafka:
-    enabled: true
+    mode: auto    # auto | on | off
+  redis:
+    mode: auto
 kafka_scenarios: []   # produce/consume/assert — see bob-the-builder/docs/KAFKA_FOR_BOB.md
 ```
 
-On `validate-ticket` with `run.kafka.mode: auto`, Bob scans **only impacted/changed** produce/consume code (not the whole repo), writes `KAFKA_VERIFY.md` and `kafka-discovered.json`, and auto-fixes Docker/topics/bootstrap when needed.
+On `validate-ticket` with `run.kafka.mode: auto`, Bob scans **only impacted/changed** produce/consume code (not the whole repo), writes `KAFKA_VERIFY.md`, `kafka-discovered.json`, and captures to `evidence/kafka/`, and auto-fixes Docker/topics/bootstrap when needed.
+
+**Redis:** with `masterdata[]` or `evidence_required: redis`, Bob writes `REDIS_VERIFY.md` and snapshots keys under `evidence/redis/`. See `bob-the-builder/docs/REDIS_FOR_BOB.md`.
+
+**All verify types:** `bob-the-builder/docs/EVIDENCE_AND_VERIFY.md`.
 
 **Without Docker:** use unit tests (mock producer) or QA log grep via `LOG_VERIFY_COMMANDS.md`.
 
@@ -85,7 +91,10 @@ Each validate-ticket writes:
 
 - `LOG_VERIFY_COMMANDS.md` - grep/rg commands per scenario and CRN
 - `log-search.txt` - actual matches when `LOGS_DIR` is reachable from your machine
+- `evidence/logs/` - copied log search snippets when available
 
 ## Single report artifact
 
-Every run produces **one** markdown report: `docs/tdd-runs/<ticket>/REPORT.md` (plus `TEST_PLAN.md`, SQL/log helper files). `RUN_SUMMARY.md` is not used.
+Every run produces **one** markdown report: `docs/tdd-runs/<ticket>/REPORT.md` (plus `TEST_PLAN.md`, verify helper files, and `evidence/`). `RUN_SUMMARY.md` is not used.
+
+Verify docs (when in scope): `DB_VERIFY_QUERIES.sql`, `LOG_VERIFY_COMMANDS.md`, `KAFKA_VERIFY.md`, `REDIS_VERIFY.md`. See `bob-the-builder/docs/EVIDENCE_AND_VERIFY.md`.

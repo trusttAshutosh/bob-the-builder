@@ -52,6 +52,12 @@ from kafka_runtime import (  # noqa: E402
 )
 from kafka_setup import format_setup_markdown, prepare_kafka_for_ticket  # noqa: E402
 from kafka_verify import write_kafka_verify_commands  # noqa: E402
+from redis_verify import (  # noqa: E402
+    capture_redis_evidence,
+    redis_wanted,
+    run_redis_scenarios,
+    write_redis_verify_commands,
+)
 from service_boot import (  # noqa: E402
     auto_boot_enabled,
     boot_wait_seconds,
@@ -332,6 +338,7 @@ def run(ticket_dir: Path) -> int:
     run_cfg_early = spec.get("run") or {}
     kafka_scenario_results: list[dict] = []
     kafka_capture_results: list[dict] = []
+    redis_prime_msg = ""
     kafka_discovery = discover_kafka_for_ticket(spec, ticket_dir)
     rec.set_decisions(
         kafka_mode=kafka_discovery.mode_requested,
@@ -558,6 +565,7 @@ def run(ticket_dir: Path) -> int:
         if run_cfg.get("apply_masterdata", True) and primary_up:
             rec.begin_step("redis_config_prime", "Prime CC Redis with WireMock URLs")
             prime_ok, prime_msg = prime_cc_config_cache(spec, port)
+            redis_prime_msg = prime_msg
             summary.append(f"  redis prime: {prime_msg}")
             rec.end_step("pass" if prime_ok else "fail", prime_msg)
             if not prime_ok:
@@ -798,6 +806,46 @@ def run(ticket_dir: Path) -> int:
         summary.append(f"  KAFKA_VERIFY: {kv_path}")
     rec.end_step("pass" if kv_path else "skip", str(kv_path) if kv_path else "kafka not enabled")
 
+    redis_capture_results: list[dict] = []
+    redis_scenario_results: list[dict] = []
+    if redis_wanted(spec):
+        rec.begin_step("redis_capture", "Capture Redis keys to evidence/redis/")
+        redis_capture_results = capture_redis_evidence(
+            ticket_dir, spec, prime_message=redis_prime_msg
+        )
+        cap_msg = "; ".join(r.get("detail", "") for r in redis_capture_results) or "skipped"
+        summary.append(f"  redis capture: {cap_msg}")
+        rec.end_step(
+            "pass" if any(r.get("ok") for r in redis_capture_results) else "skip",
+            cap_msg[:300],
+        )
+        rec.begin_step("redis_scenarios", "Redis scenario checks (ticket-spec)")
+        redis_scenario_results = run_redis_scenarios(
+            spec, ticket_dir, capture_results=redis_capture_results
+        )
+        if redis_scenario_results:
+            rsum = ", ".join(
+                f"{r.get('id')}:{'PASS' if r.get('pass') else 'FAIL'}" for r in redis_scenario_results
+            )
+            summary.append(f"  redis scenarios: {rsum}")
+            rec.end_step(
+                "pass" if all(r.get("pass") for r in redis_scenario_results) else "fail",
+                rsum,
+            )
+        else:
+            rec.end_step("skip", "no redis_scenarios")
+        rec.begin_step("redis_verify_doc", "Write REDIS_VERIFY.md")
+        rv_path = write_redis_verify_commands(
+            ticket_dir,
+            spec,
+            capture_results=redis_capture_results,
+            prime_message=redis_prime_msg,
+        )
+        if rv_path:
+            rec.set_decisions(redis_verify_commands=str(rv_path))
+            summary.append(f"  REDIS_VERIFY: {rv_path}")
+        rec.end_step("pass" if rv_path else "skip", str(rv_path) if rv_path else "redis not requested")
+
     rec.begin_step("log_verify", "Log verify commands + search")
     log_cmd_path = write_log_verify_commands(ticket_dir, spec, base_crn, scenario_crns)
     log_cmd_msg = str(log_cmd_path) if log_cmd_path else "no E2E scenarios"
@@ -810,14 +858,22 @@ def run(ticket_dir: Path) -> int:
     summary.append(f"  log search: {log_search_msg}")
     rec.end_step("pass" if log_cmd_path else "skip", f"{log_cmd_msg}; {log_search_msg}")
 
-    rec.begin_step("evidence", "Collect API/log evidence")
+    rec.begin_step("evidence", "Collect API / log / Kafka / Redis evidence")
     copy_api_responses(ticket_dir)
     log_file = ticket_dir / "log-search.txt"
     if log_file.exists():
         save_log_evidence(ticket_dir, log_file.read_text(encoding="utf-8"))
-        rec.end_step("pass", "log-search.txt copied")
+        log_ev_msg = "log-search.txt copied"
     else:
-        rec.end_step("skip", "no log-search.txt (set LOGS_DIR in bob setup)")
+        log_ev_msg = "no log-search.txt (set LOGS_DIR in bob setup)"
+    kafka_ev = list((ticket_dir / "evidence" / "kafka").glob("*")) if (ticket_dir / "evidence" / "kafka").is_dir() else []
+    redis_ev = list((ticket_dir / "evidence" / "redis").glob("*")) if (ticket_dir / "evidence" / "redis").is_dir() else []
+    ev_parts = [log_ev_msg]
+    if kafka_ev:
+        ev_parts.append(f"kafka: {len(kafka_ev)} file(s)")
+    if redis_ev:
+        ev_parts.append(f"redis: {len(redis_ev)} file(s)")
+    rec.end_step("pass" if log_file.exists() or kafka_ev or redis_ev else "skip", "; ".join(ev_parts))
 
     rec.begin_step("postman_export", "Postman collection export")
     pm_path, pm_msg = export_postman_for_ticket(spec, ticket_dir, wiremock_port=port)

@@ -3,6 +3,7 @@
 Ticket-driven local validation for backend microservices.
 
 - Guide: [TDD_SYSTEM_DEVELOPER_GUIDE.md](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) (includes **mermaid** end-to-end diagram)
+- Evidence map: [EVIDENCE_AND_VERIFY.md](../docs/EVIDENCE_AND_VERIFY.md)
 - ADR: [ARCHITECTURE_REVIEW.md](../docs/ARCHITECTURE_REVIEW.md)
 - Doc index: [docs/README.md](../docs/README.md)
 
@@ -22,7 +23,7 @@ Set `BUILDER_WORKSPACE_ROOT` via `bob setup` only — no hardcoded machine paths
 
 `python bob.py <command>` or `bob <command>` (after first-run PATH shim) — see `bob help`.
 
-Core commands: `setup`, `host`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `context`, `eval`, `kafka`, `graph`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`, `ensure-peers`, `need-service`, `discover-services`, `start-services`, `stop-services`.
+Core commands: `setup`, `host`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `context`, `eval`, `kafka`, `tools`, `graph`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`, `ensure-peers`, `need-service`, `discover-services`, `start-services`, `stop-services`, `refresh-samples`.
 
 | Module | Role |
 |--------|------|
@@ -30,7 +31,13 @@ Core commands: `setup`, `host`, `install`, `init-ticket`, `discover-apis`, `sync
 | `context_assembly.py` | `CONTEXT_PACK.md`, stale detection |
 | `graph_retrieval.py` | Hybrid lexical + graph expansion for agent context |
 | `eval_regression.py` | REPORT artifact baseline/check |
-| `kafka_*.py` | Flow-scoped Kafka discover/setup/verify |
+| `run_flow.py` | `validate-ticket` orchestration |
+| `run_summary.py` | `REPORT.md`, `REPORT.html`, `run-summary.json` |
+| `evidence.py` | `evidence/` layout (`api`, `db`, `logs`, `kafka`, `redis`, `unit`) |
+| `log_verify.py` | `LOG_VERIFY_COMMANDS.md`, log search |
+| `kafka_*.py`, `kafka_verify.py` | Flow-scoped Kafka discover/setup/verify + `evidence/kafka/` |
+| `redis_verify.py` | `REDIS_VERIFY.md`, capture to `evidence/redis/` |
+| `tool_bridge/` | Local-first tools; optional MCP (`BOB_TOOL_BACKEND`) |
 | `graph_obsidian.py` | Obsidian vault export |
 
 ## Service boot
@@ -47,7 +54,7 @@ Bank/HDFC: WireMock only — never bootRun partner APIs.
 
 | Where | What |
 |-------|------|
-| [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) | **Main flowchart** (mermaid): ticket spec → BOB_HOME → bootRun / WireMock → evidence |
+| [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) | **Main flowchart** (mermaid): ticket spec → BOB_HOME → bootRun / WireMock → evidence (`api`, `db`, `logs`, `kafka`, `redis`) → `REPORT.md` |
 | `bob graph sync-obsidian` | **Live graph**: `local/obsidian-vault/graph-overview.mmd` (API/processor subset; gitignored vault) |
 | [docs/GRAPH_OBSIDIAN.md](../docs/GRAPH_OBSIDIAN.md) | How to open Obsidian or paste `.mmd` into [mermaid.live](https://mermaid.live) |
 

@@ -1,0 +1,40 @@
+version: 2
+ticket:
+  id: adhoc-loc-failure-audit
+  title: Persist all LOC failure reasons on transaction_audit
+  description: ''
+  acceptance_criteria: []
+git:
+  branch_policy: none
+  base_branch: ddp-prod
+  branch_prefix: ddp-fea-
+  commit_policy: no_commit
+env_profile: local-dsa
+impacted:
+  feature: ''
+  gateway_apis: []
+  bank_operations: []
+  processor_beans: []
+  repos:
+  - novopay-platform-creditcard-management
+  channel_matrix:
+  - DAP
+run:
+  auto_boot_services: true
+  auto_discover_services: true
+  boot_wait_seconds: 180
+  audit_db: dsa_credit_card_mgmt
+  wiremock_port: 9090
+stubs: []
+masterdata: []
+evidence_required:
+- transaction_audit
+- api_response
+- logs
+scenarios:
+- id: S1
+  name: Primary scenario
+  verification_level: e2e
+  steps: []
+  log_patterns: []
+  db: {}

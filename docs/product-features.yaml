@@ -28,6 +28,9 @@ features:
       - runner/lib/run_flow.py
       - runner/lib/run_summary.py
       - runner/lib/evidence.py
+      - runner/lib/log_verify.py
+      - runner/lib/kafka_verify.py
+      - runner/lib/redis_verify.py
       - runner/run-tdd.sh
 
   - id: knowledge-graph
@@ -136,6 +139,21 @@ features:
       - runner/ci/verify-product.py
       - runner/lib/product_reminder.py
       - docs/product-features.yaml
+
+  - id: evidence-and-verify
+    name: Evidence bundle + verify docs (DB, logs, Kafka, Redis)
+    paths:
+      - runner/lib/evidence.py
+      - runner/lib/log_verify.py
+      - runner/lib/kafka_verify.py
+      - runner/lib/redis_verify.py
+      - docs/EVIDENCE_AND_VERIFY.md
+
+  - id: redis-verify
+    name: Redis verify + evidence capture
+    paths:
+      - runner/lib/redis_verify.py
+      - docs/REDIS_FOR_BOB.md
 
   - id: mcp-tool-bridge
     name: MCP-ready tool bridge (local default)

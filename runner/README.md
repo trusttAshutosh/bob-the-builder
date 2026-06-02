@@ -28,7 +28,7 @@ Run `python bob.py help`.
 | `init-ticket` | New ticket folder in host repo |
 | `discover-apis` | API catalog from orchestration |
 | `sync-graph` | Platform graph |
-| `validate-ticket` | Run + evidence |
+| `validate-ticket` | Run + evidence (api/db/logs/kafka/redis) |
 | `ticket-status` | Last run summary |
 | `open-report` | Paths to reports |
 | `ensure-peers` | Dynamic peer scan + bootRun |
@@ -41,9 +41,11 @@ Run `python bob.py help`.
 | `context --ticket ID` | `CONTEXT_PACK.md` for agents |
 | `eval baseline\|check\|update` | REPORT regression |
 | `kafka …` | Discover / Docker / verify (see docs/KAFKA_FOR_BOB.md) |
+| `tools list\|run\|backend` | Tool bridge (local default; optional MCP) |
 | `graph sync-obsidian` | Obsidian vault export |
+| `refresh-samples` | Regenerate sample validate-ticket bundle |
 
-Docs index: [`../docs/README.md`](../docs/README.md).
+Docs: [`../docs/README.md`](../docs/README.md) · [`../docs/EVIDENCE_AND_VERIFY.md`](../docs/EVIDENCE_AND_VERIFY.md).
 
 ## Skills
 

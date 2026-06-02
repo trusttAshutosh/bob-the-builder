@@ -201,7 +201,8 @@ Adjust paths and feature description.
 | DB asserts | `transaction_audit`, `dsa_credit_card_mgmt` | Your entities / schemas in ticket-spec |
 | WireMock stubs | HDFC bank-operations | Your partner mocks |
 | Postman | `postman-url-defaults.yaml` + ticket `run.postman` | Your gateway path segment |
-| Kafka | `MessageBroker.xml` if present | `run.kafka.mode: auto` discovers from your code |
+| Kafka | `MessageBroker.xml` if present | `run.kafka.mode: auto` discovers from your code; `KAFKA_VERIFY.md` + `evidence/kafka/` |
+| Redis | CC-style config cache | `run.redis.mode: auto` when using `masterdata[]`; `REDIS_VERIFY.md` + `evidence/redis/` |
 | Git branch policy | `novopay-feature` / `ddp-fea-*` | Your team policy in ticket-spec |
 
 ---
@@ -243,6 +244,8 @@ No. They use discovered graph, ticket-spec, and code scan — any repo with orch
 - [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md)
 - [DATA_LAYOUT.md](DATA_LAYOUT.md)
 - [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md)
+- [EVIDENCE_AND_VERIFY.md](EVIDENCE_AND_VERIFY.md)
 - [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md)
+- [REDIS_FOR_BOB.md](REDIS_FOR_BOB.md)
 - [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md)
 - [templates/host-deploy-tdd/README.md](../templates/host-deploy-tdd/README.md)
