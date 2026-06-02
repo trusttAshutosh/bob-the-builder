@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=8d17df1 -->
+<!-- PRODUCT-VERIFY:COMMIT=37fc4c1 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,40 +28,70 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `8d17df1` · 18/18 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `37fc4c1` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `8d17df1` — feat: add MCP-ready tool bridge with local-first default
+**Commit:** `37fc4c1` — docs: align all guides with REPORT + Kafka/Redis evidence
 **Date:** 2026-06-03
 
 ### Files changed
+- `assets/examples/sample-validate-output/KAFKA_VERIFY.md`
+- `assets/examples/sample-validate-output/MANIFEST.json`
+- `assets/examples/sample-validate-output/README.md`
+- `assets/examples/sample-validate-output/REDIS_VERIFY.md`
+- `assets/examples/sample-validate-output/REPORT.html`
+- `assets/examples/sample-validate-output/REPORT.md`
+- `assets/examples/sample-validate-output/evidence/kafka/capture-dsa_dev_sample_events-sample.jsonl`
+- `assets/examples/sample-validate-output/evidence/redis/capture-sample.json`
+- `assets/examples/sample-validate-output/run-summary.json`
+- `assets/examples/sample-validate-output/ticket-spec.yaml`
+- `docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md`
+- `docs/ARCHITECTURE_REVIEW.md`
+- `docs/BOB_CHEATSHEET.md`
 - `docs/BOB_CONTEXT_AND_EVAL.md`
+- `docs/DATA_LAYOUT.md`
+- `docs/EVIDENCE_AND_VERIFY.md`
+- `docs/GRAPH_OBSIDIAN.md`
+- `docs/KAFKA_FOR_BOB.md`
 - `docs/MCP_TOOL_BRIDGE.md`
 - `docs/README.md`
+- `docs/REDIS_FOR_BOB.md`
+- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
+- `docs/WORKSPACE_AND_HOST_PROFILE.md`
 - `docs/product-features.yaml`
-- `runner/config/mcp-servers.yaml`
-- `runner/config/tool-bridge.yaml`
+- `docs/tdd-runs/adhoc-loc-failure-audit/TEST_PLAN.md`
+- `docs/tdd-runs/adhoc-loc-failure-audit/ticket-spec.yaml`
+- `runner/ARCHITECTURE.md`
+- `runner/README.md`
+- `runner/_seed/README.md`
 - `runner/lib/builder_cli.py`
-- `runner/lib/context_assembly.py`
-- `runner/lib/mysql_runner.py`
+- `runner/lib/evidence.py`
+- `runner/lib/kafka_verify.py`
+- `runner/lib/redis_verify.py`
+- `runner/lib/run_flow.py`
 - `runner/lib/run_summary.py`
-- `runner/lib/tool_bridge/__init__.py`
-- `runner/lib/tool_bridge/local_handlers.py`
-- `runner/lib/tool_bridge/mcp_client.py`
-- `runner/lib/tool_bridge/registry.py`
-- `runner/lib/tool_bridge/router.py`
-- `runner/lib/tool_bridge/types.py`
-- `runner/mcp/bob_tools_server.py`
+- `runner/lib/sample_outputs.py`
+- `runner/lib/service_health_report.py`
+- `runner/publish-report.sh`
+- `runner/run-tdd.sh`
+- `runner/schemas/ticket-spec.schema.yaml`
+- … and 9 more
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Git branch policy (default none) (`git-branch-policy`) — files touched
+- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
+- Host deploy/tdd template (`host-deploy-template`) — files touched
+- Cursor builder skills (`agent-skills`) — files touched
 - Feature integrity verifier (`product-verify`) — files touched
+- Evidence bundle + verify docs (DB, logs, Kafka, Redis) (`evidence-and-verify`) — files touched
+- Redis verify + evidence capture (`redis-verify`) — files touched
 - MCP-ready tool bridge (local default) (`mcp-tool-bridge`) — files touched
 
 ### Regression check
-- **18/18 registered features still intact** after this commit (see below).
+- **20/20 registered features still intact** after this commit (see below).
 - Removing a feature requires updating `docs/product-features.yaml` and scorecard notes.
 <!-- LAST_COMMIT:END -->
 
@@ -85,9 +115,11 @@
 | PATH shim (bob on PATH) | `path-shim` | intact |
 | Stale workspace cleanup | `workspace-cleanup` | intact |
 | Feature integrity verifier | `product-verify` | intact |
+| Evidence bundle + verify docs (DB, logs, Kafka, Redis) | `evidence-and-verify` | intact |
+| Redis verify + evidence capture | `redis-verify` | intact |
 | MCP-ready tool bridge (local default) | `mcp-tool-bridge` | intact |
 
-**Total:** 18 intact, 0 missing.
+**Total:** 20 intact, 0 missing.
 
 Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runner/ci/verify-product.py`
 <!-- FEATURES_INTACT:END -->
