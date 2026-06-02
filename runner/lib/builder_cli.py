@@ -65,6 +65,7 @@ CMD_ALIASES: dict[str, str] = {
     "whoami": "host",
     "refresh-samples": "refresh-samples",
     "refresh-examples": "refresh-samples",
+    "tools": "tools",
     "s": "setup",
     "i": "init-ticket",
     "r": "validate-ticket",
@@ -138,6 +139,7 @@ def _print_help() -> None:
     print("  eval baseline|check|update <ticket-id>")
     print("                     Scenario regression vs eval-baseline.json")
     print("  context --ticket ID   CONTEXT_PACK.md (prefs + stale + hybrid KG)")
+    print("  tools list|run|backend  Tool bridge (local default; optional MCP)")
     print("  query-graph [kw] [--ticket ID]  Hybrid retrieval -> kg-context-last.md")
     print("  update-graph ID [title]  Update session graph")
     print()
@@ -546,6 +548,73 @@ def cmd_refresh_samples(_: list[str]) -> int:
 
     refresh_sample_outputs()
     return 0
+
+
+def cmd_tools(args: list[str]) -> int:
+    _banner("tools")
+    from tool_bridge import backend_label, list_tool_specs, resolve_backend, run_tool
+
+    if not args or args[0] in ("-h", "--help", "help"):
+        print("Usage:")
+        print(f"  {CLI_SHORT} tools list              Registered tools + backend")
+        print(f"  {CLI_SHORT} tools backend           Show BOB_TOOL_BACKEND")
+        print(f"  {CLI_SHORT} tools run <tool-id> [--key value ...]")
+        print()
+        print("Backends: local (default) | mcp | auto")
+        print("Env: BOB_TOOL_BACKEND=local")
+        return 0
+
+    sub = args[0].lower()
+    rest = args[1:]
+
+    if sub == "backend":
+        print(f"BOB_TOOL_BACKEND={backend_label()} (resolved: {resolve_backend().value})")
+        return 0
+
+    if sub == "list":
+        print(f"Backend: {backend_label()}")
+        print()
+        for spec in list_tool_specs():
+            mcp = f" -> mcp:{spec.mcp_server}/{spec.mcp_tool}" if spec.mcp_tool else ""
+            print(f"  {spec.tool_id}")
+            print(f"    local: {spec.local_handler}{mcp}")
+            if spec.description:
+                print(f"    {spec.description}")
+        return 0
+
+    if sub == "run":
+        if not rest:
+            print("Usage: bob tools run <tool-id> [--key value ...]", file=sys.stderr)
+            return 1
+        tool_id = rest[0]
+        kwargs: dict[str, str] = {}
+        i = 1
+        while i < len(rest):
+            if rest[i] == "--" and i + 1 < len(rest):
+                key = rest[i + 1].lstrip("-")
+                if i + 2 < len(rest) and not rest[i + 2].startswith("-"):
+                    kwargs[key] = rest[i + 2]
+                    i += 3
+                else:
+                    i += 2
+            elif rest[i].startswith("--") and i + 1 < len(rest):
+                kwargs[rest[i][2:]] = rest[i + 1]
+                i += 2
+            else:
+                i += 1
+        if tool_id == "mysql.query" and "sql" not in kwargs and i < len(rest):
+            kwargs["sql"] = rest[-1]
+        result = run_tool(tool_id, **kwargs)
+        if result.backend:
+            print(f"[{result.backend}]")
+        if result.ok:
+            print(result.text() or json.dumps(result.data))
+            return 0
+        print(result.error or result.stderr or "tool failed", file=sys.stderr)
+        return 1
+
+    print(f"Unknown tools subcommand: {sub}", file=sys.stderr)
+    return 1
 
 
 def cmd_verify_product(args: list[str]) -> int:
@@ -1067,6 +1136,7 @@ def main() -> int:
         "context": cmd_context,
         "host": cmd_host,
         "refresh-samples": cmd_refresh_samples,
+        "tools": cmd_tools,
         "version": cmd_version,
     }
     h = handlers.get(cmd)

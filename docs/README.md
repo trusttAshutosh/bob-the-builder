@@ -37,6 +37,12 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 | [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) | Live API/processor graph via Obsidian or `graph-overview.mmd` |
 | [../runner/ARCHITECTURE.md](../runner/ARCHITECTURE.md) | Module map + links to the above |
 
+## Agents and MCP
+
+| Doc | Use when |
+|-----|----------|
+| [MCP_TOOL_BRIDGE.md](MCP_TOOL_BRIDGE.md) | Local-first tools with optional MCP backend (`bob tools`, `BOB_TOOL_BACKEND`) |
+
 ## Internals
 
 | Doc | Use when |

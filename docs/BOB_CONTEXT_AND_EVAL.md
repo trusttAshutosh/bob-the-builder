@@ -77,7 +77,7 @@ run:
 
 ## Not included (by design)
 
-- **MCP tools** — deferred; use `bob` CLI and skills
+- **MCP tools** — optional via [MCP_TOOL_BRIDGE.md](MCP_TOOL_BRIDGE.md) (`BOB_TOOL_BACKEND=local` default); migrate tools incrementally
 - **FAISS / embeddings** — lexical + graph expansion only; enough for API/processor topology
 
 ## See also

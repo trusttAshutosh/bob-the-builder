@@ -1,0 +1,12 @@
+# MCP servers Bob can call when BOB_TOOL_BACKEND=mcp|auto
+# Paths are relative to bob-the-builder repo root unless absolute.
+version: 1
+
+servers:
+  bob-tools:
+    transport: stdio
+    command: python
+    args:
+      - runner/mcp/bob_tools_server.py
+    # Optional: only used when BOB_TOOL_BACKEND=mcp (local stays default)
+    enabled: true

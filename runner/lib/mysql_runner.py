@@ -17,7 +17,7 @@ def mysql_bin() -> str:
     return "mysql"
 
 
-def mysql_query(sql: str, schema: str | None = None) -> tuple[int, str]:
+def _mysql_query_local(sql: str, schema: str | None = None) -> tuple[int, str]:
     host = os.environ.get("MYSQL_HOST", "127.0.0.1")
     port = os.environ.get("MYSQL_PORT", "3306")
     user = os.environ.get("MYSQL_USER", "root")
@@ -29,6 +29,18 @@ def mysql_query(sql: str, schema: str | None = None) -> tuple[int, str]:
         return r.returncode, (r.stdout or "") + (r.stderr or "")
     except Exception as e:
         return 1, str(e)
+
+
+def mysql_query(sql: str, schema: str | None = None) -> tuple[int, str]:
+    """Run SQL via tool bridge (local by default; MCP when BOB_TOOL_BACKEND=mcp|auto)."""
+    try:
+        from tool_bridge import run_tool
+
+        result = run_tool("mysql.query", sql=sql, schema=schema)
+        out = result.text()
+        return (0 if result.ok else result.exit_code or 1), out
+    except ImportError:
+        return _mysql_query_local(sql, schema=schema)
 
 
 def mysql_exec_script(sql_text: str, schema: str | None = None) -> tuple[int, str]:

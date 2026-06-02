@@ -12,6 +12,16 @@ from _yaml_util import dump, load, repo_root
 
 def _git_branch() -> str:
     try:
+        from tool_bridge import run_tool
+
+        result = run_tool("git.branch", cwd=str(repo_root()))
+        if result.ok and result.data:
+            return str(result.data).strip() or "unknown"
+    except ImportError:
+        pass
+    except Exception:
+        pass
+    try:
         r = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=repo_root(),

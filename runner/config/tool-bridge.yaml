@@ -1,0 +1,62 @@
+# Bob tool bridge — local handlers today; same IDs can be served via MCP later.
+# Backend: BOB_TOOL_BACKEND=local (default) | mcp | auto
+version: 1
+
+tools:
+  git.branch:
+    description: Git abbreviated branch name for a repository
+    local_handler: git_branch
+    mcp:
+      server: bob-tools
+      tool: git_branch
+    params:
+      cwd:
+        type: string
+        required: false
+
+  git.rev_parse:
+    description: Git rev-parse (e.g. HEAD, --short HEAD)
+    local_handler: git_rev_parse
+    mcp:
+      server: bob-tools
+      tool: git_rev_parse
+    params:
+      cwd:
+        type: string
+        required: false
+      ref:
+        type: string
+        required: false
+        default: HEAD
+
+  mysql.query:
+    description: Run a single MySQL statement against audit schema
+    local_handler: mysql_query
+    mcp:
+      server: bob-tools
+      tool: mysql_query
+    params:
+      sql:
+        type: string
+        required: true
+      schema:
+        type: string
+        required: false
+
+  subprocess.run:
+    description: Run a shell command (local only unless mirrored on MCP server)
+    local_handler: subprocess_run
+    mcp:
+      server: bob-tools
+      tool: subprocess_run
+    params:
+      argv:
+        type: array
+        required: true
+      cwd:
+        type: string
+        required: false
+      timeout:
+        type: number
+        required: false
+        default: 60

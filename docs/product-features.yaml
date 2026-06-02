@@ -136,3 +136,13 @@ features:
       - runner/ci/verify-product.py
       - runner/lib/product_reminder.py
       - docs/product-features.yaml
+
+  - id: mcp-tool-bridge
+    name: MCP-ready tool bridge (local default)
+    commands: [tools]
+    paths:
+      - runner/lib/tool_bridge/
+      - runner/config/tool-bridge.yaml
+      - runner/config/mcp-servers.yaml
+      - runner/mcp/bob_tools_server.py
+      - docs/MCP_TOOL_BRIDGE.md

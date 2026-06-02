@@ -69,6 +69,16 @@ def _newest_orchestration_mtime(repo: Path) -> float:
 
 def _git_branch(repo: Path) -> str:
     try:
+        from tool_bridge import run_tool
+
+        result = run_tool("git.branch", cwd=str(repo))
+        if result.ok and result.data:
+            return str(result.data).strip()
+    except ImportError:
+        pass
+    except Exception:
+        pass
+    try:
         r = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=repo,
