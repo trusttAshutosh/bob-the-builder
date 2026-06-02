@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=ad9dce3 -->
+<!-- PRODUCT-VERIFY:COMMIT=874880d -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
@@ -28,52 +28,20 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `ad9dce3` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `874880d` · 17/17 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `ad9dce3` — fix(ci): deterministic sample bundle and verify-product imports
+**Commit:** `874880d` — fix(ci): use repo-relative path in KAFKA_VERIFY docker compose line
 **Date:** 2026-06-03
 
 ### Files changed
-- `.github/workflows/product-verify.yml`
-- `assets/examples/sample-validate-output/CONTEXT_PACK.md`
-- `assets/examples/sample-validate-output/DB_VERIFY_QUERIES.sql`
-- `assets/examples/sample-validate-output/EVAL_REGRESSION.md`
 - `assets/examples/sample-validate-output/KAFKA_VERIFY.md`
-- `assets/examples/sample-validate-output/LOG_VERIFY_COMMANDS.md`
-- `assets/examples/sample-validate-output/MANIFEST.json`
-- `assets/examples/sample-validate-output/README.md`
-- `assets/examples/sample-validate-output/REPORT.html`
-- `assets/examples/sample-validate-output/REPORT.md`
-- `assets/examples/sample-validate-output/TEST_PLAN.md`
-- `assets/examples/sample-validate-output/eval-baseline.json`
-- `assets/examples/sample-validate-output/evidence/api/S1-response.json`
-- `assets/examples/sample-validate-output/evidence/db/S1-audit-row.txt`
-- `assets/examples/sample-validate-output/evidence/logs/S1-snippet.txt`
-- `assets/examples/sample-validate-output/execution-summary.txt`
-- `assets/examples/sample-validate-output/kafka-discovered.json`
-- `assets/examples/sample-validate-output/postman/local.postman_environment.json`
-- `assets/examples/sample-validate-output/postman/qa.postman_environment.json`
-- `assets/examples/sample-validate-output/postman/sample-gateway-health-check.postman_collection.json`
-- `assets/examples/sample-validate-output/postman/uat.postman_environment.json`
-- `assets/examples/sample-validate-output/run-summary.json`
-- `docs/NEXT.md`
-- `runner/_seed/sample-validate-output/CONTEXT_PACK.md`
-- `runner/_seed/sample-validate-output/postman/local.postman_environment.json`
-- `runner/_seed/sample-validate-output/postman/qa.postman_environment.json`
-- `runner/_seed/sample-validate-output/postman/sample-gateway-health-check.postman_collection.json`
-- `runner/_seed/sample-validate-output/postman/uat.postman_environment.json`
-- `runner/ci/verify-product.py`
-- `runner/lib/eval_regression.py`
-- `runner/lib/run_summary.py`
+- `runner/lib/kafka_verify.py`
 - `runner/lib/sample_outputs.py`
 
 ### Features touched in this commit
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
 - Sample validate-ticket output bundle (`sample-validate-output`) — files touched
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **17/17 registered features still intact** after this commit (see below).
