@@ -9,6 +9,8 @@ on:
 jobs:
   verify-features:
     runs-on: ubuntu-latest
+    env:
+      BOB_PRODUCT_ROOT: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,7 +20,7 @@ jobs:
       - name: Verify registered features intact
         run: |
           python3 runner/ci/verify-product.py --check
-          python3 bob.py refresh-samples
+          BOB_PRODUCT_ROOT="${{ github.workspace }}" python3 bob.py refresh-samples
           if ! git diff --quiet assets/examples/sample-validate-output; then
             echo "::error::Sample output bundle is stale — run: python bob.py refresh-samples && commit"
             git diff --stat assets/examples/sample-validate-output

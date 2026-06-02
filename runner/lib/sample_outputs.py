@@ -8,7 +8,17 @@ from pathlib import Path
 from typing import Any
 
 SAMPLE_TICKET_ID = "sample-gateway-health-check"
+# Committed under the bob-the-builder git root (not BOB_HOME live catalogs).
 SAMPLE_REL = Path("assets/examples/sample-validate-output")
+
+
+def sample_repo_root(product_root: Path | None = None) -> Path:
+    """Git product root (bob-the-builder/), not .local/bob-the-builder fallback."""
+    if product_root is not None:
+        return product_root.resolve()
+    from host_repo import runner_bootstrap_repo
+
+    return runner_bootstrap_repo().resolve()
 
 # Paths that trigger auto-refresh on verify-product --update / post-commit
 REFRESH_TRIGGER_GLOBS = (
@@ -26,10 +36,7 @@ REFRESH_TRIGGER_GLOBS = (
 
 
 def sample_output_dir(product_root: Path | None = None) -> Path:
-    from bob_home import bob_product_root
-
-    root = product_root or bob_product_root()
-    return root / SAMPLE_REL
+    return sample_repo_root(product_root) / SAMPLE_REL
 
 
 def _git_head_short(root: Path) -> str:
@@ -48,15 +55,18 @@ def _git_head_short(root: Path) -> str:
 
 def _load_sample_spec(ticket_dir: Path) -> dict:
     from _yaml_util import load
-    from bob_home import bob_product_root
     from host_profile import effective_env_block
     from ticket_spec import load_env_profile_block
 
     spec_path = ticket_dir / "ticket-spec.yaml"
+    if not spec_path.is_file():
+        raise FileNotFoundError(
+            f"Missing {spec_path} — sample bundle must live in the git repo under {SAMPLE_REL}"
+        )
     spec = load(spec_path)
     spec.setdefault("version", 2)
     prof = spec.get("env_profile", "local-dsa")
-    tpl_root = bob_product_root() / "templates/host-deploy-tdd"
+    tpl_root = sample_repo_root() / "templates/host-deploy-tdd"
     block = load_env_profile_block(prof, base=tpl_root) or effective_env_block(profile=prof)
     spec["_env"] = block
     spec["ticket_id"] = (spec.get("ticket") or {}).get("id") or ticket_dir.name
@@ -301,14 +311,13 @@ def _write_readme(ticket_dir: Path, manifest: dict) -> Path:
 
 def refresh_sample_outputs(*, product_root: Path | None = None, quiet: bool = False) -> list[Path]:
     """Rewrite sample bundle using current run_summary / context / eval / kafka writers."""
-    from bob_home import bob_product_root
     from context_assembly import assemble_context_pack
     from eval_regression import capture_baseline, compare_to_baseline, write_eval_regression_md
     from kafka_discovery import write_discovery_artifact
     from kafka_verify import write_kafka_verify_commands
     from run_summary import ensure_test_plan, publish_run_summary
 
-    root = product_root or bob_product_root()
+    root = sample_repo_root(product_root)
     ticket_dir = sample_output_dir(root)
     ticket_dir.mkdir(parents=True, exist_ok=True)
 
