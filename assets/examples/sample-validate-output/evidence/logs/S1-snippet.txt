@@ -1,0 +1,1 @@
+INFO inquireCardEligibility — sample log line for documentation

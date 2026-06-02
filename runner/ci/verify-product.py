@@ -343,6 +343,12 @@ def cmd_update(args: argparse.Namespace) -> int:
     print(f"Updated {NEXT_MD}")
     print(f"  Features: {len(ok_list)} intact, {len(fail_list)} missing")
     print(f"  Commit stamp: {info['hash_short']}")
+
+    from sample_outputs import refresh_sample_outputs, should_refresh_samples
+
+    if should_refresh_samples(info.get("files")):
+        refresh_sample_outputs(product_root=ROOT, quiet=False)
+        print(f"Refreshed {ROOT / 'assets/examples/sample-validate-output'}")
     return 0 if not fail_list else 1
 
 

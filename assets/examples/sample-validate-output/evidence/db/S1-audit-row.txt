@@ -1,0 +1,3 @@
+client_reference_code=BOB-SAMPLE-20260603-S1
+txn_status=SUCCESS
+txn_result_code=000

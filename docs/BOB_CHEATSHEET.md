@@ -23,7 +23,7 @@
 | `bob list-tickets` | List ticket IDs |
 | `bob query-graph [words]` | Agent context slice |
 | `bob help` | Full command list (`bob bobhelp`, `bob h`, `bob ?`) |
-| `bob next` | Improvement backlog → [docs/NEXT.md](NEXT.md) |
+| `bob next` | Improvement backlog → [NEXT.md](NEXT.md) |
 | `bob verify-product` | Check feature registry; `--update` refreshes scorecard sections in NEXT.md |
 | `bob ensure-peers` | Scan host code/properties; boot peer services not already up (no deploy/tdd required) |
 | `bob need-service NAME` | Register + boot one peer by hint (`notifications`, `consents`, `masterdata`, …) |

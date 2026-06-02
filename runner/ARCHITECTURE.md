@@ -2,8 +2,9 @@
 
 Ticket-driven local validation for backend microservices.
 
-- Guide: [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
-- ADR: [`docs/ARCHITECTURE_REVIEW.md`](../../docs/ARCHITECTURE_REVIEW.md)
+- Guide: [TDD_SYSTEM_DEVELOPER_GUIDE.md](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) (includes **mermaid** end-to-end diagram)
+- ADR: [ARCHITECTURE_REVIEW.md](../docs/ARCHITECTURE_REVIEW.md)
+- Doc index: [docs/README.md](../docs/README.md)
 
 ## Layout
 
@@ -41,6 +42,16 @@ Core commands: `setup`, `host`, `install`, `init-ticket`, `discover-apis`, `sync
 | `workspace_services.py` | Optional `deploy/tdd/workspace-services.yaml` map |
 
 Bank/HDFC: WireMock only — never bootRun partner APIs.
+
+## Architecture diagrams
+
+| Where | What |
+|-------|------|
+| [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) | **Main flowchart** (mermaid): ticket spec → BOB_HOME → bootRun / WireMock → evidence |
+| `bob graph sync-obsidian` | **Live graph**: `local/obsidian-vault/graph-overview.mmd` (API/processor subset; gitignored vault) |
+| [docs/GRAPH_OBSIDIAN.md](../docs/GRAPH_OBSIDIAN.md) | How to open Obsidian or paste `.mmd` into [mermaid.live](https://mermaid.live) |
+
+There is no separate `docs/diagrams/` folder — diagrams are embedded in the developer guide or generated into `BOB_LOCAL` / Obsidian.
 
 ## Skills
 

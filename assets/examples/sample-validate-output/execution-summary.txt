@@ -1,0 +1,3 @@
+=== Bob sample-validate-output (synthetic PASS run) ===
+ticket=sample-gateway-health-check
+This bundle is for documentation; run validate-ticket on your host repo for real evidence.

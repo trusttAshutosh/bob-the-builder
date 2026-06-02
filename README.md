@@ -11,7 +11,7 @@ bob-the-builder/
   bob.py              # CLI entry
   runner/             # engine (Python + shell)
   assets/             # shared catalogs (api, stubs, platform graph) — starts empty
-  assets/examples/    # reference packs only (e.g. novopay-cc)
+  assets/examples/    # reference packs + sample validate-ticket output bundle
   local/              # gitignored — user.env, agent session, WireMock
   skills/             # Cursor builder-* skills (copy or symlink into ~/.cursor)
   docs/               # developer guide, cheatsheet
@@ -88,7 +88,8 @@ Run `bob host` to print resolved host, workspace clones, and `deploy/tdd` profil
 
 ## Docs
 
-Full index: [docs/README.md](docs/README.md).
+Full index: [docs/README.md](docs/README.md).  
+**See what Bob generates:** [assets/examples/sample-validate-output/](assets/examples/sample-validate-output/README.md) (refreshed via `bob refresh-samples`).
 
 - [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) — main guide
 - [docs/BOB_CHEATSHEET.md](docs/BOB_CHEATSHEET.md) — commands
@@ -100,3 +101,4 @@ Full index: [docs/README.md](docs/README.md).
 - [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md) — paths; **Bob never commits or pushes**
 - [docs/NEXT.md](docs/NEXT.md) — backlog + scorecard (`bob next`)
 - [runner/ARCHITECTURE.md](runner/ARCHITECTURE.md) — runner internals
+- **Architecture diagram:** mermaid in [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md#architecture-end-to-end); live graph via [docs/GRAPH_OBSIDIAN.md](docs/GRAPH_OBSIDIAN.md)

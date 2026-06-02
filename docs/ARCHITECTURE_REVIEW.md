@@ -27,7 +27,12 @@ Publish **`bob-the-builder`** containing `runner/`, `assets/`, `skills/`, `docs/
 
 ## Commands (name = purpose)
 
-See `bob help` — e.g. `init-ticket`, `validate-ticket`, `discover-apis`, `sync-graph`, `ticket-status`.
+See `bob help` — e.g. `init-ticket`, `validate-ticket`, `discover-apis`, `sync-graph`, `host`, `context`, `eval`, `kafka`, `graph sync-obsidian`, `ensure-peers`.
+
+## Diagrams
+
+End-to-end **mermaid** diagram: [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md#architecture-end-to-end).  
+Runtime **topology graph**: `bob graph sync-obsidian` → see [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md).
 
 ## Host service repo
 
@@ -35,4 +40,4 @@ Keeps orchestration XML, `deploy/tdd/`, `docs/tdd-runs/<ticket>/`.
 
 ## Improvement backlog
 
-Living list of next product work: [docs/NEXT.md](NEXT.md) — `bob next`.
+Living list of next product work: [NEXT.md](NEXT.md) — `bob next`.

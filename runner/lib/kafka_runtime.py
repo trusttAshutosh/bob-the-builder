@@ -31,6 +31,10 @@ KAFKA_PRODUCER_SH = "/opt/kafka/bin/kafka-console-producer.sh"
 
 
 def compose_file() -> Path:
+    """Committed compose under runner/kafka/; optional override in BOB_LOCAL."""
+    product = bob_product_root() / "runner" / "kafka" / "docker-compose.yml"
+    if product.is_file():
+        return product
     return bob_product_root() / "local" / "kafka" / "docker-compose.yml"
 
 

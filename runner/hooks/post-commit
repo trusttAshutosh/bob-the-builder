@@ -16,9 +16,9 @@ esac
 
 python bob.py verify-product --update >/dev/null 2>&1 || exit 0
 
-git diff --quiet docs/NEXT.md 2>/dev/null && exit 0
+git diff --quiet docs/NEXT.md assets/examples/sample-validate-output 2>/dev/null && exit 0
 
 export BOB_SKIP_POST_COMMIT=1
-git add docs/NEXT.md
-git commit -m "docs: refresh NEXT.md product verify [bob]" --no-verify
+git add docs/NEXT.md assets/examples/sample-validate-output
+git commit -m "docs: refresh NEXT.md and sample validate output [bob]" --no-verify
 unset BOB_SKIP_POST_COMMIT

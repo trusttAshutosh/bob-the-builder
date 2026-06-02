@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-06-03T02:11:04",
+  "bob_version": "1.1.0",
+  "git_commit": "58edcf5",
+  "ticket_id": "sample-gateway-health-check",
+  "files": [
+    "CONTEXT_PACK.md",
+    "DB_VERIFY_QUERIES.sql",
+    "EVAL_REGRESSION.md",
+    "KAFKA_VERIFY.md",
+    "LOG_VERIFY_COMMANDS.md",
+    "REPORT.html",
+    "REPORT.md",
+    "REQUIREMENT.md",
+    "TEST_PLAN.md",
+    "eval-baseline.json",
+    "evidence/api/S1-response.json",
+    "evidence/db/S1-audit-row.txt",
+    "evidence/logs/S1-snippet.txt",
+    "execution-summary.txt",
+    "kafka-discovered.json",
+    "run-summary.json",
+    "ticket-spec.yaml"
+  ]
+}

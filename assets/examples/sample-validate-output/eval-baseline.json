@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "captured_at": "2026-06-03T02:11:04",
+  "ticket_id": "sample-gateway-health-check",
+  "branch": "main",
+  "overall": "PASS",
+  "scenarios": {
+    "S1": {
+      "id": "S1",
+      "level": "e2e",
+      "status": "pass",
+      "pass": true,
+      "detail": "API 200; DB expect txn_status=SUCCESS"
+    },
+    "S2": {
+      "id": "S2",
+      "level": "integration",
+      "status": "pass",
+      "pass": true,
+      "detail": "Recorded as pass in sample bundle"
+    }
+  }
+}

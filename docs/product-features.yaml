@@ -90,6 +90,15 @@ features:
       - assets/examples/novopay-cc/README.md
       - assets/examples/novopay-cc/api-catalog/index.yaml
 
+  - id: sample-validate-output
+    name: Sample validate-ticket output bundle
+    commands: [refresh-samples]
+    paths:
+      - runner/lib/sample_outputs.py
+      - assets/examples/sample-validate-output/README.md
+      - assets/examples/sample-validate-output/REPORT.md
+      - assets/examples/sample-validate-output/MANIFEST.json
+
   - id: improvement-backlog
     name: Improvement backlog & reminders
     commands: [next, remind, verify-product]

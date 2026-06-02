@@ -1,0 +1,37 @@
+{
+  "mode_requested": "auto",
+  "repos_scanned": [
+    "novopay-platform-creditcard-management"
+  ],
+  "seed_files": [
+    "deploy/application/dist/MessageBroker.xml"
+  ],
+  "bindings": [
+    {
+      "binding_id": "sample-producer",
+      "role": "producer",
+      "repo": "novopay-platform-creditcard-management",
+      "source": "sample_outputs.py (illustrative)",
+      "topic_template": "{tenant}_{environment}_sample_events",
+      "topic_literal": null,
+      "config_override_key": null,
+      "consumer_bean": null,
+      "consumer_group_prefix": null,
+      "payload_type": null,
+      "detail": "Demonstrates KAFKA_VERIFY.md shape"
+    }
+  ],
+  "bootstrap_properties": [
+    {
+      "file": "application.properties",
+      "bootstrap": "localhost:9092"
+    }
+  ],
+  "issues": [],
+  "tenant": "dsa",
+  "environment": "dev",
+  "resolved_topics": [
+    "dsa_dev_sample_events"
+  ],
+  "has_kafka": true
+}

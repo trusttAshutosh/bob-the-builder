@@ -79,7 +79,7 @@ Explicit topics still work: `topic: async_notifications_dsa_dev`.
 
 When setup fails, Bob tries to:
 
-1. Start Docker Compose Kafka (`local/kafka/docker-compose.yml`)
+1. Start Docker Compose Kafka (`runner/kafka/docker-compose.yml` via `bob kafka up`)
 2. Set `BOB_KAFKA_BOOTSTRAP=localhost:9092` and CC bootRun `--message.broker.bootstrap.servers=...`
 3. Create missing topics from resolved templates
 4. Write `deploy/tdd/bob-kafka.properties` on the host repo if missing

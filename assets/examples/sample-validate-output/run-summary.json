@@ -1,0 +1,118 @@
+{
+  "ticket_id": "sample-gateway-health-check",
+  "title": "Sample gateway health and audit proof",
+  "started_at": "2026-06-03T02:11:03",
+  "finished_at": "2026-06-03T02:11:03",
+  "duration_seconds": 42.5,
+  "overall": "PASS",
+  "exit_code": 0,
+  "branch": "main",
+  "decisions": {
+    "branch": "main",
+    "crn": "BOB-SAMPLE-20260603",
+    "scenario_crns": {
+      "S1": "BOB-SAMPLE-20260603-S1",
+      "S2": "BOB-SAMPLE-20260603-S2"
+    },
+    "wiremock_status": "UP",
+    "wiremock_detail": "127.0.0.1:9090 (sample \u2014 not started for doc bundle)",
+    "context_pack": "CONTEXT_PACK.md",
+    "eval_regression_md": "EVAL_REGRESSION.md",
+    "kafka_verify_commands": true,
+    "api_catalog": "BOB_HOME/api-catalog (from discover-apis on host)",
+    "stubs_applied": [
+      "bank-operations/getCardSummary/success-200"
+    ],
+    "env_profile": "local-dsa",
+    "primary_service": "credit_card_management"
+  },
+  "steps": [
+    {
+      "id": "context_pack",
+      "label": "Assemble CONTEXT_PACK",
+      "status": "pass",
+      "detail": "prefs + stale + hybrid retrieval",
+      "duration_ms": 120
+    },
+    {
+      "id": "wiremock_start",
+      "label": "WireMock runtime",
+      "status": "pass",
+      "detail": "sample stub profile",
+      "duration_ms": 800
+    },
+    {
+      "id": "health_credit_card_management",
+      "label": "Health credit_card_management",
+      "status": "pass",
+      "detail": "http://localhost:8016/cc-mgmt (illustrative)",
+      "duration_ms": 200
+    },
+    {
+      "id": "scenario_S1",
+      "label": "Scenario S1",
+      "status": "pass",
+      "detail": "inquireCardEligibility \u2014 API + DB assert",
+      "duration_ms": 1500
+    },
+    {
+      "id": "eval_regression",
+      "label": "Eval regression",
+      "status": "pass",
+      "detail": "No regressions vs baseline",
+      "duration_ms": 40
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "S1",
+      "name": "Happy path \u2014 eligibility inquiry",
+      "level": "e2e",
+      "status": "pass",
+      "detail": "API 200; DB expect txn_status=SUCCESS",
+      "duration_ms": 1500,
+      "apis": [
+        "inquireCardEligibility"
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "Integration \u2014 processor unit scope",
+      "level": "integration",
+      "status": "pass",
+      "detail": "Recorded as pass in sample bundle",
+      "duration_ms": 0,
+      "apis": []
+    }
+  ],
+  "assertions": [
+    {
+      "scenario_id": "S1",
+      "kind": "db",
+      "passed": true,
+      "expected": {
+        "txn_status": "SUCCESS",
+        "txn_result_code": "000"
+      },
+      "actual": {
+        "txn_status": "SUCCESS",
+        "txn_result_code": "000"
+      },
+      "errors": []
+    }
+  ],
+  "evidence": {},
+  "service_health_md": [
+    "",
+    "## Service health",
+    "",
+    "| Service | Status | Detail |",
+    "|---------|--------|--------|",
+    "| credit_card_management (primary) | UP | http://localhost:8016/cc-mgmt |",
+    "| wiremock | UP | :9090 |",
+    "",
+    "_Sample bundle \u2014 illustrative only._",
+    ""
+  ],
+  "test_plan_path": "C:\\Users\\ashutosh.kumar\\Desktop\\novopay\\bob-the-builder\\assets\\examples\\sample-validate-output\\TEST_PLAN.md"
+}

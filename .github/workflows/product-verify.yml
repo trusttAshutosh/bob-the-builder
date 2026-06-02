@@ -18,6 +18,12 @@ jobs:
       - name: Verify registered features intact
         run: |
           python3 runner/ci/verify-product.py --check
+          python3 bob.py refresh-samples
+          if ! git diff --quiet assets/examples/sample-validate-output; then
+            echo "::error::Sample output bundle is stale — run: python bob.py refresh-samples && commit"
+            git diff --stat assets/examples/sample-validate-output
+            exit 1
+          fi
           python3 runner/ci/verify-product.py --update
           if ! git diff --quiet docs/NEXT.md; then
             echo "::warning::docs/NEXT.md auto-sections differ from HEAD — run locally: python bob.py verify-product --update"

@@ -7,6 +7,7 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 | Doc | Use when |
 |-----|----------|
 | [../README.md](../README.md) | Clone, `bob setup`, daily commands |
+| [../assets/examples/sample-validate-output/README.md](../assets/examples/sample-validate-output/README.md) | **See sample outputs** — requirement → generated files (refreshed with engine) |
 | [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) | Full workflow, architecture, FAQ |
 | [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md) | Command quick reference |
 | [NEXT.md](NEXT.md) | Improvement backlog + scorecard (`bob next`) |
@@ -27,6 +28,14 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) | `CONTEXT_PACK.md`, hybrid graph retrieval, `bob eval` regression |
 | [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) | `run.kafka.mode`, `bob kafka discover/setup/up`, `KAFKA_VERIFY.md` |
 | [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) | `bob graph sync-obsidian`, live graph in Obsidian |
+
+## Architecture diagrams
+
+| Where | What |
+|-------|------|
+| [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) | **Mermaid flowchart** (validate-ticket pipeline) — renders on GitHub |
+| [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) | Live API/processor graph via Obsidian or `graph-overview.mmd` |
+| [../runner/ARCHITECTURE.md](../runner/ARCHITECTURE.md) | Module map + links to the above |
 
 ## Internals
 

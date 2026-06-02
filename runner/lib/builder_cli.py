@@ -63,6 +63,8 @@ CMD_ALIASES: dict[str, str] = {
     "version": "version",
     "host": "host",
     "whoami": "host",
+    "refresh-samples": "refresh-samples",
+    "refresh-examples": "refresh-samples",
     "s": "setup",
     "i": "init-ticket",
     "r": "validate-ticket",
@@ -107,6 +109,7 @@ def _print_help() -> None:
     print("Commands (name = purpose):")
     print("  setup              First-time: workspace root (Novopay folder), MySQL, service URLs")
     print("  host               Show BOB_HOST_REPO, workspace clones, deploy/tdd profile")
+    print("  refresh-samples    Regenerate assets/examples/sample-validate-output/ (doc bundle)")
     print("  install [--force] [--launchers]  Seed assets/local; install post-commit hook")
     print("  install-hooks [--force]  Install git post-commit hook (auto NEXT.md refresh)")
     print("  cleanup-workspace [--apply]  Merge into bob-the-builder/; remove stale folders")
@@ -535,6 +538,14 @@ def cmd_open_report(args: list[str]) -> int:
     from run_summary import print_open
 
     return print_open(args[0])
+
+
+def cmd_refresh_samples(_: list[str]) -> int:
+    _banner("refresh-samples")
+    from sample_outputs import refresh_sample_outputs
+
+    refresh_sample_outputs()
+    return 0
 
 
 def cmd_verify_product(args: list[str]) -> int:
@@ -1055,6 +1066,7 @@ def main() -> int:
         "eval": cmd_eval,
         "context": cmd_context,
         "host": cmd_host,
+        "refresh-samples": cmd_refresh_samples,
         "version": cmd_version,
     }
     h = handlers.get(cmd)

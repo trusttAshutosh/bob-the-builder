@@ -18,4 +18,4 @@ bob ensure-peers   # optional — boot discovered Novopay peers (not bank/HDFC)
 bob validate-ticket ID
 ```
 
-Guide: `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
+Guide: `bob-the-builder/docs/TDD_SYSTEM_DEVELOPER_GUIDE.md` (from workspace) or repo `docs/README.md`
