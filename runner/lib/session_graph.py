@@ -90,49 +90,12 @@ def update(
     return session_path()
 
 
-def query_slice(keywords: str, max_lines: int = 100) -> str:
-    from platform_graph import platform_path
+def query_slice(keywords: str, max_lines: int = 100, spec: dict | None = None) -> str:
+    """Hybrid retrieval over platform graph + catalog + session (see graph_retrieval.py)."""
+    from graph_retrieval import write_context_slice
 
-    pp = platform_path()
-    plat = load(pp) if pp.exists() else {}
-    sess = load(session_path()) if session_path().exists() else {}
-    terms = [t.lower() for t in keywords.split() if t.strip()]
-
-    def match(s: str) -> bool:
-        s = s.lower()
-        return any(t in s for t in terms) if terms else True
-
-    lines = ["# Context slice (platform + session)", ""]
-    lines.append("## Platform features")
-    for feat, info in (plat.get("features") or {}).items():
-        if match(feat) or match(str(info)):
-            lines.append(f"- **{feat}**: {info}")
-
-    lines.append("\n## Gateway APIs")
-    for api, info in sorted((plat.get("gateway_apis") or {}).items()):
-        if match(api):
-            lines.append(f"- `{api}` beans={info.get('processor_beans', [])}")
-
-    lines.append("\n## Processors")
-    for bean, info in sorted((plat.get("processors") or {}).items()):
-        if match(bean) or match(info.get("class", "")):
-            lines.append(f"- `{bean}` → {info.get('class')} ({info.get('extends')})")
-
-    lines.append("\n## Bank stub registry")
-    for op, fixtures in sorted((plat.get("bank_operation_stubs") or {}).items()):
-        if match(op):
-            lines.append(f"- `{op}`: {fixtures}")
-
-    lines.append("\n## Session")
-    for br, info in list((sess.get("branches") or {}).items())[-5:]:
-        if match(br) or match(str(info)):
-            lines.append(f"- branch `{br}` → ticket {info.get('ticket_id')}")
-
-    out = "\n".join(lines[:max_lines])
-    ctx = agent_dir() / "kg-context-last.md"
-    ctx.parent.mkdir(parents=True, exist_ok=True)
-    ctx.write_text(out, encoding="utf-8")
-    return out
+    path = write_context_slice(keywords, spec, max_lines=max_lines)
+    return path.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":

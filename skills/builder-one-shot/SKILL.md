@@ -12,8 +12,8 @@ disable-model-invocation: true
 ```bash
 bob setup
 bob install          # optional workspace copy
-bob init-ticket ID "Title"
-# analyst fills ticket-spec; implementer codes; then:
+bob init-ticket ID "Title"   # ID = Jira key OR adhoc-<topic> (no external ticket required)
+# analyst fills ticket-spec from requirement; implementer codes; then:
 bob ensure-peers   # optional — boot discovered Novopay peers (not bank/HDFC)
 bob validate-ticket ID
 ```

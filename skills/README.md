@@ -11,4 +11,6 @@ Copy or symlink these into your Cursor skills folder, or open `bob-the-builder` 
 
 **User habit:** none — agent runs `python bob.py remind --fix` before commit/push in this repo.
 
-Guide: [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
+Before scoping work, check [`docs/NEXT.md`](../docs/NEXT.md) (`bob next`).
+
+Guides: [`docs/README.md`](../docs/README.md) (index) · [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)

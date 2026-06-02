@@ -1,0 +1,30 @@
+# Generic Novopay host profile — copy to your service deploy/tdd/env-<profile>.yaml
+# Set ticket-spec env_profile to match the filename suffix (e.g. local-generic).
+# CC/DSA dogfood keeps env-local-dsa.yaml; see runner/config/bob-defaults.yaml for product fallbacks.
+
+header_profile: dsa-agent-app
+primary_service: your_service_key
+gateway_v2_segment: your_service_key
+
+services:
+  your_service_key:
+    base_env_var: YOUR_SERVICE_BASE
+    default_base: http://localhost:8080/your-context
+    health_path: /actuator/health
+    boot:
+      task: bootRun
+
+mysql:
+  schemas:
+    audit: your_audit_schema
+    masterdata: dsa_masterdata
+
+audit:
+  table: transaction_audit
+  crn_column: client_reference_code
+  order_by: updated_on DESC
+  columns:
+    - txn_status
+    - txn_result_code
+    - txn_result_description
+    - internal_txn_desc

@@ -21,7 +21,16 @@ Set `BUILDER_WORKSPACE_ROOT` via `bob setup` only — no hardcoded machine paths
 
 `python bob.py <command>` or `bob <command>` (after first-run PATH shim) — see `bob help`.
 
-Core commands: `setup`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`, `ensure-peers`, `need-service`, `discover-services`, `start-services`, `stop-services`.
+Core commands: `setup`, `host`, `install`, `init-ticket`, `discover-apis`, `sync-graph`, `validate-ticket`, `context`, `eval`, `kafka`, `graph`, `ticket-status`, `open-report`, `list-tickets`, `query-graph`, `ensure-peers`, `need-service`, `discover-services`, `start-services`, `stop-services`.
+
+| Module | Role |
+|--------|------|
+| `host_profile.py` | `deploy/tdd` + `bob-defaults.yaml`; primary service, `{SERVICE}_BASE`, audit schema |
+| `context_assembly.py` | `CONTEXT_PACK.md`, stale detection |
+| `graph_retrieval.py` | Hybrid lexical + graph expansion for agent context |
+| `eval_regression.py` | REPORT artifact baseline/check |
+| `kafka_*.py` | Flow-scoped Kafka discover/setup/verify |
+| `graph_obsidian.py` | Obsidian vault export |
 
 ## Service boot
 

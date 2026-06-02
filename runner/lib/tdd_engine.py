@@ -77,16 +77,33 @@ def load_api(api_id: str) -> dict:
     apis_dir = _catalog_dir() / "apis"
     path = apis_dir / f"{api_id}.yaml"
     if not path.exists():
+        host_path = _repo() / "deploy/tdd/api-catalog/apis" / f"{api_id}.yaml"
+        if host_path.exists():
+            return _load_yaml(host_path)
+        examples = (
+            Path(__file__).resolve().parents[2]
+            / "assets"
+            / "examples"
+            / "novopay-cc"
+            / "api-catalog"
+            / "apis"
+            / f"{api_id}.yaml"
+        )
+        if examples.exists():
+            return _load_yaml(examples)
         raise FileNotFoundError(f"API not in catalog: {api_id}. Run: bob discover-apis")
     return _load_yaml(path)
 
 
 def default_vars() -> dict[str, str]:
+    crn = os.environ.get("CRN", f"TDD{int(time.time())}")
     return {
         "TENANT": os.environ.get("TENANT", "dsa"),
         "CLIENT": os.environ.get("CLIENT", "dsa_agent_app"),
-        "CRN": os.environ.get("CRN", f"TDD{int(time.time())}"),
+        "CRN": crn,
+        "CLIENT_REFERENCE_CODE": crn,
         "MOBILE": os.environ.get("MOBILE", "9999999999"),
+        "MOBILE_NO": os.environ.get("MOBILE", "9999999999"),
         "DOB": os.environ.get("DOB", "1990-01-15"),
         "AAN": os.environ.get("AAN", "0000000000000000001"),
         "STAN": os.environ.get("STAN", str(int(time.time() * 1000))),
@@ -131,18 +148,26 @@ def build_request_body(
     ov = overrides or {}
     if "headers" in ov:
         headers = _deep_merge(headers, _subst(ov["headers"], vars_map))
-    if "request" in ov:
-        request_body = _deep_merge(request_body, _subst(ov["request"], vars_map))
+    request_ov = dict(ov.get("request") or {})
+    for key, val in ov.items():
+        if key not in ("headers", "request"):
+            request_ov[key] = val
+    if request_ov:
+        request_body = _deep_merge(request_body, _subst(request_ov, vars_map))
 
     key = api["envelope"]["request_key"]
-    payload = {"headers": headers, "request": {key: request_body}}
+    # CC JTF parseAPIRequest expects request{} keys to match the template body (flat), not {apiName: {...}}.
+    payload = {"headers": headers, "request": request_body}
     return key, payload
 
 
 def resolve_url(api_id: str) -> str:
+    from host_profile import discover_api_catalog_fields, primary_base_env_var, primary_default_base
+
     api = load_api(api_id)
-    base_env = api["http"].get("base_env", "CC_BASE")
-    base = os.environ.get(base_env, "http://localhost:8016/cc-mgmt").rstrip("/")
+    fields = discover_api_catalog_fields()
+    base_env = api["http"].get("base_env", primary_base_env_var())
+    base = os.environ.get(base_env, primary_default_base() or fields.get("default_base", "")).rstrip("/")
     path = api["http"]["path"]
     if not path.startswith("/"):
         path = "/" + path
@@ -167,6 +192,9 @@ def discover_apis() -> int:
         for m in re.finditer(r'<Request\s+name="([^"]+)"', text):
             names.add(m.group(1))
 
+    from host_profile import discover_api_catalog_fields
+
+    catalog_fields = discover_api_catalog_fields()
     created = 0
     index: dict[str, str] = {}
     for name in sorted(names):
@@ -187,12 +215,12 @@ def discover_apis() -> int:
 
         skeleton = {
             "api_id": name,
-            "service": "credit-card-management",
+            "service": catalog_fields["service"],
             "source": {"orchestration": str(xml.relative_to(repo)).replace("\\", "/")},
             "http": {
                 "method": "POST",
                 "path": f"/api/v1/{name}",
-                "base_env": "CC_BASE",
+                "base_env": catalog_fields["base_env"],
             },
             "envelope": {"request_key": name},
             "header_defaults": {
@@ -307,65 +335,93 @@ def write_masterdata_sql(ticket_dir: Path, port: int) -> Path:
     return out
 
 
+def _spec_env_for_ticket(data: dict) -> dict:
+    spec_env = data.get("_env") or {}
+    if not spec_env and data.get("env_profile"):
+        from ticket_spec import load_env_profile_block
+
+        spec_env = load_env_profile_block(str(data["env_profile"]), base=_repo())
+    return spec_env
+
+
+def execute_scenario_steps(
+    ticket_dir: Path,
+    scenario: dict,
+    spec_env: dict | None = None,
+    crn: str | None = None,
+) -> int:
+    """Run API steps for a single scenario (one CRN per scenario)."""
+    if not yaml:
+        print("PyYAML required", file=sys.stderr)
+        return 1
+    data = load_ticket_data(ticket_dir)
+    spec_env = spec_env or _spec_env_for_ticket(data)
+    crn = crn or os.environ.get("CRN", default_vars()["CRN"])
+    os.environ["CRN"] = crn
+    sid = scenario.get("id", "?")
+    print(f"\n=== Scenario {sid} CRN={crn} ===")
+    rc = 0
+    steps = scenario.get("steps")
+    if not steps:
+        gw = (scenario.get("api") or {}).get("gateway")
+        if gw:
+            steps = [{"api_id": gw, "overrides": scenario.get("overrides") or {}}]
+    for step in steps or []:
+        api_id = step.get("api_id") or step.get("api")
+        if not api_id:
+            continue
+        overrides = step.get("overrides") or {}
+        step_vars = step.get("vars") or {}
+        if isinstance(step_vars, dict):
+            step_vars = {k: str(v) for k, v in _subst(step_vars, {**default_vars(), "CRN": crn}).items()}
+        url = resolve_url(api_id)
+        _, body = build_request_body(api_id, step_vars, overrides, spec_env)
+        print(f">> POST {api_id} -> {url}")
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                text = resp.read().decode("utf-8", errors="replace")
+                out = ticket_dir / f"responses/{sid}-{api_id}-last.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(text, encoding="utf-8")
+                ev = ticket_dir / "evidence/api" / f"{sid}-{api_id}-last.json"
+                ev.parent.mkdir(parents=True, exist_ok=True)
+                ev.write_text(text, encoding="utf-8")
+                print(f"   HTTP {resp.status} (saved {out.relative_to(ticket_dir)})")
+        except urllib.error.HTTPError as e:
+            text = e.read().decode("utf-8", errors="replace")
+            print(f"   HTTP {e.code}: {text[:500]}")
+            rc = 1
+        except Exception as e:
+            print(f"   ERROR: {e}")
+            rc = 1
+        time.sleep(1)
+    return rc
+
+
 def execute_scenarios(ticket_dir: Path) -> int:
     if not yaml:
         print("PyYAML required", file=sys.stderr)
         return 1
     data = load_ticket_data(ticket_dir)
-    spec_env = data.get("_env") or {}
-    if not spec_env and data.get("env_profile"):
-        ep = _repo() / "deploy/tdd" / f"{data['env_profile']}.yaml"
-        if ep.exists():
-            spec_env = _load_yaml(ep)
+    spec_env = _spec_env_for_ticket(data)
     rc = 0
-    crn = os.environ.get("CRN", default_vars()["CRN"])
-    os.environ["CRN"] = crn
-
+    base_crn = os.environ.get("CRN", default_vars()["CRN"])
     for scenario in data.get("scenarios") or []:
+        level = (scenario.get("verification_level") or "e2e").lower()
+        if level not in ("e2e", "integration"):
+            continue
         sid = scenario.get("id", "?")
-        print(f"\n=== Scenario {sid} ===")
-        steps = scenario.get("steps")
-        if not steps:
-            # single api.gateway in step
-            gw = (scenario.get("api") or {}).get("gateway")
-            if gw:
-                steps = [{"api_id": gw, "overrides": scenario.get("overrides") or {}}]
-        for step in steps:
-            api_id = step.get("api_id") or step.get("api")
-            if not api_id:
-                continue
-            overrides = step.get("overrides") or {}
-            step_vars = step.get("vars") or {}
-            if isinstance(step_vars, dict):
-                step_vars = {k: str(v) for k, v in _subst(step_vars, {**default_vars(), "CRN": crn}).items()}
-            url = resolve_url(api_id)
-            _, body = build_request_body(api_id, step_vars, overrides, spec_env)
-            print(f">> POST {api_id} -> {url}")
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(body).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            try:
-                with urllib.request.urlopen(req, timeout=120) as resp:
-                    text = resp.read().decode("utf-8", errors="replace")
-                    out = ticket_dir / f"responses/{api_id}-last.json"
-                    out.parent.mkdir(parents=True, exist_ok=True)
-                    out.write_text(text, encoding="utf-8")
-                    ev = ticket_dir / "evidence/api" / f"{api_id}-last.json"
-                    ev.parent.mkdir(parents=True, exist_ok=True)
-                    ev.write_text(text, encoding="utf-8")
-                    print(f"   HTTP {resp.status} (saved {out.relative_to(ticket_dir)})")
-            except urllib.error.HTTPError as e:
-                text = e.read().decode("utf-8", errors="replace")
-                print(f"   HTTP {e.code}: {text[:500]}")
-                rc = 1
-            except Exception as e:
-                print(f"   ERROR: {e}")
-                rc = 1
-            time.sleep(1)
-    print(f"\nCRN={crn}")
+        scenario_crn = scenario.get("crn") or f"{base_crn}-{sid}"
+        step_rc = execute_scenario_steps(ticket_dir, scenario, spec_env, crn=scenario_crn)
+        if step_rc != 0:
+            rc = step_rc
+    print(f"\nCRN(base)={base_crn}")
     return rc
 
 

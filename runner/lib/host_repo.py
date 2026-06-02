@@ -43,12 +43,31 @@ def runner_bootstrap_repo() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _gradle_project_root(path: Path) -> bool:
+    return (path / "gradlew").is_file() or (path / "gradlew.bat").is_file()
+
+
+def _git_root_from_cwd() -> Path | None:
+    cur = Path.cwd().resolve()
+    while True:
+        if _is_git_repo(cur):
+            return cur
+        if cur.parent == cur:
+            break
+        cur = cur.parent
+    return None
+
+
 def host_repo_root() -> Path:
     explicit = os.environ.get("BOB_HOST_REPO", "").strip()
     if explicit:
         p = Path(explicit).expanduser().resolve()
         if p.is_dir():
             return p
+
+    from_cwd = _git_root_from_cwd()
+    if from_cwd and (_gradle_project_root(from_cwd) or (from_cwd / "deploy" / "tdd").is_dir()):
+        return from_cwd
 
     ws = workspace_root()
     if ws:

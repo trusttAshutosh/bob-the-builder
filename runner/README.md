@@ -37,6 +37,13 @@ Run `python bob.py help`.
 | `start-services` | Boot from env profile |
 | `services-status` | Health + pid |
 | `stop-services` | Stop Bob-started bootRun |
+| `host` | Resolved `BOB_HOST_REPO` + deploy/tdd profile |
+| `context --ticket ID` | `CONTEXT_PACK.md` for agents |
+| `eval baseline\|check\|update` | REPORT regression |
+| `kafka …` | Discover / Docker / verify (see docs/KAFKA_FOR_BOB.md) |
+| `graph sync-obsidian` | Obsidian vault export |
+
+Docs index: [`../docs/README.md`](../docs/README.md).
 
 ## Skills
 

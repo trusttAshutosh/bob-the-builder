@@ -1,0 +1,5 @@
+# Optional host overrides for Bob Postman export (merged on top of runner/config/postman-url-defaults.yaml).
+# Example:
+# environments:
+#   qa:
+#     gateway_base: https://ddp-qa.novopay.in/api-gateway

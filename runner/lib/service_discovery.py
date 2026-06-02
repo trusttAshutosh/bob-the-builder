@@ -263,7 +263,7 @@ def discover_from_codebase(host: Path | None = None) -> list[dict]:
 
 
 def discover_for_session(spec: dict | None = None) -> list[dict]:
-    """Merge env profile, required-services.yaml, and host property scan."""
+    """Merge env profile, required-services.yaml, host repo, and property scan."""
     out: list[dict] = []
     seen_dirs: set[str] = set()
 
@@ -273,6 +273,12 @@ def discover_for_session(spec: dict | None = None) -> list[dict]:
             return
         seen_dirs.add(rd)
         out.append(cfg)
+
+    from service_boot import caller_service_config
+
+    host_cfg = caller_service_config(spec)
+    if host_cfg:
+        add(host_cfg)
 
     if spec:
         from service_boot import services_for_spec

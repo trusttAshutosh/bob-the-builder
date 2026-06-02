@@ -67,6 +67,8 @@ flowchart LR
 Ticket -> ticket-spec.yaml -> feature branch -> implement -> validate-ticket -> evidence/
 ```
 
+**No formal ticket id:** use slug `adhoc-<topic>` (e.g. `adhoc-loc-failure-audit`). Analyst writes `ticket-spec.yaml` from raw requirement text; optional Jira reference only in `ticket.description`. Host repos may ship `.cursor/skills/bob-adhoc-requirement/SKILL.md` for Cursor agents.
+
 Layers: [`runner/ARCHITECTURE.md`](../runner/ARCHITECTURE.md).  
 ADR: [`ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md).
 
@@ -83,7 +85,8 @@ ADR: [`ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md).
 | **Platform graph** | APIs, processors, stubs (from host repo scan) | `{BOB_HOME}/platform-graph/` |
 | **Reference examples** | Optional CC/LOC snapshot for copy/compare — not loaded by Bob | `{BOB_HOME}/examples/novopay-cc/` |
 | **Session / agent memory** | Last runs, KG slice for Cursor | `{BOB_LOCAL}/agent/` |
-| **Env profile** | Example ports, health checks, schema names | `deploy/tdd/env-*.yaml` in host repo |
+| **Env profile** | Ports, `{SERVICE}_BASE` vars, audit schema, gateway segment | `deploy/tdd/env-*.yaml` in host repo; fallbacks in `runner/config/bob-defaults.yaml` |
+| **Host profile** | Resolves primary service + URLs for setup/discover/validate | `runner/lib/host_profile.py`; `bob host` |
 | **Workspace root** | Parent folder of **all** service git clones | `BUILDER_WORKSPACE_ROOT` |
 | **BOB_HOME** | Shared catalogs (api, stubs, graph) | `bob-the-builder/assets` |
 | **BOB_LOCAL** | Secrets + agent session | `bob-the-builder/local/` (gitignored) |
@@ -180,7 +183,8 @@ Team workflow: publish `bob-the-builder` as one GitHub repo; `bob install` under
 ### Commands
 
 ```bash
-python bob.py setup
+python bob.py setup          # workspace + MySQL + URLs from deploy/tdd when present
+python bob.py host           # confirm BOB_HOST_REPO + profile file
 python bob.py init-ticket MY-123 "Title"
 python bob.py discover-apis
 python bob.py sync-graph
@@ -290,7 +294,8 @@ Example profile: [`templates/host-deploy-tdd/deploy/tdd/env-local-dsa.yaml`](../
 | Who starts it | Component | How |
 |---------------|-----------|-----|
 | **You** | MySQL | Local install / Docker; map `MYSQL_*` in `{BOB_LOCAL}/user.env` |
-| **You** (if needed) | Redis, Kafka, etc. | Only when the ticket’s stack requires them |
+| **You** (if needed) | Redis | When CC config cache is required |
+| **Bob or you** | Kafka | `bob kafka up` or `run.kafka.enabled` in ticket-spec (bulk/async) |
 | **Bob** | Novopay microservices | `bootRun` via `validate-ticket` or `ensure-peers` (health-gated) |
 | **Bob** | WireMock + bank stubs | `validate-ticket` → `start-wiremock-runtime.sh` + ticket `stubs` |
 | **Never** | Bank / HDFC partner APIs | Always WireMock — not real bootRun |
@@ -370,15 +375,30 @@ A: Catalogs belong in `{BOB_HOME}` only; host repo keeps README pointers.
 
 ---
 
+## Agent context, eval, Kafka, Obsidian (2025-2026)
+
+| Feature | Command / artifact | Doc |
+|---------|-------------------|-----|
+| Hybrid KG + stale checks | `bob context --ticket ID` → `CONTEXT_PACK.md` | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) |
+| REPORT regression | `bob eval baseline\|check\|update ID` | [BOB_CONTEXT_AND_EVAL.md](BOB_CONTEXT_AND_EVAL.md) |
+| Kafka (impacted code only) | `bob kafka discover`, `run.kafka.mode: auto` | [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) |
+| Visual graph | `bob graph sync-obsidian` (also on `sync-graph` / validate if enabled) | [GRAPH_OBSIDIAN.md](GRAPH_OBSIDIAN.md) |
+| Multi-repo + CC defaults | `bob host`, `BUILDER_WORKSPACE_ROOT` | [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) |
+
+Defaults on `validate-ticket`: context pack, eval `check` (if baseline exists), Kafka `auto` when bindings found, Obsidian export when `run.graph.sync_obsidian` is not `false`.
+
+---
+
 ## Read next
 
 | Doc | Contents |
 |-----|----------|
+| [README.md](README.md) | **Doc index** (all guides) |
 | [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md) | Short commands |
+| [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) | Workspace root, host profile, CC defaults |
+| [ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) | Non-CC services |
 | [runner/README.md](../runner/README.md) | Quick start |
 | [runner/ARCHITECTURE.md](../runner/ARCHITECTURE.md) | Internals |
-| Host `deploy/tdd/workspace-services.yaml` | Example repo layout (per service repo) |
-| Host `deploy/tdd/env-local.yaml` | Example env profile (per service repo) |
 | [`templates/host-deploy-tdd/README.md`](../templates/host-deploy-tdd/README.md) | Copy-paste host glue pack |
 
 ---

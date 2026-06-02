@@ -1,0 +1,30 @@
+# Bob product defaults (Novopay CC / DSA dogfood path).
+# Used when host deploy/tdd env profile is missing or omits a field.
+# Other services: copy templates/host-deploy-tdd/ into host deploy/tdd/ and override there.
+
+env_profile: local-dsa
+primary_service: credit_card_management
+
+primary_base_env_var: CC_BASE
+primary_default_base: http://localhost:8016/cc-mgmt
+
+gateway_v2_segment: credit_card_management
+
+audit_schema: dsa_credit_card_mgmt
+audit_table: transaction_audit
+audit_crn_column: client_reference_code
+audit_order_by: updated_on DESC
+audit_columns:
+  - txn_status
+  - txn_result_code
+  - txn_result_description
+  - internal_txn_desc
+
+# Shown in ticket-spec.schema.yaml when host has no deploy/tdd yet
+example_host_repo: novopay-platform-creditcard-management
+
+# bob setup: optional peers when not listed in host deploy/tdd services
+setup_optional_peers:
+  - service_key: masterdata_management
+    base_env_var: MD_BASE
+    default_base: http://localhost:8015/masterdata

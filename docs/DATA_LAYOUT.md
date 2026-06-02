@@ -11,10 +11,13 @@ By default **`git.branch_policy: none`** — `validate-ticket` does not checkout
 | `runner/`, `skills/`, `docs/` | Product source (versioned by your team in git) |
 | `assets/api-catalog/` | Gateway API defs after `discover-apis` (starts **empty**) |
 | `assets/platform-graph/` | Knowledge graph after `sync-graph` |
+| `local/obsidian-vault/` | Obsidian export for live graph view (`bob graph sync-obsidian`) |
 | `assets/stub-registry/` | Shared WireMock fixtures (starts **empty**) |
 | `assets/examples/novopay-cc/` | **Reference only** — CC/LOC catalog snapshot; not loaded by Bob |
 | `local/` | **Machine-only** — `user.env`, agent session, WireMock runtime (gitignored) |
 | `local/agent/required-services.yaml` | Session peer registry (from `need-service` / discovery) |
+| `local/agent/kg-context-last.md` | Last `query-graph` / hybrid retrieval slice |
+| `local/agent/context-pack-last.md` | Last `bob context` output copy |
 | `local/.runtime-services/` | Bob-started `bootRun` pid + logs |
 | `local/bin/` | `bob` / `bob.cmd` shims; added to user PATH **once** on first command |
 
@@ -29,6 +32,10 @@ Bob updates files under `assets/` and `local/` on disk. Whether those land in gi
 | `docs/tdd-runs/<ticket-id>/ticket-spec.yaml` | Ticket definition |
 | `docs/tdd-runs/<ticket-id>/evidence/` | API/DB/log proof from `validate-ticket` |
 | `docs/tdd-runs/<ticket-id>/REPORT.*`, `RUN_SUMMARY.*` | Run output |
+| `docs/tdd-runs/<ticket-id>/CONTEXT_PACK.md` | Prefs, stale warnings, hybrid KG slice (`bob context` / validate) |
+| `docs/tdd-runs/<ticket-id>/KAFKA_VERIFY.md` | Kafka bindings + verify notes when `run.kafka.mode` is on/auto |
+| `docs/tdd-runs/<ticket-id>/EVAL_REGRESSION.md` | Eval drift vs `eval-baseline.json` when `run.eval.mode: check` |
+| `docs/tdd-runs/<ticket-id>/kafka-discovered.json` | Discovered topics/listeners for the ticket flow |
 
 Ticket folders stay in the **service** repo. Generated proof is gitignored in the host repo so it stays local.
 

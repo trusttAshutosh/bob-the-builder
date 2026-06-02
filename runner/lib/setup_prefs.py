@@ -114,16 +114,9 @@ def _mysql_ping(bin_path: str, prefs: dict[str, str]) -> bool:
         return False
 
 
-def save_prefs(prefs: dict[str, str]) -> Path:
-    ensure_bob_home(quiet=True)
-    prefs["BOB_HOME"] = str(bob_assets_root())
-    prefs["BOB_LOCAL"] = bob_local_hint()
-    path = _prefs_path()
-    lines = [
-        "# Bob the Builder — machine-local (do not commit)",
-        f"# Updated: {datetime.now(timezone.utc).isoformat()}",
-        "",
-    ]
+def _prefs_save_keys(prefs: dict[str, str]) -> list[str]:
+    from host_profile import service_base_env_vars
+
     keys = [
         WORKSPACE_ENV,
         "BOB_HOME",
@@ -135,27 +128,84 @@ def save_prefs(prefs: dict[str, str]) -> Path:
         "MYSQL_PORT",
         "MYSQL_USER",
         "MYSQL_PASS",
-        "CC_BASE",
-        "MD_BASE",
         "GIT_BASE_BRANCH",
         "GIT_BRANCH_PREFIX",
         "TENANT",
         "CLIENT",
         "TDD_REUSE_CURRENT",
     ]
+    host_s = prefs.get("BOB_LAST_HOST_REPO", "").strip()
+    host = Path(host_s) if host_s else resolve_host()
+    for var in service_base_env_vars(host=host):
+        if var not in keys:
+            keys.append(var)
+    for k in sorted(prefs):
+        if k.endswith("_BASE") and k not in keys:
+            keys.append(k)
+    return keys
+
+
+def _prefs_defaults() -> dict[str, str]:
+    from host_profile import bob_defaults, service_base_prompts
+
     defaults = {
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "3306",
         "MYSQL_USER": "root",
         "MYSQL_PASS": "root",
-        "CC_BASE": "http://localhost:8016/cc-mgmt",
-        "MD_BASE": "http://localhost:8015/masterdata",
         "GIT_BASE_BRANCH": "ddp-prod",
         "GIT_BRANCH_PREFIX": "ddp-fea-",
         "TENANT": "dsa",
         "CLIENT": "dsa_agent_app",
         "TDD_REUSE_CURRENT": "1",
     }
+    for prompt in service_base_prompts():
+        if prompt.default_base:
+            defaults[prompt.base_env_var] = prompt.default_base
+    d = bob_defaults()
+    defaults.setdefault(str(d.get("primary_base_env_var") or "CC_BASE"), str(d.get("primary_default_base") or ""))
+    defaults.setdefault("MD_BASE", "http://localhost:8015/masterdata")
+    return defaults
+
+
+def prompt_service_bases(prefs: dict[str, str], *, host: Path | None = None) -> None:
+    """Prompt for each {SERVICE}_BASE from host deploy/tdd (CC/MD remain default peers)."""
+    from host_profile import default_env_profile, service_base_prompts
+    from ticket_spec import env_profile_path
+
+    host = host or resolve_host()
+    prof_path = env_profile_path(default_env_profile(), base=host)
+    print()
+    if prof_path:
+        print(f"Service base URLs (from deploy/tdd/{prof_path.name}):")
+    else:
+        print("Service base URLs (product defaults + inferred host port):")
+    for item in service_base_prompts(host=host):
+        current = prefs.get(item.base_env_var, "")
+        default = current or item.default_base
+        label = f"{item.label} ({item.base_env_var})"
+        if item.optional:
+            val = _prompt(f"{label} [optional]", default)
+            if val.strip():
+                prefs[item.base_env_var] = val.strip()
+            else:
+                prefs.pop(item.base_env_var, None)
+        else:
+            prefs[item.base_env_var] = _prompt(label, default)
+
+
+def save_prefs(prefs: dict[str, str]) -> Path:
+    ensure_bob_home(quiet=True)
+    prefs["BOB_HOME"] = str(bob_assets_root())
+    prefs["BOB_LOCAL"] = bob_local_hint()
+    path = _prefs_path()
+    lines = [
+        "# Bob the Builder — machine-local (do not commit)",
+        f"# Updated: {datetime.now(timezone.utc).isoformat()}",
+        "",
+    ]
+    keys = _prefs_save_keys(prefs)
+    defaults = _prefs_defaults()
     for k in keys:
         lines.append(f"{k}={prefs.get(k, defaults.get(k, ''))}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -198,14 +248,14 @@ def run_setup_wizard(*, reconfigure: bool = True) -> int:
     elif not mysql_bin:
         prefs["MYSQL_PASS"] = _prompt("MySQL password", prefs.get("MYSQL_PASS", "root"), secret=True)
 
-    prefs["CC_BASE"] = _prompt("API service base URL", prefs.get("CC_BASE", "http://localhost:8016/cc-mgmt"))
-    md_in = _prompt("Config service URL (optional, Enter to skip)", prefs.get("MD_BASE", "") or "")
-    prefs["MD_BASE"] = md_in
+    prefs["BOB_LAST_HOST_REPO"] = str(repo.resolve())
+    apply_prefs_to_environ(prefs)
+    prompt_service_bases(prefs, host=repo)
+
     prefs["GIT_BASE_BRANCH"] = _prompt("Git base branch", prefs.get("GIT_BASE_BRANCH", "ddp-prod"))
     prefs["TENANT"] = _prompt("Tenant code", prefs.get("TENANT", "dsa"))
     prefs["CLIENT"] = _prompt("Client code", prefs.get("CLIENT", "dsa_agent_app"))
 
-    prefs["BOB_LAST_HOST_REPO"] = str(repo.resolve())
     prefs["BOB_RUNNER_ROOT"] = str(runner_root().resolve())
     apply_prefs_to_environ(prefs)
     assets = ensure_bob_home()

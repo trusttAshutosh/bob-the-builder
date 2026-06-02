@@ -30,7 +30,7 @@ Copy-Item "$Bob\templates\host-deploy-tdd\deploy\tdd\env-local.yaml" deploy\tdd\
 1. **`workspace-services.yaml`** — set `repo_dir` to your clone folder name(s) under `BUILDER_WORKSPACE_ROOT`.
 2. **`env-local.yaml`** (or `env-local-dsa.yaml`) — set service URLs, MySQL schema names, health paths.
 3. **`docs/tdd-runs/<ticket>/ticket-spec.yaml`** — set `env_profile:` to match the env file **basename** (without `.yaml`), e.g. `local` or `local-dsa`.
-4. Run **`bob setup`** once — map `CC_BASE`, `MD_BASE`, `MYSQL_*`, `LOGS_DIR` in `bob-the-builder/local/user.env`.
+4. Run **`bob setup`** once — Bob prompts each `base_env_var` from this folder (`CC_BASE`, `MD_BASE`, …) into `bob-the-builder/local/user.env`.
 5. Bob can **`bootRun` services for you** in two ways:
    - **Dynamic (no config required):** `bob ensure-peers` or `bob need-service notifications` — scans host Java/properties + session registry; boots only what is down.
    - **Profile-based (optional):** `deploy/tdd/workspace-services.yaml` + env profile `services.*.boot`; auto on `validate-ticket` when `run.auto_boot_services: true` (default) and `run.auto_discover_services: true` (default).
@@ -53,6 +53,8 @@ bob validate-ticket MY-123
 |------|---------|
 | `workspace-services.yaml` | Which repos exist in the workspace + `application.properties` paths |
 | `env-local.yaml` | Generic env profile (ports, health checks, audit DB) |
-| `env-local-dsa.yaml` | Example Novopay CC + masterdata profile (`env_profile: local-dsa`) |
+| `env-local-generic.yaml` | Template placeholders for a new service (`your_service_key`, `YOUR_SERVICE_BASE`) |
+| `env-local-dsa.yaml` | Novopay CC + masterdata (`env_profile: local-dsa`) — CC dogfood default |
+| `INFRA_FOR_BOB.md` | Kafka, Redis, MySQL notes for ticket-spec |
 
 See `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md` in the Bob repo for the full workflow.

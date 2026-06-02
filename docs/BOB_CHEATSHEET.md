@@ -4,15 +4,20 @@
 
 | Command | What it does |
 |---------|----------------|
-| `bob setup` | Save workspace path, MySQL, URLs → `BOB_LOCAL/user.env` |
+| `bob setup` | Workspace, MySQL, `{SERVICE}_BASE` URLs from host `deploy/tdd` → `BOB_LOCAL/user.env` |
+| `bob host` | Show `BOB_HOST_REPO`, workspace repos, active `deploy/tdd` profile |
 | `bob install` | Seed **empty** `assets/` from `_seed` + `local/`; install post-commit hook |
 | `bob install-hooks` | Re-install git post-commit hook (auto NEXT.md after commit) |
 | `bob install --launchers` | Optional: also write `{workspace}/bob.py` + `bob.cmd` shortcuts |
 | `bob cleanup-workspace --apply` | One folder only: merge/remove stale `novopay-bob*`, `.bob-the-builder` |
 | `bob init-ticket ID "Title"` | New folder `docs/tdd-runs/ID/` in host repo |
 | `bob discover-apis` | Orchestration → `BOB_HOME/api-catalog/` |
-| `bob sync-graph` | Processors/APIs → `BOB_HOME/platform-graph/` |
-| `bob validate-ticket ID` | Run ticket + evidence |
+| `bob sync-graph` | Processors/APIs → `BOB_HOME/platform-graph/` (+ Obsidian vault if enabled) |
+| `bob graph sync-obsidian` | Export platform/session graph → `local/obsidian-vault/` |
+| `bob context --ticket ID` | Write `CONTEXT_PACK.md` (prefs, stale, hybrid KG) |
+| `bob eval baseline\|check\|update ID` | REPORT artifact regression vs baseline |
+| `bob kafka discover\|setup\|up …` | Flow-scoped Kafka bindings (see KAFKA_FOR_BOB.md) |
+| `bob validate-ticket ID` | Run ticket + evidence (+ context pack, eval check by default) |
 | `bob ticket-status ID` | PASS/FAIL + decision trace |
 | `bob open-report ID` | Paths to HTML / summary |
 | `bob list-tickets` | List ticket IDs |
@@ -36,4 +41,4 @@
 
 Short: `s` `i` `d` `r` `st` `o` `l` map to the above.
 
-Guide: [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md)
+Guides: [README.md](README.md) (index) · [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) · [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md)

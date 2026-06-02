@@ -20,3 +20,5 @@ Do **not** treat this tree as credit-card-only. Fresh installs start **empty** (
 ## Novopay CC reference
 
 See [`examples/novopay-cc/README.md`](examples/novopay-cc/README.md) for a full CC/LOC catalog you can copy selectively — never required for other services.
+
+Docs: [`../docs/README.md`](../docs/README.md).

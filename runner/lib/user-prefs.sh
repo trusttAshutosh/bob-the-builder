@@ -34,24 +34,27 @@ load_user_prefs() {
 
 save_user_prefs() {
   mkdir -p "$(dirname "$USER_PREFS_FILE")"
-  cat >"$USER_PREFS_FILE" <<EOF
-# Bob the Builder — saved for all tickets (do not commit; .local/ is gitignored)
-# Updated: $(date -Iseconds)
-
-NOVOPAY_WORKSPACE_ROOT=${NOVOPAY_WORKSPACE_ROOT:-}
-LOGS_DIR=${LOGS_DIR:-}
-MYSQL_HOST=${MYSQL_HOST:-127.0.0.1}
-MYSQL_PORT=${MYSQL_PORT:-3306}
-MYSQL_USER=${MYSQL_USER:-root}
-MYSQL_PASS=${MYSQL_PASS:-root}
-CC_BASE=${CC_BASE:-http://localhost:8016/cc-mgmt}
-MD_BASE=${MD_BASE:-http://localhost:8015/masterdata}
-GIT_BASE_BRANCH=${GIT_BASE_BRANCH:-ddp-prod}
-GIT_BRANCH_PREFIX=${GIT_BRANCH_PREFIX:-ddp-fea-}
-TENANT=${TENANT:-dsa}
-CLIENT=${CLIENT:-dsa_agent_app}
-TDD_REUSE_CURRENT=${TDD_REUSE_CURRENT:-1}
-EOF
+  {
+    echo "# Bob the Builder — saved for all tickets (do not commit; .local/ is gitignored)"
+    echo "# Updated: $(date -Iseconds)"
+    echo ""
+    echo "NOVOPAY_WORKSPACE_ROOT=${NOVOPAY_WORKSPACE_ROOT:-}"
+    echo "LOGS_DIR=${LOGS_DIR:-}"
+    echo "MYSQL_HOST=${MYSQL_HOST:-127.0.0.1}"
+    echo "MYSQL_PORT=${MYSQL_PORT:-3306}"
+    echo "MYSQL_USER=${MYSQL_USER:-root}"
+    echo "MYSQL_PASS=${MYSQL_PASS:-root}"
+    local v
+    for v in $(compgen -v); do
+      [[ "$v" == *_BASE ]] || continue
+      printf '%s=%q\n' "$v" "${!v}"
+    done
+    echo "GIT_BASE_BRANCH=${GIT_BASE_BRANCH:-ddp-prod}"
+    echo "GIT_BRANCH_PREFIX=${GIT_BRANCH_PREFIX:-ddp-fea-}"
+    echo "TENANT=${TENANT:-dsa}"
+    echo "CLIENT=${CLIENT:-dsa_agent_app}"
+    echo "TDD_REUSE_CURRENT=${TDD_REUSE_CURRENT:-1}"
+  } >"$USER_PREFS_FILE"
   chmod 600 "$USER_PREFS_FILE" 2>/dev/null || true
   echo "Saved preferences → $USER_PREFS_FILE"
 }
@@ -122,9 +125,26 @@ run_prefs_wizard() {
   export MYSQL_BIN="${bin:-$(find_mysql)}"
 
   echo ""
-  echo "Service base URLs (only if you run those services locally):"
-  prompt_keep_or_new CC_BASE "credit-card-management base URL" "http://localhost:8016/cc-mgmt"
-  prompt_keep_or_new MD_BASE "masterdata-management base URL" "http://localhost:8015/masterdata"
+  if command -v python >/dev/null 2>&1; then
+    TDD_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    export TDD_LIB REPO_ROOT
+    # shellcheck disable=SC1090
+    eval "$(python -c "
+import os, shlex, sys
+sys.path.insert(0, os.environ['TDD_LIB'])
+from setup_prefs import load_all_prefs, prompt_service_bases
+prefs = load_all_prefs()
+prefs['BOB_LAST_HOST_REPO'] = os.environ.get('REPO_ROOT', '')
+prompt_service_bases(prefs)
+for k, v in prefs.items():
+    if k.endswith('_BASE') and v:
+        print(f'export {k}={shlex.quote(v)}')
+")"
+  else
+    echo "Service base URLs (install Python for deploy/tdd-driven prompts):"
+    prompt_keep_or_new CC_BASE "credit card management (CC_BASE)" "http://localhost:8016/cc-mgmt"
+    prompt_keep_or_new MD_BASE "masterdata management (MD_BASE) [optional]" "http://localhost:8015/masterdata"
+  fi
   prompt_keep_or_new GIT_BASE_BRANCH "Git base branch" "ddp-prod"
   prompt_keep_or_new TENANT "Tenant code" "dsa"
   prompt_keep_or_new CLIENT "Client code" "dsa_agent_app"

@@ -2,6 +2,7 @@
 """Bob the Builder CLI — ticket-driven local validation for backend services."""
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -51,11 +52,17 @@ CMD_ALIASES: dict[str, str] = {
     "peers": "ensure-peers",
     "stop-services": "stop-services",
     "services-status": "services-status",
+    "kafka": "kafka",
+    "graph": "graph",
+    "eval": "eval",
+    "context": "context",
     "remind": "remind",
     "help": "help",
     "bobhelp": "help",
     "bob-help": "help",
     "version": "version",
+    "host": "host",
+    "whoami": "host",
     "s": "setup",
     "i": "init-ticket",
     "r": "validate-ticket",
@@ -98,7 +105,8 @@ def _print_help() -> None:
     print(f"Usage: {CLI_SHORT} <command> [args]     e.g. python bob.py <command>")
     print()
     print("Commands (name = purpose):")
-    print("  setup              First-time: workspace root, MySQL, service URLs")
+    print("  setup              First-time: workspace root (Novopay folder), MySQL, service URLs")
+    print("  host               Show BOB_HOST_REPO, workspace clones, deploy/tdd profile")
     print("  install [--force] [--launchers]  Seed assets/local; install post-commit hook")
     print("  install-hooks [--force]  Install git post-commit hook (auto NEXT.md refresh)")
     print("  cleanup-workspace [--apply]  Merge into bob-the-builder/; remove stale folders")
@@ -120,7 +128,14 @@ def _print_help() -> None:
     print("  discover-services [--boot]  List peers (properties + code + session registry)")
     print("  stop-services      Stop Bob-started bootRun processes")
     print("  services-status [--profile NAME]  Health + pid for env profile services")
-    print("  query-graph [kw]   Context slice for agents -> BOB_LOCAL/agent/")
+    print("  kafka up|down|status|topics|discover|setup|consume|produce")
+    print("                     Flow-aware Kafka (scan impacted code); test --ticket ID")
+    print("  graph sync-obsidian [--vault PATH] | graph open")
+    print("                     Export KG to Obsidian vault (live graph view)")
+    print("  eval baseline|check|update <ticket-id>")
+    print("                     Scenario regression vs eval-baseline.json")
+    print("  context --ticket ID   CONTEXT_PACK.md (prefs + stale + hybrid KG)")
+    print("  query-graph [kw] [--ticket ID]  Hybrid retrieval -> kg-context-last.md")
     print("  update-graph ID [title]  Update session graph")
     print()
     print("Short aliases: s setup | i init-ticket | d discover-apis | r validate-ticket")
@@ -322,19 +337,118 @@ def cmd_discover_apis(_: list[str]) -> int:
 def cmd_sync_graph(_: list[str]) -> int:
     _banner("sync-graph")
     from bob_home import ensure_bob_home
+    from graph_obsidian import print_open_instructions, sync_obsidian_vault
     from platform_graph import sync
 
     ensure_bob_home()
-    print(f"Platform graph: {sync()}")
+    pg = sync()
+    print(f"Platform graph: {pg}")
+    vault, stats = sync_obsidian_vault()
+    print(f"Obsidian vault: {vault}")
+    print(f"  exported: {stats['apis']} APIs, {stats['processors']} processors, {stats['tickets']} tickets")
+    print(print_open_instructions(vault))
     return 0
+
+
+def _parse_ticket_arg(args: list[str]) -> tuple[str | None, list[str]]:
+    ticket_id: str | None = None
+    rest: list[str] = []
+    i = 0
+    while i < len(args):
+        if args[i] in ("--ticket", "-t") and i + 1 < len(args):
+            ticket_id = args[i + 1]
+            i += 2
+            continue
+        rest.append(args[i])
+        i += 1
+    return ticket_id, rest
 
 
 def cmd_query_graph(args: list[str]) -> int:
     _banner("query-graph")
     from session_graph import query_slice
+    from ticket_spec import load_spec, ticket_dir
 
-    print(query_slice(" ".join(args) if args else ""))
+    ticket_id, rest = _parse_ticket_arg(args)
+    spec = None
+    if ticket_id:
+        spec = load_spec(ticket_dir(ticket_id))
+    kw = " ".join(rest) if rest else (ticket_id or "loan")
+    text = query_slice(kw, spec=spec)
+    print(text)
     return 0
+
+
+def cmd_context(args: list[str]) -> int:
+    _banner("context")
+    from context_assembly import assemble_context_pack
+    from ticket_spec import load_spec, ticket_dir
+
+    ticket_id, rest = _parse_ticket_arg(args)
+    if not ticket_id:
+        _usage("context", "--ticket <ticket-id> [keywords]")
+        return 1
+    td = ticket_dir(ticket_id)
+    spec = load_spec(td)
+    kw = " ".join(rest) or f"{ticket_id} {(spec.get('impacted') or {}).get('feature', '')}"
+    pack, slice_path, stale = assemble_context_pack(spec, td, kw)
+    print(f"CONTEXT_PACK: {pack}")
+    print(f"kg-context-last: {slice_path}")
+    if stale:
+        print("Stale/issues:")
+        for s in stale:
+            print(f"  [{s.severity}] {s.code}: {s.message}")
+    return 0
+
+
+def cmd_eval(args: list[str]) -> int:
+    _banner("eval")
+    if not args or args[0] in ("-h", "--help", "help"):
+        print("Usage:")
+        print(f"  {CLI_SHORT} eval baseline <ticket-id>")
+        print(f"  {CLI_SHORT} eval check <ticket-id>")
+        print(f"  {CLI_SHORT} eval update <ticket-id>")
+        return 0
+    sub = args[0].lower()
+    ticket_id = args[1] if len(args) > 1 else None
+    if not ticket_id:
+        _usage("eval", "baseline|check|update <ticket-id>")
+        return 1
+    import json
+
+    from eval_regression import (
+        capture_baseline,
+        compare_to_baseline,
+        write_eval_regression_md,
+    )
+    from ticket_spec import ticket_dir
+
+    td = ticket_dir(ticket_id)
+    rs = td / "run-summary.json"
+    if not rs.is_file():
+        print(f"Missing {rs} — run: bob validate-ticket {ticket_id}", file=sys.stderr)
+        return 1
+    run_data = json.loads(rs.read_text(encoding="utf-8"))
+
+    if sub == "baseline":
+        path = capture_baseline(td, run_data)
+        print(f"Baseline written: {path}")
+        return 0
+    if sub == "update":
+        path = capture_baseline(td, run_data)
+        print(f"Baseline updated: {path}")
+        return 0
+    if sub == "check":
+        result = compare_to_baseline(td, run_data)
+        write_eval_regression_md(td, result, run_data)
+        print(result.message)
+        if result.regressions:
+            print("Regressions:")
+            for r in result.regressions:
+                print(f"  - {r}")
+        return 0 if result.ok else 1
+    print(f"Unknown eval subcommand: {sub}", file=sys.stderr)
+    return 1
 
 
 def cmd_update_graph(args: list[str]) -> int:
@@ -357,14 +471,16 @@ def _run_ticket_python(ticket_dir: Path) -> int:
     from setup_prefs import load_prefs_into_environ
 
     load_prefs_into_environ()
+    os.environ["BOB_HOST_REPO"] = str(repo_root())
     for line in (ticket_dir / "tdd.env").read_text(encoding="utf-8").splitlines() if (ticket_dir / "tdd.env").exists() else []:
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
             k, _, v = line.partition("=")
             os.environ[k.strip()] = v.strip()
-    search = tdd_root() / "search-logs.sh"
-    if _bash_available() and search.exists():
-        subprocess.run(["bash", str(search), str(ticket_dir / "ticket-spec.yaml")], cwd=repo_root(), check=False)
+    if sys.platform != "win32":
+        search = tdd_root() / "search-logs.sh"
+        if _bash_available() and search.exists():
+            subprocess.run(["bash", str(search), str(ticket_dir / "ticket-spec.yaml")], cwd=repo_root(), check=False)
     sys.path.insert(0, str(_LIB))
     from run_flow import run
 
@@ -381,7 +497,8 @@ def cmd_validate_ticket(args: list[str]) -> int:
     if not spec_file.exists():
         print(f"Missing {spec_file} — run: {CLI_SHORT} init-ticket {args[0]} \"Title\"", file=sys.stderr)
         return 1
-    if sys.platform == "win32" and not _bash_available():
+    # Windows: always use Python runner (no bash/WSL required for WireMock, MySQL, APIs).
+    if sys.platform == "win32":
         return _run_ticket_python(td)
     script = tdd_root() / "run-tdd.sh"
     env = os.environ.copy()
@@ -546,8 +663,18 @@ def cmd_discover_services(args: list[str]) -> int:
 
     found = discover_for_session(spec)
     if not found:
-        print("No peer services discovered (check host application.properties / required-services.yaml).")
-        return 0
+        from service_boot import caller_service_config
+
+        host_only = caller_service_config(spec)
+        if host_only:
+            found = [host_only]
+            print("No extra peers; host repo is bootable:")
+        else:
+            print(
+                "No services discovered (set BOB_HOST_REPO to a Gradle repo, "
+                "BUILDER_WORKSPACE_ROOT, or required-services.yaml)."
+            )
+            return 0
     print(f"Discovered {len(found)} service(s):")
     for cfg in found:
         reason = cfg.get("reason", "")
@@ -565,6 +692,202 @@ def cmd_discover_services(args: list[str]) -> int:
     print()
     print("Boot all: python bob.py discover-services --boot")
     return 0
+
+
+def cmd_graph(args: list[str]) -> int:
+    _banner("graph")
+    if not args or args[0] in ("-h", "--help", "help"):
+        print("Usage:")
+        print(f"  {CLI_SHORT} graph sync-obsidian [--vault PATH]")
+        print(f"  {CLI_SHORT} graph open [--vault PATH]")
+        return 0
+    sub = args[0].lower()
+    vault_path: str | None = None
+    i = 1
+    while i < len(args):
+        if args[i] in ("--vault", "-v") and i + 1 < len(args):
+            vault_path = args[i + 1]
+            i += 2
+            continue
+        i += 1
+    from graph_obsidian import obsidian_vault_path, print_open_instructions, sync_obsidian_vault
+
+    if sub in ("open", "path"):
+        vault = obsidian_vault_path(vault_path)
+        print(print_open_instructions(vault))
+        return 0 if vault.is_dir() else 1
+    if sub in ("sync-obsidian", "sync", "export", "obsidian"):
+        vault, stats = sync_obsidian_vault(vault_path)
+        print(f"Obsidian vault: {vault}")
+        print(
+            f"Exported: {stats['apis']} APIs, {stats['processors']} processors, "
+            f"{stats['stubs']} stubs, {stats['tickets']} tickets"
+        )
+        print(print_open_instructions(vault))
+        return 0
+    print(f"Unknown graph subcommand: {sub}", file=sys.stderr)
+    return cmd_graph(["help"])
+
+
+def cmd_kafka(args: list[str]) -> int:
+    _banner("kafka")
+    from setup_prefs import load_prefs_into_environ
+    from ticket_spec import load_spec, ticket_dir
+
+    load_prefs_into_environ()
+    if not args or args[0] in ("-h", "--help", "help"):
+        print("Usage:")
+        print(f"  {CLI_SHORT} kafka up")
+        print(f"  {CLI_SHORT} kafka down")
+        print(f"  {CLI_SHORT} kafka status")
+        print(f"  {CLI_SHORT} kafka topics")
+        print(f"  {CLI_SHORT} kafka consume <topic> [--max N] [--timeout SEC]")
+        print(f"  {CLI_SHORT} kafka produce <topic> <fixture.json> [--key PARTITION_KEY]")
+        print(f"  {CLI_SHORT} kafka discover --ticket <ticket-id>")
+        print(f"  {CLI_SHORT} kafka setup --ticket <ticket-id>")
+        print(f"  {CLI_SHORT} kafka test --ticket <ticket-id>")
+        return 0
+
+    sub = args[0].lower()
+    rest = args[1:]
+
+    from kafka_runtime import (
+        apply_kafka_boot_env,
+        consume_topic,
+        ensure_topic,
+        kafka_down,
+        kafka_health,
+        kafka_up,
+        list_topics,
+        produce_json,
+        run_kafka_scenarios,
+    )
+
+    if sub == "up":
+        ok, msg = kafka_up()
+        if ok:
+            apply_kafka_boot_env(None)
+        print(msg)
+        return 0 if ok else 1
+    if sub == "down":
+        ok, msg = kafka_down()
+        print(msg)
+        return 0 if ok else 1
+    if sub in ("status", "health"):
+        ok, msg = kafka_health()
+        print(msg)
+        return 0 if ok else 1
+    if sub == "topics":
+        ok, topics, msg = list_topics()
+        print(msg)
+        for t in topics:
+            print(f"  {t}")
+        return 0 if ok else 1
+    if sub == "consume":
+        if len(rest) < 1:
+            _usage("kafka consume", "<topic> [--max N] [--timeout SEC]")
+            return 1
+        topic = rest[0]
+        max_m = 20
+        timeout = 15.0
+        i = 1
+        while i < len(rest):
+            if rest[i] == "--max" and i + 1 < len(rest):
+                max_m = int(rest[i + 1])
+                i += 2
+                continue
+            if rest[i] == "--timeout" and i + 1 < len(rest):
+                timeout = float(rest[i + 1])
+                i += 2
+                continue
+            i += 1
+        ok, msgs, detail = consume_topic(topic, max_messages=max_m, timeout_sec=timeout)
+        print(detail)
+        for m in msgs:
+            print(json.dumps(m, indent=2, ensure_ascii=False))
+        return 0 if ok else 1
+    if sub == "produce":
+        if len(rest) < 2:
+            _usage("kafka produce", "<topic> <fixture.json> [--key KEY]")
+            return 1
+        topic = rest[0]
+        fixture = rest[1]
+        key = None
+        if "--key" in rest:
+            ki = rest.index("--key")
+            if ki + 1 < len(rest):
+                key = rest[ki + 1]
+        from kafka_runtime import _resolve_fixture_path
+
+        path = _resolve_fixture_path(fixture, None)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        ensure_topic(topic)
+        ok, msg = produce_json(topic, payload, partition_key=key)
+        print(msg)
+        return 0 if ok else 1
+    def _parse_ticket_id(rest_args: list[str]) -> str | None:
+        i = 0
+        while i < len(rest_args):
+            if rest_args[i] in ("--ticket", "-t") and i + 1 < len(rest_args):
+                return rest_args[i + 1]
+            i += 1
+        return None
+
+    if sub in ("discover", "setup"):
+        ticket_id = _parse_ticket_id(rest)
+        if not ticket_id:
+            _usage(f"kafka {sub}", "--ticket <ticket-id>")
+            return 1
+        from kafka_discovery import discover_kafka_for_ticket, write_discovery_artifact
+        from kafka_setup import prepare_kafka_for_ticket
+
+        spec = load_spec(ticket_dir(ticket_id))
+        td = ticket_dir(ticket_id)
+        disc = discover_kafka_for_ticket(spec, td)
+        art = write_discovery_artifact(td, disc)
+        print(f"Bindings: {len(disc.bindings)} | Topics: {', '.join(disc.resolved_topics()) or 'none'}")
+        print(f"Wrote {art}")
+        for b in disc.bindings:
+            t = b.resolved_topic(disc.tenant, disc.environment)
+            print(f"  [{b.role}] {t or '—'}  {b.source}  — {b.detail[:60]}")
+        if disc.issues:
+            print("Issues:")
+            for issue in disc.issues:
+                print(f"  - {issue}")
+        if sub == "setup":
+            setup = prepare_kafka_for_ticket(spec, td, discovery=disc)
+            print(setup.message)
+            for f in setup.fixes_applied:
+                print(f"  fix: {f}")
+            for issue in setup.issues_remaining:
+                print(f"  issue: {issue}")
+            return 0 if setup.ok or setup.skipped else 1
+        return 0
+
+    if sub == "test":
+        ticket_id = _parse_ticket_id(rest)
+        if not ticket_id:
+            _usage("kafka test", "--ticket <ticket-id>")
+            return 1
+        from kafka_discovery import discover_kafka_for_ticket
+
+        spec = load_spec(ticket_dir(ticket_id))
+        td = ticket_dir(ticket_id)
+        disc = discover_kafka_for_ticket(spec, td)
+        results = run_kafka_scenarios(spec, td, disc)
+        if not results:
+            print("No kafka_scenarios in ticket-spec.yaml")
+            return 1
+        rc = 0
+        for r in results:
+            st = "PASS" if r.get("pass") else "FAIL"
+            print(f"{r.get('id')}: {st} — {'; '.join(r.get('detail') or [])}")
+            if not r.get("pass"):
+                rc = 1
+        return rc
+
+    print(f"Unknown kafka subcommand: {sub}", file=sys.stderr)
+    return cmd_kafka(["help"])
 
 
 def cmd_ensure_peers(args: list[str]) -> int:
@@ -587,7 +910,15 @@ def cmd_ensure_peers(args: list[str]) -> int:
         }
     outcomes = ensure_peers(spec, force=force)
     if not outcomes:
-        print("No peer services discovered (clone repos under BUILDER_WORKSPACE_ROOT).")
+        from service_boot import caller_service_config
+
+        if caller_service_config(spec):
+            print("Host repo is bootable but nothing was started (all healthy or boot failed).")
+        else:
+            print(
+                "No bootable services (set BOB_HOST_REPO / BUILDER_WORKSPACE_ROOT "
+                "or run discover-services)."
+            )
         return 0
     rc = 0
     for ok, msg in outcomes.values():
@@ -624,6 +955,13 @@ def cmd_services_status(args: list[str]) -> int:
     print(f"Profile: {profile or ticket_id or 'local-dsa'}")
     for line in status_report(env_block):
         print(line)
+    return 0
+
+
+def cmd_host(_: list[str]) -> int:
+    from host_profile import print_host_summary
+
+    print_host_summary()
     return 0
 
 
@@ -712,6 +1050,11 @@ def main() -> int:
         "ensure-peers": cmd_ensure_peers,
         "stop-services": cmd_stop_services,
         "services-status": cmd_services_status,
+        "kafka": cmd_kafka,
+        "graph": cmd_graph,
+        "eval": cmd_eval,
+        "context": cmd_context,
+        "host": cmd_host,
         "version": cmd_version,
     }
     h = handlers.get(cmd)

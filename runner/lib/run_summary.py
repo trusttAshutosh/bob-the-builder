@@ -86,6 +86,9 @@ class RunRecorder:
         status: str,
         detail: str = "",
         duration_ms: int | None = None,
+        *,
+        name: str = "",
+        apis: list[str] | None = None,
     ) -> None:
         self.scenarios.append(
             {
@@ -94,6 +97,8 @@ class RunRecorder:
                 "status": status,
                 "detail": detail,
                 "duration_ms": duration_ms,
+                "name": name,
+                "apis": apis or [],
             }
         )
 
@@ -145,37 +150,260 @@ def evidence_index(ticket_dir: Path) -> dict[str, str]:
     paths: dict[str, str] = {}
     if (ticket_dir / "REPORT.md").exists():
         paths["report_md"] = _fmt_path(ticket_dir / "REPORT.md")
+    if (ticket_dir / "TEST_PLAN.md").exists():
+        paths["test_plan_md"] = _fmt_path(ticket_dir / "TEST_PLAN.md")
     if ev.exists():
         paths["evidence_dir"] = _fmt_path(ev)
         for sub in ("api", "db", "logs", "unit"):
             d = ev / sub
             if d.exists() and any(d.iterdir()):
                 paths[f"evidence_{sub}"] = _fmt_path(d)
-    for name in ("log-search.txt", "execution-summary.txt", "db-verify.txt", "branch.txt"):
+    for name in (
+        "log-search.txt",
+        "execution-summary.txt",
+        "db-verify.txt",
+        "DB_VERIFY_QUERIES.sql",
+        "LOG_VERIFY_COMMANDS.md",
+        "log-search.txt",
+        "masterdata-stub-urls.sql",
+        "branch.txt",
+    ):
         p = ticket_dir / name
         if p.exists():
             paths[name.replace(".", "_")] = _fmt_path(p)
+    postman_dir = ticket_dir / "postman"
+    if postman_dir.is_dir():
+        paths["postman_dir"] = _fmt_path(postman_dir)
+        for coll in postman_dir.glob("*.postman_collection.json"):
+            paths["postman_collection"] = _fmt_path(coll)
+            break
+        for envf in sorted(postman_dir.glob("*.postman_environment.json")):
+            paths[f"postman_env_{envf.stem}"] = _fmt_path(envf)
     return paths
 
 
-def publish_run_summary(ticket_dir: Path, run_data: dict) -> tuple[Path, Path, Path | None]:
-    """Write RUN_SUMMARY.md, run-summary.json, and REPORT.html."""
+def _md_cell(text: Any, max_len: int = 200) -> str:
+    s = str(text or "").replace("|", "\\|").replace("\n", " ").strip()
+    if len(s) > max_len:
+        return s[: max_len - 3] + "..."
+    return s or "—"
+
+
+def _format_db_expect(db_expect: dict | None) -> str:
+    if not db_expect:
+        return "—"
+    meta_keys = {"expect", "must_not_contain", "internal_txn_desc_prefix", "internal_txn_desc"}
+    if not meta_keys.intersection(db_expect.keys()):
+        db_expect = {"expect": db_expect}
+    parts: list[str] = []
+    expect = db_expect.get("expect") or {}
+    if expect:
+        parts.append("expect: " + ", ".join(f"{k}={v}" for k, v in expect.items()))
+    if prefix := db_expect.get("internal_txn_desc_prefix"):
+        parts.append(f"internal_txn_desc starts with `{prefix}`")
+    if exact := db_expect.get("internal_txn_desc"):
+        parts.append(f"internal_txn_desc = `{exact}`")
+    mnc = db_expect.get("must_not_contain") or {}
+    if mnc:
+        parts.append("must not contain: " + ", ".join(f"{k} in {v}" for k, v in mnc.items()))
+    return "; ".join(parts) if parts else "—"
+
+
+def _format_db_actual(row: dict | None) -> str:
+    if not row:
+        return "—"
+    keys = ("txn_status", "txn_result_code", "txn_result_description", "internal_txn_desc")
+    parts = [f"{k}={row.get(k, '')}" for k in keys if row.get(k) not in (None, "", "NULL")]
+    return "; ".join(parts) if parts else str(row)
+
+
+def _planned_apis(sc_spec: dict) -> str:
+    steps = sc_spec.get("steps") or []
+    apis = [s.get("api_id") or s.get("api") for s in steps if s.get("api_id") or s.get("api")]
+    if sc_spec.get("gradle_tests"):
+        apis.append(f"unit: {', '.join(sc_spec['gradle_tests'])}")
+    return ", ".join(apis) if apis else "—"
+
+
+def _pre_setup_note(sc_spec: dict) -> str:
+    if sc_spec.get("pre_sql_file"):
+        return f"SQL: `{sc_spec['pre_sql_file']}`"
+    if sc_spec.get("pre_sql"):
+        return "SQL seed (inline)"
+    if (sc_spec.get("verification_level") or "").lower() == "unit":
+        return "Gradle unit tests"
+    return "—"
+
+
+def ensure_test_plan(ticket_dir: Path, spec: dict) -> Path:
+    """Write or refresh TEST_PLAN.md from ticket-spec (planned scenarios, no run results)."""
+    from assertions import resolve_db_expect
+    from ticket_spec import scenarios
+
+    ticket = spec.get("ticket") or {}
+    tid = ticket.get("id", ticket_dir.name)
+    title = ticket.get("title", "")
+    lines = [
+        f"# Test plan: {title}",
+        "",
+        f"**Ticket:** `{tid}`",
+        f"**Feature:** {(spec.get('impacted') or {}).get('feature', '')}",
+        f"**Env profile:** {spec.get('env_profile', 'local-dsa')}",
+        "",
+        "_Generated/updated by Bob `validate-ticket`. Run results live in [REPORT.md](./REPORT.md)._",
+        "",
+        "## Acceptance criteria",
+        "",
+    ]
+    for ac in ticket.get("acceptance_criteria") or []:
+        lines.append(f"- [ ] {ac}")
+    if not ticket.get("acceptance_criteria"):
+        lines.append("- _(none in ticket-spec)_")
+
+    lines += [
+        "",
+        "## Planned scenarios",
+        "",
+        "| Scenario ID | Description | Level | APIs | Pre-setup | DB expected |",
+        "|-------------|-------------|-------|------|-----------|-------------|",
+    ]
+    for sc in scenarios(spec):
+        sid = sc.get("id", "?")
+        name = (sc.get("name") or "").strip() or "—"
+        level = sc.get("verification_level") or "e2e"
+        db_exp = _format_db_expect(resolve_db_expect(sc, spec))
+        lines.append(
+            f"| {sid} | {_md_cell(name, 80)} | {level} | {_md_cell(_planned_apis(sc), 60)} | "
+            f"{_md_cell(_pre_setup_note(sc), 40)} | {_md_cell(db_exp, 120)} |"
+        )
+    if not scenarios(spec):
+        lines.append("| — | _(no scenarios in ticket-spec)_ | — | — | — | — |")
+
+    lines += [
+        "",
+        "## Manual / Postman",
+        "",
+        "- Import Postman collection under [postman/](./postman/) after validate-ticket.",
+        "- Run **prerequisites** before **apis-under-test** (avoids 4000028).",
+        "",
+    ]
+    path = ticket_dir / "TEST_PLAN.md"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
+def _scenario_result_rows(run_data: dict, spec: dict) -> list[dict[str, str]]:
+    from assertions import resolve_db_expect
+    from audit_config import scenario_description
+    from ticket_spec import scenarios
+
+    spec_by_id = {sc.get("id", "?"): sc for sc in scenarios(spec)}
+    run_by_id = {sc.get("id", "?"): sc for sc in run_data.get("scenarios") or []}
+    db_assert: dict[str, dict] = {}
+    for a in run_data.get("assertions") or []:
+        if a.get("kind") == "db":
+            db_assert[a.get("scenario_id", "?")] = a
+
+    dec = run_data.get("decisions") or {}
+    scenario_crns = dec.get("scenario_crns") or {}
+
+    ordered_ids: list[str] = []
+    for sc in scenarios(spec):
+        sid = sc.get("id", "?")
+        if sid not in ordered_ids:
+            ordered_ids.append(sid)
+    for sid in run_by_id:
+        if sid not in ordered_ids:
+            ordered_ids.append(sid)
+
+    rows: list[dict[str, str]] = []
+    for sid in ordered_ids:
+        sc_spec = spec_by_id.get(sid, {})
+        sc_run = run_by_id.get(sid, {})
+        name = (sc_run.get("name") or sc_spec.get("name") or "").strip()
+        desc = scenario_description(sid, name) if name else sid
+        level = sc_run.get("level") or sc_spec.get("verification_level") or "—"
+        apis = sc_run.get("apis") or []
+        if not apis:
+            apis = [x for x in _planned_apis(sc_spec).split(", ") if x and x != "—"]
+        apis_s = ", ".join(apis) if apis else _planned_apis(sc_spec)
+        crn = scenario_crns.get(sid) or sc_spec.get("crn") or dec.get("base_crn") or "—"
+        db_expect_s = _format_db_expect(resolve_db_expect(sc_spec, spec) if sc_spec else None)
+        assertion = db_assert.get(sid)
+        if assertion:
+            exp_raw = assertion.get("expected")
+            if isinstance(exp_raw, dict):
+                db_expect_s = _format_db_expect(exp_raw)
+            else:
+                db_expect_s = str(exp_raw)
+            db_actual_s = _format_db_actual(assertion.get("actual"))
+            db_status = "PASS" if assertion.get("passed") else "FAIL"
+        else:
+            db_actual_s = "—"
+            has_db = bool(resolve_db_expect(sc_spec, spec)) if sc_spec else False
+            db_status = "N/A" if not has_db else "SKIP"
+
+        overall = str(sc_run.get("status", "—")).upper() if sc_run else "NOT RUN"
+        ms = sc_run.get("duration_ms")
+        duration = f"{ms}ms" if ms else "—"
+        exec_detail = sc_run.get("detail") or "—"
+
+        rows.append(
+            {
+                "id": sid,
+                "description": desc,
+                "level": level,
+                "apis": apis_s,
+                "crn": crn,
+                "db_expected": db_expect_s,
+                "db_actual": db_actual_s,
+                "db_status": db_status,
+                "execution": exec_detail,
+                "overall": overall,
+                "duration": duration,
+            }
+        )
+    return rows
+
+
+def publish_run_summary(
+    ticket_dir: Path,
+    run_data: dict,
+    *,
+    spec: dict | None = None,
+    execution_log: list[str] | None = None,
+) -> tuple[Path, Path, Path | None]:
+    """Write REPORT.md (single human report), run-summary.json, and REPORT.html."""
     ticket_dir.mkdir(parents=True, exist_ok=True)
+    if spec:
+        ensure_test_plan(ticket_dir, spec)
+        run_data = dict(run_data)
+        run_data["test_plan_path"] = str((ticket_dir / "TEST_PLAN.md").resolve())
+
     json_path = ticket_dir / "run-summary.json"
     json_path.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
 
-    md_path = ticket_dir / "RUN_SUMMARY.md"
-    md_path.write_text(_render_markdown(run_data), encoding="utf-8")
+    md_path = ticket_dir / "REPORT.md"
+    md_path.write_text(_render_markdown(run_data, spec=spec, execution_log=execution_log), encoding="utf-8")
+
+    legacy = ticket_dir / "RUN_SUMMARY.md"
+    if legacy.exists():
+        legacy.unlink()
 
     html_path = ticket_dir / "REPORT.html"
-    html_path.write_text(_render_html(run_data), encoding="utf-8")
+    html_path.write_text(_render_html(run_data, spec=spec), encoding="utf-8")
     return md_path, json_path, html_path
 
 
-def _render_markdown(d: dict) -> str:
+def _render_markdown(
+    d: dict,
+    *,
+    spec: dict | None = None,
+    execution_log: list[str] | None = None,
+) -> str:
     tid = d.get("ticket_id", "")
     lines = [
-        f"# Run summary: {tid}",
+        f"# Validation report: {tid}",
         "",
         f"- **Title:** {d.get('title', '')}",
         f"- **Started:** {d.get('started_at', '')}",
@@ -183,6 +411,50 @@ def _render_markdown(d: dict) -> str:
         f"- **Duration:** {d.get('duration_seconds', 0)}s",
         f"- **Overall:** **{d.get('overall', 'UNKNOWN')}** (exit {d.get('exit_code', '?')})",
         f"- **Branch:** `{d.get('branch', '')}`",
+        "",
+    ]
+    if spec:
+        lines += [
+            "## Test plan",
+            "",
+            "Planned scenarios and acceptance criteria: [TEST_PLAN.md](./TEST_PLAN.md)",
+            "",
+        ]
+        ticket = spec.get("ticket") or {}
+        if ticket.get("acceptance_criteria"):
+            lines.append("**Acceptance criteria (from ticket-spec):**")
+            lines.append("")
+            for ac in ticket.get("acceptance_criteria") or []:
+                lines.append(f"- [ ] {ac}")
+            lines.append("")
+
+    lines += [
+        "## Scenario results",
+        "",
+        "_One row per scenario: description, expected DB outcome, actual DB row, and overall pass/fail._",
+        "",
+        "| Scenario ID | Description | Level | APIs | CRN | DB expected | DB actual | DB check | Overall | Duration | Execution detail |",
+        "|-------------|-------------|-------|------|-----|-------------|-----------|----------|---------|----------|------------------|",
+    ]
+    if spec:
+        for row in _scenario_result_rows(d, spec):
+            lines.append(
+                f"| {row['id']} | {_md_cell(row['description'], 70)} | {row['level']} | "
+                f"{_md_cell(row['apis'], 50)} | `{row['crn']}` | {_md_cell(row['db_expected'], 90)} | "
+                f"{_md_cell(row['db_actual'], 90)} | {row['db_status']} | **{row['overall']}** | "
+                f"{row['duration']} | {_md_cell(row['execution'], 100)} |"
+            )
+    else:
+        for sc in d.get("scenarios") or []:
+            lines.append(
+                f"| {sc.get('id', '?')} | {_md_cell(sc.get('name') or sc.get('detail', ''), 70)} | "
+                f"{sc.get('level', '')} | — | — | — | — | — | **{str(sc.get('status', '?')).upper()}** | "
+                f"{sc.get('duration_ms', '—')}ms | {_md_cell(sc.get('detail', ''), 100)} |"
+            )
+    if not (d.get("scenarios") or (spec and _scenario_result_rows(d, spec))):
+        lines.append("| — | _(no scenarios)_ | — | — | — | — | — | — | — | — | — |")
+
+    lines += [
         "",
         "## Decision trace",
         "",
@@ -199,6 +471,27 @@ def _render_markdown(d: dict) -> str:
     if not dec:
         lines.append("- _(no decision metadata recorded)_")
 
+    sh_lines = d.get("service_health_md") or []
+    if sh_lines:
+        lines.extend(sh_lines)
+    elif dec.get("boot_services_detail") or dec.get("service_health_detail"):
+        lines += [
+            "",
+            "## Service health",
+            "",
+            f"- **Boot:** {dec.get('boot_services_detail', '—')}",
+            f"- **Health check:** {dec.get('service_health_detail', '—')}",
+        ]
+        if dec.get("boot_services_up"):
+            lines.append(f"- **Boot UP:** {', '.join(dec['boot_services_up'])}")
+        if dec.get("boot_services_down"):
+            lines.append(f"- **Boot DOWN:** {', '.join(dec['boot_services_down'])}")
+        if dec.get("service_health_up"):
+            lines.append(f"- **Health UP:** {', '.join(dec['service_health_up'])}")
+        if dec.get("service_health_down"):
+            lines.append(f"- **Health DOWN:** {', '.join(dec['service_health_down'])}")
+        lines.append("")
+
     lines += ["", "## Pipeline steps", "", "| Step | Status | Duration | Detail |", "|------|--------|----------|--------|"]
     for s in d.get("steps") or []:
         st = s.get("status", "?").upper()
@@ -207,25 +500,6 @@ def _render_markdown(d: dict) -> str:
         lines.append(f"| {s.get('label', s.get('id', '?'))} | {st} | {ms}ms | {detail} |")
     if not d.get("steps"):
         lines.append("| — | — | — | _No step timing recorded_ |")
-
-    lines += ["", "## Scenarios", ""]
-    for sc in d.get("scenarios") or []:
-        ms = f" ({sc.get('duration_ms')}ms)" if sc.get("duration_ms") else ""
-        lines.append(
-            f"- **{sc.get('id', '?')}** [{sc.get('level', '')}]: "
-            f"**{str(sc.get('status', '?')).upper()}**{ms} — {sc.get('detail', '')}"
-        )
-
-    lines += ["", "## Assertions (expected vs actual)", ""]
-    for a in d.get("assertions") or []:
-        mark = "PASS" if a.get("passed") else "FAIL"
-        lines.append(f"- **{a.get('scenario_id')}** / {a.get('kind')} — **{mark}**")
-        lines.append(f"  - expected: `{a.get('expected')}`")
-        lines.append(f"  - actual: `{a.get('actual')}`")
-        for err in a.get("errors") or []:
-            lines.append(f"  - error: {err}")
-    if not d.get("assertions"):
-        lines.append("- _(no structured assertions; see REPORT.md and evidence/db/)_")
 
     lines += ["", "## Performance", ""]
     total = d.get("duration_seconds", 0)
@@ -240,23 +514,74 @@ def _render_markdown(d: dict) -> str:
         for s in slow:
             lines.append(f"  - {s.get('label', s.get('id'))}: {s.get('duration_ms')}ms")
 
+    log_lines = execution_log or []
+    lines += ["", "## Execution log", ""]
+    if log_lines:
+        lines.append("```")
+        lines.extend(log_lines[-200:])
+        lines.append("```")
+    else:
+        lines.append("_See [execution-summary.txt](./execution-summary.txt) in this ticket folder._")
+
     lines += ["", "## Evidence paths", ""]
     for k, v in sorted((d.get("evidence") or {}).items()):
+        if k == "report_md":
+            continue
         lines.append(f"- **{k}:** `{v}`")
+
+    scenario_crns = dec.get("scenario_crns") or {}
+    db_verify = dec.get("db_verify_queries")
+    log_verify = dec.get("log_verify_commands") or (d.get("evidence") or {}).get(
+        "LOG_VERIFY_COMMANDS_md"
+    )
+    lines += [
+        "",
+        "## Manual verification (optional)",
+        "",
+        "| Kind | File |",
+        "|------|------|",
+        f"| DB (MySQL Workbench) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) |",
+        f"| Logs (grep/rg on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |",
+    ]
+    if dec.get("kafka_verify_commands"):
+        lines.append(
+            "| Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) |"
+        )
+    if dec.get("context_pack"):
+        lines.append("| Context (prefs + stale + KG) | [CONTEXT_PACK.md](./CONTEXT_PACK.md) |")
+    if dec.get("eval_regression_md"):
+        lines.append("| Eval regression | [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) |")
+    if (d.get("evidence") or {}).get("evidence_logs") or dec.get("log_search_ran"):
+        lines.append(f"| Log search output (if LOGS_DIR set) | [log-search.txt](./log-search.txt) or [evidence/logs/](./evidence/logs/) |")
+    if scenario_crns:
+        lines += ["", "| Scenario | CRN |", "|----------|-----|"]
+        for sid, sc_crn in sorted(scenario_crns.items()):
+            lines.append(f"| {sid} | `{sc_crn}` |")
+
     lines += [
         "",
         "## Related artifacts",
         "",
-        f"- [REPORT.md](./REPORT.md) — validation report",
-        f"- [ticket-spec.yaml](./ticket-spec.yaml)",
-        f"- [run-summary.json](./run-summary.json) — machine-readable (same data)",
-        f"- [REPORT.html](./REPORT.html) — browser view",
+        "_Single report file: this `REPORT.md` (no separate RUN_SUMMARY.md)._",
         "",
+        "- [TEST_PLAN.md](./TEST_PLAN.md) — planned scenarios (updated each validate-ticket)",
+        "- [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) — MySQL dashboard + per-scenario SELECTs",
+        "- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep/rg for applogs",
+        "- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce (when run.kafka.enabled)",
+        "- [CONTEXT_PACK.md](./CONTEXT_PACK.md) — prefs, staleness, hybrid KG retrieval",
+        "- [EVAL_REGRESSION.md](./EVAL_REGRESSION.md) — scenario baseline comparison",
+        "- [ticket-spec.yaml](./ticket-spec.yaml)",
+        "- [run-summary.json](./run-summary.json) — machine-readable",
+        "- [REPORT.html](./REPORT.html) — browser view",
     ]
+    postman_coll = (d.get("evidence") or {}).get("postman_collection")
+    if postman_coll:
+        lines.append(f"- **Postman:** [postman/](./postman/) — `{Path(str(postman_coll)).name}`")
+    lines.append("")
     return "\n".join(lines)
 
 
-def _render_html(d: dict) -> str:
+def _render_html(d: dict, *, spec: dict | None = None) -> str:
     tid = d.get("ticket_id", "")
     overall = d.get("overall", "UNKNOWN")
     color = {"PASS": "#0a0", "FAIL": "#c00", "PARTIAL": "#c80", "UNKNOWN": "#666"}.get(overall, "#666")
@@ -276,19 +601,22 @@ def _render_html(d: dict) -> str:
         f"<td>{esc(s.get('detail', ''))}</td></tr>"
         for s in d.get("steps") or []
     )
-    rows_sc = "".join(
+    scenario_rows = _scenario_result_rows(d, spec) if spec else []
+    rows_sc_table = "".join(
+        f"<tr><td>{esc(r['id'])}</td><td>{esc(r['description'])}</td><td>{esc(r['level'])}</td>"
+        f"<td>{esc(r['apis'])}</td><td><code>{esc(r['crn'])}</code></td>"
+        f"<td><small>{esc(r['db_expected'])}</small></td><td><small>{esc(r['db_actual'])}</small></td>"
+        f"<td>{esc(r['db_status'])}</td><td><b>{esc(r['overall'])}</b></td>"
+        f"<td>{esc(r['duration'])}</td></tr>"
+        for r in scenario_rows
+    )
+    rows_sc = rows_sc_table or "".join(
         f"<li><b>{esc(sc.get('id'))}</b> [{esc(sc.get('level'))}] "
         f"<span style='color:{color}'>{esc(sc.get('status'))}</span> — {esc(sc.get('detail', ''))}</li>"
         for sc in d.get("scenarios") or []
     )
     dec_items = "".join(
         f"<li><b>{esc(k)}:</b> {esc(v)}</li>" for k, v in sorted((d.get("decisions") or {}).items())
-    )
-    assert_items = "".join(
-        f"<li><b>{esc(a.get('scenario_id'))}</b> / {esc(a.get('kind'))} — "
-        f"{'PASS' if a.get('passed') else 'FAIL'}<br>"
-        f"<small>expected: {esc(a.get('expected'))} | actual: {esc(a.get('actual'))}</small></li>"
-        for a in d.get("assertions") or []
     )
     ev_items = "".join(
         f"<li><b>{esc(k)}:</b> <code>{esc(v)}</code></li>"
@@ -323,12 +651,14 @@ code {{ font-size: 0.85rem; word-break: break-all; }}
 <table><thead><tr><th>Step</th><th>Status</th><th>Duration</th><th>Detail</th></tr></thead>
 <tbody>{rows_steps or '<tr><td colspan="4"><em>none</em></td></tr>'}</tbody></table></section>
 
-<section><h2>Scenarios</h2><ul>{rows_sc or '<li><em>none</em></li>'}</ul></section>
+<section><h2>Test plan</h2><p><a href="TEST_PLAN.md">TEST_PLAN.md</a> — planned scenarios</p></section>
 
-<section><h2>Assertions</h2><ul>{assert_items or '<li><em>none</em></li>'}</ul></section>
+<section><h2>Scenario results</h2>
+{"<table><thead><tr><th>ID</th><th>Description</th><th>Level</th><th>APIs</th><th>CRN</th><th>DB expected</th><th>DB actual</th><th>DB</th><th>Overall</th><th>Time</th></tr></thead><tbody>" + rows_sc + "</tbody></table>" if scenario_rows else "<ul>" + rows_sc + "</ul>"}
+</section>
 
 <section><h2>Evidence</h2><ul>{ev_items}</ul>
-<p><a href="RUN_SUMMARY.md">RUN_SUMMARY.md</a> · <a href="REPORT.md">REPORT.md</a></p></section>
+<p><a href="REPORT.md">REPORT.md</a> · <a href="TEST_PLAN.md">TEST_PLAN.md</a></p></section>
 </body>
 </html>
 """
@@ -380,7 +710,8 @@ def print_status(ticket_id: str) -> int:
             mark = "OK" if a.get("passed") else "FAIL"
             print(f"  [{mark}] {a.get('scenario_id')} {a.get('kind')}")
     print()
-    print(f"Full summary: {_fmt_path(td / 'RUN_SUMMARY.md')}")
+    print(f"Report:       {_fmt_path(td / 'REPORT.md')}")
+    print(f"Test plan:    {_fmt_path(td / 'TEST_PLAN.md')}")
     print(f"HTML report:  {_fmt_path(td / 'REPORT.html')}")
     return 0 if data.get("overall") == "PASS" else 1
 
@@ -392,14 +723,16 @@ def print_open(ticket_id: str) -> int:
     if not td.exists():
         print(f"No ticket folder: {td}")
         return 1
-    summary = td / "RUN_SUMMARY.md"
+    report = td / "REPORT.md"
+    test_plan = td / "TEST_PLAN.md"
     html = td / "REPORT.html"
     ev = td / "evidence"
-    print(f"Ticket dir:     {_fmt_path(td)}")
-    print(f"RUN_SUMMARY.md: {_fmt_path(summary)}{'' if summary.exists() else ' (not generated — run bob validate-ticket first)'}")
+    print(f"Ticket dir:   {_fmt_path(td)}")
+    print(f"REPORT.md:    {_fmt_path(report)}{'' if report.exists() else ' (not generated — run bob validate-ticket first)'}")
+    print(f"TEST_PLAN.md: {_fmt_path(test_plan)}{'' if test_plan.exists() else ' (created on validate-ticket)'}")
     print(f"REPORT.html:    {_fmt_path(html)}{'' if html.exists() else ' (not generated)'}")
     print(f"Evidence:       {_fmt_path(ev)}")
-    if not summary.exists():
+    if not report.exists():
         print()
         print(f"Run: python bob.py validate-ticket {ticket_id}")
     return 0

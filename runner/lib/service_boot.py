@@ -57,15 +57,181 @@ def health_up(svc_cfg: dict, *, timeout: float = 5) -> bool:
         return False
 
 
-def _gradle_boot_cmd(repo: Path, boot_cfg: dict) -> list[str]:
-    task = boot_cfg.get("task", "bootRun")
-    extra = boot_cfg.get("args") or []
+def health_reachable(svc_cfg: dict, *, timeout: float = 5) -> bool:
+    """Tomcat responding on health URL (even 503) — enough for LOC API E2E when ES is down."""
+    base = _base_url(svc_cfg)
+    if not base:
+        return False
+    health_path = svc_cfg.get("health_path", "/actuator/health")
+    url = f"{base}{health_path}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout):
+            return True
+    except (urllib.error.URLError, OSError, ValueError, TimeoutError):
+        return False
+
+
+def _mysql_creds() -> tuple[str, str]:
+    user = os.environ.get("MYSQL_USER", "root").strip() or "root"
+    pw = os.environ.get("MYSQL_PASS", "root").strip() or "root"
+    return user, pw
+
+
+def _interpolate_boot_value(value: str) -> str:
+    user, pw = _mysql_creds()
+    return (
+        value.replace("{MYSQL_USER}", user)
+        .replace("{MYSQL_PASS}", pw)
+    )
+
+
+def _norm_service_key(key: str) -> str:
+    return key.replace("-", "_").lower().strip()
+
+
+def _is_credit_card_service(service_key: str, repo: Path) -> bool:
+    key = _norm_service_key(service_key)
+    if key in ("credit_card_management", "creditcard_management"):
+        return True
+    return repo.name == "novopay-platform-creditcard-management"
+
+
+def _strict_service_entry(service_key: str, svc_cfg: dict) -> dict:
+    if svc_cfg.get("repo_dir") or svc_cfg.get("boot"):
+        return svc_cfg
+    from workspace_services import load_workspace_services
+
+    services = load_workspace_services().get("services") or {}
+    ws_key = svc_cfg.get("workspace_key") or service_key
+    if ws_key in services:
+        return services[ws_key]
+    if service_key in services:
+        return services[service_key]
+    return {}
+
+
+def _repo_dir_name(service_key: str, svc_cfg: dict) -> str:
+    if svc_cfg.get("repo_dir"):
+        return str(svc_cfg["repo_dir"])
+    entry = _strict_service_entry(service_key, svc_cfg)
+    return str(entry.get("repo_dir") or "")
+
+
+def _caller_repo() -> Path | None:
+    """Gradle repo Bob was invoked from (BOB_HOST_REPO / cwd), not a fixed service."""
+    host = host_repo_root()
+    if host.is_dir() and _gradle_wrapper(host).is_file():
+        return host.resolve()
+    return None
+
+
+def _repo_matches_service_key(service_key: str, svc_cfg: dict, repo: Path) -> bool:
+    """True when caller repo is the service Bob is trying to boot (not always CC)."""
+    if not repo.is_dir() or not _gradle_wrapper(repo).is_file():
+        return False
+    rd = _repo_dir_name(service_key, svc_cfg)
+    if rd and repo.name == Path(rd).name:
+        return True
+    from service_discovery import infer_service_config
+
+    inferred = infer_service_config(repo)
+    inferred_key = _norm_service_key(str(inferred.get("service_key", "")))
+    want = _norm_service_key(service_key)
+    if inferred_key == want:
+        return True
+    cc_aliases = {"credit_card_management", "creditcard_management"}
+    return want in cc_aliases and inferred_key in cc_aliases
+
+
+def _kafka_bootstrap_override() -> str:
+    return (os.environ.get("BOB_KAFKA_BOOTSTRAP") or "").strip()
+
+
+def _append_kafka_bootstrap(spring_args: str) -> str:
+    kafka = _kafka_bootstrap_override()
+    if kafka:
+        return spring_args + f" --message.broker.bootstrap.servers={kafka}"
+    return spring_args
+
+
+def _default_cc_boot_args() -> list[str]:
+    user, pw = _mysql_creds()
+    spring_args = _append_kafka_bootstrap(
+        "--spring.config.additional-location=file:./deploy/application/dist/application.properties "
+        f"--spring.datasource.username={user} "
+        f"--spring.datasource.password={pw} "
+        "--management.health.elasticsearch.enabled=false"
+    )
+    return [f"--args={spring_args}"]
+
+
+def _is_masterdata_service(service_key: str, repo: Path) -> bool:
+    key = _norm_service_key(service_key)
+    if key in ("masterdata_management", "masterdata"):
+        return True
+    return repo.name == "novopay-platform-masterdata-management"
+
+
+def _default_masterdata_boot_args() -> list[str]:
+    user, pw = _mysql_creds()
+    spring_args = (
+        "--spring.config.additional-location=file:./deploy/application/dist/application.properties "
+        f"--spring.datasource.username={user} "
+        f"--spring.datasource.password={pw} "
+        "--management.health.elasticsearch.enabled=false"
+    )
+    return [f"--args={spring_args}"]
+
+
+def _resolve_boot_args(service_key: str, repo: Path, boot_cfg: dict) -> list[str]:
+    raw = boot_cfg.get("args")
+    if raw:
+        return [_interpolate_boot_value(str(arg)) for arg in raw]
+    if _is_credit_card_service(service_key, repo):
+        return _default_cc_boot_args()
+    if _is_masterdata_service(service_key, repo):
+        return _default_masterdata_boot_args()
+    return []
+
+
+def _gradle_wrapper(repo: Path) -> Path:
     if sys.platform == "win32":
         wrapper = repo / "gradlew.bat"
-        if not wrapper.is_file():
-            wrapper = repo / "gradlew"
-        return [str(wrapper), task, *extra]
-    return [str(repo / "gradlew"), task, *extra]
+        if wrapper.is_file():
+            return wrapper
+    return repo / "gradlew"
+
+
+def _run_pre_tasks(repo: Path, boot_cfg: dict, service_key: str) -> tuple[bool, str]:
+    tasks = list(boot_cfg.get("pre_tasks") or [])
+    if not tasks and (
+        _is_credit_card_service(service_key, repo) or _is_masterdata_service(service_key, repo)
+    ):
+        tasks = ["copyProperties"]
+    if not tasks:
+        return True, ""
+    wrapper = _gradle_wrapper(repo)
+    if not wrapper.is_file():
+        return False, f"no Gradle wrapper in {repo}"
+    for task in tasks:
+        r = subprocess.run(
+            [str(wrapper), str(task), "-q"],
+            cwd=str(repo),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        if r.returncode != 0:
+            detail = (r.stderr or r.stdout or "").strip()[-1500:]
+            return False, f"pre-task `{task}` failed (exit {r.returncode})\n{detail}"
+    return True, ""
+
+
+def _gradle_boot_cmd(repo: Path, boot_cfg: dict, *, service_key: str = "") -> list[str]:
+    task = boot_cfg.get("task", "bootRun")
+    extra = _resolve_boot_args(service_key, repo, boot_cfg)
+    wrapper = _gradle_wrapper(repo)
+    return [str(wrapper), task, *extra]
 
 
 def _process_alive(pid: int) -> bool:
@@ -126,16 +292,52 @@ def stop_all() -> list[str]:
 
 
 def _resolve_repo(service_key: str, svc_cfg: dict) -> Path | None:
-    ws_key = svc_cfg.get("workspace_key") or service_key
+    """
+    Resolve repo path for bootRun:
+    1) workspace-services map under workspace root
+    2) caller repo (where Bob was run) only if it matches service_key
+    3) sibling clone discovery (e.g. masterdata when host repo is CC)
+    """
+    entry = _strict_service_entry(service_key, svc_cfg) or svc_cfg
+    ws_key = entry.get("workspace_key") or svc_cfg.get("workspace_key") or service_key
     repo = service_repo_path(ws_key)
     if repo:
         return repo
-    repo_dir = repo_dir_for_service(ws_key) or repo_dir_for_service(service_key)
+    repo_dir = _repo_dir_name(service_key, entry)
     root = workspace_root()
     if root and repo_dir:
         p = root / repo_dir
-        return p if p.is_dir() else None
+        if p.is_dir():
+            return p
+    if _norm_service_key(service_key) in ("masterdata_management", "masterdata"):
+        from service_discovery import find_repo
+
+        md = find_repo("masterdata")
+        if md and md.is_dir():
+            return md
+    caller = _caller_repo()
+    if caller and _repo_matches_service_key(service_key, entry, caller):
+        return caller
     return None
+
+
+def masterdata_service_keys(spec: dict) -> list[str]:
+    """Env profile keys for masterdata-management (WireMock URL resolution)."""
+    env_block = spec.get("_env") or {}
+    services = env_block.get("services") or {}
+    keys: list[str] = []
+    for key in services:
+        nk = _norm_service_key(key)
+        if nk in ("masterdata_management", "masterdata") or "masterdata" in nk:
+            keys.append(key)
+    return keys
+
+
+def masterdata_required_for_spec(spec: dict) -> bool:
+    run = spec.get("run") or {}
+    if not run.get("apply_masterdata", True):
+        return False
+    return bool(spec.get("masterdata")) or bool((spec.get("stubs") or []))
 
 
 def start_service(
@@ -172,7 +374,10 @@ def start_service(
 
     boot_cfg = dict((workspace_service_entry(service_key) or {}).get("boot") or {})
     boot_cfg.update(svc_cfg.get("boot") or {})
-    cmd = _gradle_boot_cmd(repo, boot_cfg)
+    pre_ok, pre_msg = _run_pre_tasks(repo, boot_cfg, service_key)
+    if not pre_ok:
+        return False, f"{service_key}: {pre_msg}"
+    cmd = _gradle_boot_cmd(repo, boot_cfg, service_key=service_key)
     log = _log_file(service_key)
     boot_env = os.environ.copy()
     for k, v in (boot_cfg.get("env") or {}).items():
@@ -192,15 +397,128 @@ def start_service(
     pf.write_text(str(proc.pid), encoding="utf-8")
 
     deadline = time.time() + wait_seconds
+    last_log = 0.0
     while time.time() < deadline:
         if health_up(svc_cfg, timeout=3):
             return True, f"{service_key}: UP ({_base_url(svc_cfg)}) pid={proc.pid} log={log}"
         if proc.poll() is not None:
             tail = log.read_text(encoding="utf-8", errors="replace")[-2000:]
             return False, f"{service_key}: bootRun exited {proc.returncode}\n{tail}"
+        now = time.time()
+        if now - last_log >= 15:
+            left = int(deadline - now)
+            print(f"Bob: waiting for {service_key} actuator health (~{left}s left)...", flush=True)
+            last_log = now
         time.sleep(3)
 
     return False, f"{service_key}: timeout after {wait_seconds}s — see {log}"
+
+
+def primary_service_key(spec: dict) -> str:
+    from host_profile import primary_service_key as _primary
+
+    return _primary(spec)
+
+
+def _svc_cfg_fields() -> tuple[str, ...]:
+    return ("default_base", "health_path", "boot", "base_env_var", "optional", "workspace_key")
+
+
+def _to_svc_cfg(cfg: dict) -> dict:
+    return {k: cfg[k] for k in _svc_cfg_fields() if k in cfg}
+
+
+def caller_service_config(spec: dict | None = None) -> dict | None:
+    """Boot config for BOB_HOST_REPO / cwd Gradle repo (always at least one service)."""
+    caller = _caller_repo()
+    if not caller:
+        return None
+    from service_discovery import infer_service_config
+
+    spec = spec or {}
+    env_block = spec.get("_env") or {}
+    primary = primary_service_key(spec)
+    services = env_block.get("services") or {}
+    merged_key = primary
+    svc_env = dict(services.get(primary) or {})
+    if not _repo_matches_service_key(primary, svc_env, caller):
+        merged_key = ""
+        svc_env = {}
+        for key, svc in services.items():
+            if _repo_matches_service_key(key, svc, caller):
+                merged_key = key
+                svc_env = dict(svc)
+                break
+    inferred = infer_service_config(caller, service_key=merged_key or None)
+    if merged_key:
+        inferred["service_key"] = merged_key
+    inferred.update({k: v for k, v in svc_env.items() if k in _svc_cfg_fields()})
+    inferred["repo_dir"] = caller.name
+    inferred["reason"] = "host repo (BOB_HOST_REPO / cwd)"
+    return inferred
+
+
+def _collect_boot_configs(spec: dict) -> list[dict]:
+    """
+    Ordered boot targets: primary/caller host first, then profile peers and discovery.
+    Caller repo counts as bootable even when peer discovery returns empty.
+    """
+    by_key: dict[str, dict] = {}
+
+    def merge_cfg(cfg: dict) -> None:
+        key = _norm_service_key(str(cfg.get("service_key") or cfg.get("repo_dir") or ""))
+        if not key:
+            return
+        prev = by_key.get(key)
+        if prev:
+            prev.update({k: v for k, v in cfg.items() if v is not None and v != ""})
+        else:
+            by_key[key] = dict(cfg)
+
+    env_block = spec.get("_env") or {}
+    if auto_discover_enabled(spec):
+        from service_discovery import discover_for_session
+
+        for cfg in discover_for_session(spec):
+            merge_cfg(cfg)
+    else:
+        from service_discovery import infer_service_config
+
+        for key in services_for_spec(spec):
+            svc = (env_block.get("services") or {}).get(key) or {}
+            repo_path = _resolve_repo(key, svc)
+            if not repo_path:
+                continue
+            cfg = infer_service_config(repo_path, service_key=key)
+            cfg.update({k: v for k, v in svc.items() if k in _svc_cfg_fields()})
+            cfg["repo_dir"] = str(repo_path.name)
+            merge_cfg(cfg)
+
+    host_cfg = caller_service_config(spec)
+    if host_cfg:
+        merge_cfg(host_cfg)
+
+    if not by_key and host_cfg:
+        merge_cfg(host_cfg)
+
+    primary = _norm_service_key(primary_service_key(spec))
+    cc_aliases = {_norm_service_key(k) for k in ("credit_card_management", "creditcard_management")}
+    ordered_keys: list[str] = []
+    if masterdata_required_for_spec(spec):
+        for md_key in masterdata_service_keys(spec):
+            if md_key in by_key and md_key not in ordered_keys:
+                ordered_keys.append(md_key)
+    if primary in by_key:
+        ordered_keys.append(primary)
+    elif primary in cc_aliases:
+        for alias in cc_aliases:
+            if alias in by_key and alias not in ordered_keys:
+                ordered_keys.append(alias)
+                break
+    for key in sorted(by_key.keys()):
+        if key not in ordered_keys:
+            ordered_keys.append(key)
+    return [by_key[k] for k in ordered_keys]
 
 
 def services_for_spec(spec: dict) -> list[str]:
@@ -210,15 +528,26 @@ def services_for_spec(spec: dict) -> list[str]:
         return []
     impacted_repos = set((spec.get("impacted") or {}).get("repos") or [])
     keys: list[str] = []
+    md_keys = set(masterdata_service_keys(spec))
     for key, svc_cfg in services.items():
-        if svc_cfg.get("optional") and not os.environ.get(svc_cfg.get("base_env_var", ""), "").strip():
+        optional_skip = (
+            svc_cfg.get("optional")
+            and not os.environ.get(svc_cfg.get("base_env_var", ""), "").strip()
+            and not (masterdata_required_for_spec(spec) and key in md_keys)
+        )
+        if optional_skip:
             continue
         ws_key = svc_cfg.get("workspace_key") or key
         repo_dir = repo_dir_for_service(ws_key) or repo_dir_for_service(key)
         if impacted_repos and repo_dir and repo_dir not in impacted_repos:
             if key not in impacted_repos and ws_key not in impacted_repos:
-                continue
+                if not (masterdata_required_for_spec(spec) and key in md_keys):
+                    continue
         keys.append(key)
+    if masterdata_required_for_spec(spec):
+        for md_key in masterdata_service_keys(spec):
+            if md_key in services and md_key not in keys:
+                keys.insert(0, md_key)
     primary = env_block.get("primary_service")
     if primary and primary in services and primary not in keys:
         keys.insert(0, primary)
@@ -244,37 +573,28 @@ def auto_discover_enabled(spec: dict) -> bool:
     return True
 
 
-def ensure_services_running(spec: dict, *, force: bool = False) -> dict[str, tuple[bool, str]]:
-    from service_discovery import discover_for_session
+def _resolve_boot_repo(service_key: str, svc_cfg: dict, cfg: dict) -> Path | None:
+    repo_path = _resolve_repo(service_key, svc_cfg)
+    if repo_path:
+        return repo_path
+    root = workspace_root()
+    if root and cfg.get("repo_dir"):
+        candidate = root / str(cfg["repo_dir"])
+        if candidate.is_dir():
+            return candidate
+    caller = _caller_repo()
+    if caller and _repo_matches_service_key(service_key, svc_cfg, caller):
+        return caller
+    return None
 
+
+def ensure_services_running(spec: dict, *, force: bool = False) -> dict[str, tuple[bool, str]]:
     wait = boot_wait_seconds(spec)
     outcomes: dict[str, tuple[bool, str]] = {}
-    root = workspace_root()
-    configs = discover_for_session(spec) if auto_discover_enabled(spec) else []
-    if not auto_discover_enabled(spec):
-        env_block = spec.get("_env") or {}
-        for key in services_for_spec(spec):
-            svc_cfg = (env_block.get("services") or {}).get(key) or {}
-            ws_key = svc_cfg.get("workspace_key") or key
-            rd = repo_dir_for_service(ws_key) or repo_dir_for_service(key)
-            if root and rd and (root / rd).is_dir():
-                from service_discovery import infer_service_config
-
-                cfg = infer_service_config(root / rd, service_key=key)
-                cfg.update(svc_cfg)
-                configs.append(cfg)
-    for cfg in configs:
+    for cfg in _collect_boot_configs(spec):
         key = str(cfg.get("service_key") or cfg.get("repo_dir") or "service")
-        svc_cfg = {
-            k: cfg[k]
-            for k in ("default_base", "health_path", "boot", "base_env_var", "optional", "workspace_key")
-            if k in cfg
-        }
-        repo_path = None
-        if root and cfg.get("repo_dir"):
-            candidate = root / str(cfg["repo_dir"])
-            if candidate.is_dir():
-                repo_path = candidate
+        svc_cfg = _to_svc_cfg(cfg)
+        repo_path = _resolve_boot_repo(key, svc_cfg, cfg)
         outcomes[key] = start_service(
             key,
             svc_cfg,
@@ -291,31 +611,22 @@ def ensure_peers(
     wait_seconds: int = 180,
     force: bool = False,
 ) -> dict[str, tuple[bool, str]]:
-    """Discover peers from code/properties/session and boot anything not healthy."""
-    from service_discovery import discover_for_session, register_required_service
+    """Discover peers from code/properties/session and boot anything not healthy (host first)."""
+    from service_discovery import register_required_service
 
     spec = spec or {"run": {"boot_wait_seconds": wait_seconds}, "impacted": {}}
     wait = boot_wait_seconds(spec)
     outcomes: dict[str, tuple[bool, str]] = {}
-    root = workspace_root()
-    for cfg in discover_for_session(spec):
+    for cfg in _collect_boot_configs(spec):
         hint = cfg.get("repo_dir") or cfg.get("service_key") or ""
         if hint:
             register_required_service(str(hint), reason=cfg.get("reason", "ensure-peers"))
         key = str(cfg.get("service_key") or cfg.get("repo_dir") or "service")
-        svc_cfg = {
-            k: cfg[k]
-            for k in ("default_base", "health_path", "boot", "base_env_var", "optional", "workspace_key")
-            if k in cfg
-        }
+        svc_cfg = _to_svc_cfg(cfg)
         if health_up(svc_cfg):
             outcomes[key] = (True, f"{key}: already up ({_base_url(svc_cfg)})")
             continue
-        repo_path = None
-        if root and cfg.get("repo_dir"):
-            candidate = root / str(cfg["repo_dir"])
-            if candidate.is_dir():
-                repo_path = candidate
+        repo_path = _resolve_boot_repo(key, svc_cfg, cfg)
         outcomes[key] = start_service(
             key,
             svc_cfg,
@@ -363,5 +674,6 @@ def status_report(spec_env: dict | None = None) -> list[str]:
 
 
 def load_env_profile(profile: str) -> dict:
-    path = host_repo_root() / "deploy/tdd" / f"{profile}.yaml"
-    return load(path) if path.is_file() else {}
+    from ticket_spec import load_env_profile_block
+
+    return load_env_profile_block(profile, base=host_repo_root())

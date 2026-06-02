@@ -1,4 +1,5 @@
 # Ticket Spec (TS) — single source of truth per validation run (Bob the Builder)
+# CC-shaped example: assets/examples/novopay-cc/ and deploy/tdd/env-local-dsa.yaml
 version: 2
 
 ticket:
@@ -15,6 +16,7 @@ git:
   branch_prefix: ddp-fea-    # when branch_policy: novopay-feature
   commit_policy: no_commit   # informational only
 
+# Host deploy/tdd/env-<name>.yaml — CC dogfood uses local-dsa (see templates/host-deploy-tdd/)
 env_profile: local-dsa
 
 impacted:
@@ -23,14 +25,14 @@ impacted:
   bank_operations: []
   processor_beans: []
   repos:
-    - novopay-platform-creditcard-management
+    - HOST_REPO_FOLDER
   channel_matrix: [DAP]
 
 run:
   auto_boot_services: true
   auto_discover_services: true  # host properties + Java imports + local/agent/required-services.yaml
   boot_wait_seconds: 180
-  audit_db: dsa_credit_card_mgmt
+  audit_db: dsa_credit_card_mgmt  # override per service; see deploy/tdd mysql.schemas.audit
   wiremock_port: 9090
 
 # Stub registry refs: stub-registry/bank-operations/<op>/<fixture>.yaml

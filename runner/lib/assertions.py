@@ -45,9 +45,25 @@ def resolve_db_expect(scenario: dict, spec: dict) -> dict:
     return db
 
 
+def _like_match(pattern: str, value: str) -> bool:
+    """SQL-style % wildcard (single-line)."""
+    import re
+
+    if not pattern or "%" not in pattern:
+        return value == pattern
+    regex = "^" + re.escape(pattern).replace("%", ".*") + "$"
+    return bool(re.match(regex, value or ""))
+
+
 def check_db_row(db_expect: dict, row: dict[str, str]) -> tuple[bool, list[str]]:
     """row: txn_status, txn_result_code, txn_result_description, internal_txn_desc"""
     errors: list[str] = []
+    if pattern := db_expect.get("expect_internal_txn_desc_pattern"):
+        internal = row.get("internal_txn_desc", "")
+        if not internal:
+            errors.append("internal_txn_desc: empty row (no transaction_audit for CRN)")
+        elif not _like_match(str(pattern), internal):
+            errors.append(f"internal_txn_desc: want pattern {pattern!r} got {internal!r}")
     expect = db_expect.get("expect") or {}
     for k, v in expect.items():
         if str(row.get(k, "")) != str(v):

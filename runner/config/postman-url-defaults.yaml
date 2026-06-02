@@ -1,0 +1,30 @@
+# Canonical Novopay DSA URLs for Bob Postman export.
+# Override per ticket in ticket-spec.yaml under run.postman, or per host in deploy/tdd/postman-urls.yaml.
+
+gateway_path:
+  v1: /api/novopay/v1
+  v2: /api/v2/credit_card_management
+
+environments:
+  local:
+    service_base: http://localhost:8016/cc-mgmt
+    gateway_base: http://localhost:8080/api-gateway
+  qa:
+    gateway_base: https://ddp-qa.novopay.in/api-gateway
+  uat:
+    gateway_base: https://ddp-uat.novopay.in/api-gateway
+
+wiremock_base: http://127.0.0.1:9090
+
+request_vars:
+  TENANT: dsa
+  CLIENT: dsa_agent_app
+  MOBILE: "9999999999"
+  DOB: 15-01-1990
+  AAN: "0000000000000000001"
+
+# Default prerequisite APIs per feature (override in ticket-spec run.postman.prerequisite_apis)
+feature_defaults:
+  loc-dummy-jumbo:
+    prerequisite_apis:
+      - manageLOCTransactionAudit
