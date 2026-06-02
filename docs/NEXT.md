@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=6d408ef -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-05-23 -->
+<!-- PRODUCT-VERIFY:COMMIT=f1a4525 -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,18 +28,69 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-05-23 · commit `6d408ef` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-03 · commit `f1a4525` · 16/16 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `6d408ef` — docs: Bob starts services and WireMock by default in developer guide
-**Date:** 2026-05-23
+**Commit:** `f1a4525` — feat: workspace-neutral host profile, Kafka, context/eval, and docs
+**Date:** 2026-06-03
 
 ### Files changed
+- `README.md`
+- `assets/README.md`
+- `docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md`
+- `docs/BOB_CHEATSHEET.md`
+- `docs/BOB_CONTEXT_AND_EVAL.md`
+- `docs/DATA_LAYOUT.md`
+- `docs/GRAPH_OBSIDIAN.md`
+- `docs/KAFKA_FOR_BOB.md`
+- `docs/NEXT.md`
+- `docs/README.md`
 - `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
+- `docs/WORKSPACE_AND_HOST_PROFILE.md`
+- `runner/ARCHITECTURE.md`
+- `runner/README.md`
+- `runner/config/bob-defaults.yaml`
+- `runner/config/header-profiles/dsa-agent-app.yaml`
+- `runner/config/postman-url-defaults.yaml`
+- `runner/lib/assertions.py`
+- `runner/lib/audit_config.py`
+- `runner/lib/builder_cli.py`
+- `runner/lib/context_assembly.py`
+- `runner/lib/eval_regression.py`
+- `runner/lib/evidence.py`
+- `runner/lib/graph_obsidian.py`
+- `runner/lib/graph_retrieval.py`
+- `runner/lib/host_profile.py`
+- `runner/lib/host_repo.py`
+- `runner/lib/kafka_discovery.py`
+- `runner/lib/kafka_runtime.py`
+- `runner/lib/kafka_setup.py`
+- `runner/lib/kafka_verify.py`
+- `runner/lib/log_verify.py`
+- `runner/lib/mysql_runner.py`
+- `runner/lib/postman_export.py`
+- `runner/lib/run_flow.py`
+- `runner/lib/run_summary.py`
+- `runner/lib/service_boot.py`
+- `runner/lib/service_discovery.py`
+- `runner/lib/service_health_report.py`
+- `runner/lib/session_graph.py`
+- … and 18 more
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Core CLI entry (`cli-core`) — files touched
+- Workspace setup & install (`workspace-setup`) — files touched
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Knowledge graph (platform + session) (`knowledge-graph`) — files touched
+- API catalog discovery (`api-discovery`) — files touched
+- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
+- Stub registry & WireMock runtime (`stub-wiremock`) — files touched
+- Git branch policy (default none) (`git-branch-policy`) — files touched
+- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
+- Host deploy/tdd template (`host-deploy-template`) — files touched
+- Cursor builder skills (`agent-skills`) — files touched
 
 ### Regression check
 - **16/16 registered features still intact** after this commit (see below).
