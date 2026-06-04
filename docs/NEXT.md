@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=75b9a49 -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-06-03 -->
+<!-- PRODUCT-VERIFY:COMMIT=f8270c8 -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-04 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,20 +28,34 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-03 · commit `75b9a49` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-04 · commit `f8270c8` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `75b9a49` — fix(ci): pin sample REDIS_VERIFY.md â€” no live redis-cli probe on refresh
-**Date:** 2026-06-03
+**Commit:** `f8270c8` — feat(validate): boot remediation, API asserts, and audit SQL
+**Date:** 2026-06-04
 
 ### Files changed
-- `assets/examples/sample-validate-output/REDIS_VERIFY.md`
-- `runner/_seed/sample-validate-output/REDIS_VERIFY.md`
-- `runner/lib/sample_outputs.py`
+- `.gitattributes`
+- `README.md`
+- `assets/README.md`
+- `assets/examples/README.md`
+- `assets/kafka-fixtures/bulk-lead-min.json`
+- `assets/kafka-fixtures/bulk-lead-missing-agent.json`
+- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
+- `runner/lib/assertions.py`
+- `runner/lib/audit_config.py`
+- `runner/lib/boot_remediation.py`
+- `runner/lib/run_flow.py`
+- `runner/lib/service_boot.py`
+- `templates/host-deploy-tdd/deploy/tdd/INFRA_FOR_BOB.md`
 
 ### Features touched in this commit
-- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
+- Stub registry & WireMock runtime (`stub-wiremock`) — files touched
+- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
+- CC reference pack (examples only) (`examples-novopay-cc`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
