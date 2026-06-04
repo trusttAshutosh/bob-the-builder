@@ -17,6 +17,16 @@ from workspace_services import repo_dir_for_service, workspace_service_entry
 
 from _yaml_util import load
 
+from boot_remediation import (
+    BOOT_PROFILE_EXTENDED,
+    BOOT_PROFILE_STANDARD,
+    build_spring_args,
+    diagnose_boot_log,
+    dist_properties_path,
+    escalation_chain,
+    repo_has_copy_properties_task,
+)
+
 
 def runtime_root() -> Path:
     p = bob_local_root() / ".runtime-services"
@@ -154,44 +164,49 @@ def _append_kafka_bootstrap(spring_args: str) -> str:
     return spring_args
 
 
-def _default_cc_boot_args() -> list[str]:
+def _boot_args_from_profile(
+    service_key: str,
+    repo: Path,
+    profile: str,
+) -> list[str]:
     user, pw = _mysql_creds()
-    spring_args = _append_kafka_bootstrap(
-        "--spring.config.additional-location=file:./deploy/application/dist/application.properties "
-        f"--spring.datasource.username={user} "
-        f"--spring.datasource.password={pw} "
-        "--management.health.elasticsearch.enabled=false"
+    include_kafka = _is_credit_card_service(service_key, repo)
+    spring_args = build_spring_args(
+        repo,
+        profile,
+        mysql_user=user,
+        mysql_pass=pw,
+        include_kafka=include_kafka,
     )
+    if include_kafka and profile == BOOT_PROFILE_STANDARD:
+        spring_args = _append_kafka_bootstrap(spring_args)
+    if not spring_args.strip():
+        return []
     return [f"--args={spring_args}"]
 
 
-def _is_masterdata_service(service_key: str, repo: Path) -> bool:
-    key = _norm_service_key(service_key)
-    if key in ("masterdata_management", "masterdata"):
-        return True
-    return repo.name == "novopay-platform-masterdata-management"
-
-
-def _default_masterdata_boot_args() -> list[str]:
-    user, pw = _mysql_creds()
-    spring_args = (
-        "--spring.config.additional-location=file:./deploy/application/dist/application.properties "
-        f"--spring.datasource.username={user} "
-        f"--spring.datasource.password={pw} "
-        "--management.health.elasticsearch.enabled=false"
-    )
-    return [f"--args={spring_args}"]
-
-
-def _resolve_boot_args(service_key: str, repo: Path, boot_cfg: dict) -> list[str]:
+def _resolve_boot_args(
+    service_key: str,
+    repo: Path,
+    boot_cfg: dict,
+    *,
+    profile: str = BOOT_PROFILE_STANDARD,
+) -> list[str]:
     raw = boot_cfg.get("args")
     if raw:
         return [_interpolate_boot_value(str(arg)) for arg in raw]
-    if _is_credit_card_service(service_key, repo):
-        return _default_cc_boot_args()
-    if _is_masterdata_service(service_key, repo):
-        return _default_masterdata_boot_args()
+    if _novopay_service_needs_standard_boot(repo):
+        return _boot_args_from_profile(service_key, repo, profile)
     return []
+
+
+def _novopay_service_needs_standard_boot(repo: Path) -> bool:
+    """Any Novopay Spring service with dist props or typical layout gets Bob boot fixes."""
+    if dist_properties_path(repo):
+        return True
+    if repo.name.startswith("novopay-platform-"):
+        return True
+    return (repo / "src/main/resources/application.properties").is_file()
 
 
 def _gradle_wrapper(repo: Path) -> Path:
@@ -205,7 +220,9 @@ def _gradle_wrapper(repo: Path) -> Path:
 def _run_pre_tasks(repo: Path, boot_cfg: dict, service_key: str) -> tuple[bool, str]:
     tasks = list(boot_cfg.get("pre_tasks") or [])
     if not tasks and (
-        _is_credit_card_service(service_key, repo) or _is_masterdata_service(service_key, repo)
+        _is_credit_card_service(service_key, repo)
+        or repo_has_copy_properties_task(repo)
+        or dist_properties_path(repo)
     ):
         tasks = ["copyProperties"]
     if not tasks:
@@ -227,9 +244,15 @@ def _run_pre_tasks(repo: Path, boot_cfg: dict, service_key: str) -> tuple[bool, 
     return True, ""
 
 
-def _gradle_boot_cmd(repo: Path, boot_cfg: dict, *, service_key: str = "") -> list[str]:
+def _gradle_boot_cmd(
+    repo: Path,
+    boot_cfg: dict,
+    *,
+    service_key: str = "",
+    profile: str = BOOT_PROFILE_STANDARD,
+) -> list[str]:
     task = boot_cfg.get("task", "bootRun")
-    extra = _resolve_boot_args(service_key, repo, boot_cfg)
+    extra = _resolve_boot_args(service_key, repo, boot_cfg, profile=profile)
     wrapper = _gradle_wrapper(repo)
     return [str(wrapper), task, *extra]
 
@@ -340,6 +363,70 @@ def masterdata_required_for_spec(spec: dict) -> bool:
     return bool(spec.get("masterdata")) or bool((spec.get("stubs") or []))
 
 
+def _boot_once(
+    service_key: str,
+    svc_cfg: dict,
+    repo: Path,
+    boot_cfg: dict,
+    *,
+    wait_seconds: int,
+    profile: str,
+    log_header: str,
+) -> tuple[bool, str, Path]:
+    """Single bootRun attempt; returns (ok, message, log_path)."""
+    cmd = _gradle_boot_cmd(repo, boot_cfg, service_key=service_key, profile=profile)
+    log = _log_file(service_key)
+    boot_env = os.environ.copy()
+    for k, v in (boot_cfg.get("env") or {}).items():
+        boot_env[str(k)] = str(v)
+
+    with log.open("a", encoding="utf-8") as logfh:
+        logfh.write(f"\n{log_header}\n{' '.join(cmd)}\n\n")
+    creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+    with log.open("a", encoding="utf-8") as logfh:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=str(repo),
+            stdout=logfh,
+            stderr=subprocess.STDOUT,
+            env=boot_env,
+            creationflags=creationflags,
+        )
+    pf = _pid_file(service_key)
+    pf.write_text(str(proc.pid), encoding="utf-8")
+
+    deadline = time.time() + wait_seconds
+    last_log = 0.0
+    while time.time() < deadline:
+        if health_up(svc_cfg, timeout=3):
+            return (
+                True,
+                f"{service_key}: UP ({_base_url(svc_cfg)}) pid={proc.pid} log={log}"
+                + (f" [boot profile: {profile}]" if profile != BOOT_PROFILE_STANDARD else ""),
+                log,
+            )
+        if proc.poll() is not None:
+            tail = log.read_text(encoding="utf-8", errors="replace")[-4000:]
+            return (
+                False,
+                f"{service_key}: bootRun exited {proc.returncode}\n{tail}",
+                log,
+            )
+        now = time.time()
+        if now - last_log >= 15:
+            left = int(deadline - now)
+            print(f"Bob: waiting for {service_key} actuator health (~{left}s left)...", flush=True)
+            last_log = now
+        time.sleep(3)
+
+    tail_hint = log.read_text(encoding="utf-8", errors="replace")[-1500:]
+    return (
+        False,
+        f"{service_key}: timeout after {wait_seconds}s — see {log}\n{tail_hint}",
+        log,
+    )
+
+
 def start_service(
     service_key: str,
     svc_cfg: dict,
@@ -377,41 +464,48 @@ def start_service(
     pre_ok, pre_msg = _run_pre_tasks(repo, boot_cfg, service_key)
     if not pre_ok:
         return False, f"{service_key}: {pre_msg}"
-    cmd = _gradle_boot_cmd(repo, boot_cfg, service_key=service_key)
+
     log = _log_file(service_key)
-    boot_env = os.environ.copy()
-    for k, v in (boot_cfg.get("env") or {}).items():
-        boot_env[str(k)] = str(v)
+    user, _pw = _mysql_creds()
+    log.write_text(
+        f"=== boot {service_key} (MYSQL_USER={user}) ===\n",
+        encoding="utf-8",
+    )
 
-    log.write_text(f"=== boot {service_key} ===\n{' '.join(cmd)}\n\n", encoding="utf-8")
-    creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-    with log.open("a", encoding="utf-8") as logfh:
-        proc = subprocess.Popen(
-            cmd,
-            cwd=str(repo),
-            stdout=logfh,
-            stderr=subprocess.STDOUT,
-            env=boot_env,
-            creationflags=creationflags,
+    if boot_cfg.get("args"):
+        profiles = [BOOT_PROFILE_STANDARD]
+    else:
+        log_tail = ""
+        if log.is_file():
+            log_tail = log.read_text(encoding="utf-8", errors="replace")
+        profiles = escalation_chain(diagnose_boot_log(log_tail))
+
+    last_msg = ""
+    for attempt, profile in enumerate(profiles):
+        if attempt > 0:
+            print(
+                f"Bob: boot remediation for {service_key} — retry with profile `{profile}`",
+                flush=True,
+            )
+            stop_service(service_key)
+            pre_ok, pre_msg = _run_pre_tasks(repo, boot_cfg, service_key)
+            if not pre_ok:
+                return False, f"{service_key}: {pre_msg}"
+        header = f"=== attempt {attempt + 1} profile={profile} ==="
+        ok, msg, log = _boot_once(
+            service_key,
+            svc_cfg,
+            repo,
+            boot_cfg,
+            wait_seconds=wait_seconds,
+            profile=profile,
+            log_header=header,
         )
-    pf.write_text(str(proc.pid), encoding="utf-8")
+        last_msg = msg
+        if ok:
+            return True, msg
 
-    deadline = time.time() + wait_seconds
-    last_log = 0.0
-    while time.time() < deadline:
-        if health_up(svc_cfg, timeout=3):
-            return True, f"{service_key}: UP ({_base_url(svc_cfg)}) pid={proc.pid} log={log}"
-        if proc.poll() is not None:
-            tail = log.read_text(encoding="utf-8", errors="replace")[-2000:]
-            return False, f"{service_key}: bootRun exited {proc.returncode}\n{tail}"
-        now = time.time()
-        if now - last_log >= 15:
-            left = int(deadline - now)
-            print(f"Bob: waiting for {service_key} actuator health (~{left}s left)...", flush=True)
-            last_log = now
-        time.sleep(3)
-
-    return False, f"{service_key}: timeout after {wait_seconds}s — see {log}"
+    return False, last_msg
 
 
 def primary_service_key(spec: dict) -> str:

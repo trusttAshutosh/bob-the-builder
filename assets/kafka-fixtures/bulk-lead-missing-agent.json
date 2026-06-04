@@ -1,0 +1,13 @@
+{
+  "header": {
+    "tenant_code": "dsa",
+    "function_code": "CREATE",
+    "user_id": "bob-edge-user"
+  },
+  "user_details": [
+    {
+      "client_reference_number": "BOB-EDGE-MISSING-AGENT",
+      "mobile_number": "9876500099"
+    }
+  ]
+}

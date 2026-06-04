@@ -1,0 +1,35 @@
+{
+  "header": {
+    "tenant_code": "dsa",
+    "function_code": "CREATE",
+    "actor_id": "ACTOR-BOB-1",
+    "user_id": "bob-upload-user",
+    "user_handle_value": "9876500001",
+    "session": "bob-sess-1",
+    "product_type": "CC",
+    "is_cug_user": false,
+    "device_id": "",
+    "actor_type": "",
+    "user_handle_type": "MSISDN",
+    "sim_number": "N/A",
+    "channel_code": "WEB",
+    "end_channel_code": "WEB",
+    "stan": "bob-stan-0001"
+  },
+  "agent_data": {
+    "agent_code": "",
+    "agent_type": "",
+    "agent_mobile_number": "9876500001",
+    "agent_actor_id": "ACTOR-BOB-1"
+  },
+  "user_details": [
+    {
+      "client_reference_number": "BOB-CRN-KAFKA-001",
+      "mobile_number": "9876500001",
+      "corporate_code": "dsa_agent_app",
+      "co_brand_code": "Bob Fixture",
+      "co_brand_value": "Bob Fixture",
+      "system_ip_address": "127.0.0.1"
+    }
+  ]
+}

@@ -342,6 +342,8 @@ Discovery sources: env profile `services:`, host `application.properties` localh
 
 Prefs come from `bob setup` (`BOB_LOCAL/user.env`) — map to whatever appears in your env profile’s `base_env_var` names.
 
+**Boot auto-remediation:** set `MYSQL_USER` / `MYSQL_PASS` once in `user.env`. Bob applies dist `application.properties`, datasource overrides, and (on failure) escalates Kafka/Redis/health overrides by reading `local/.runtime-services/<service>/boot.log` (`runner/lib/boot_remediation.py`). Host copy: `deploy/tdd/INFRA_FOR_BOB.md` § Service boot.
+
 ---
 
 ## Skills and CI

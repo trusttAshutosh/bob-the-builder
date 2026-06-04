@@ -1,0 +1,3 @@
+# Committed sample bundle must match byte-for-byte on Linux CI and Windows dev.
+assets/examples/sample-validate-output/** text eol=lf
+runner/_seed/sample-validate-output/** text eol=lf

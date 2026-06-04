@@ -54,7 +54,7 @@ bob validate-ticket MY-123
 
 Until then: `python bob.py <command>` from `bob-the-builder/`.
 
-Tickets and evidence live in the **host** repo: `docs/tdd-runs/<ticket-id>/`.
+Tickets and evidence live in the **host** repo: `docs/tdd-runs/<ticket-id>/` (API, DB, logs, **Kafka**, **Redis** under `evidence/`; see [docs/EVIDENCE_AND_VERIFY.md](docs/EVIDENCE_AND_VERIFY.md)).
 
 **Other Novopay services:** Bob is not CC-only — point `BOB_HOST_REPO` at your service and copy `templates/host-deploy-tdd/`. See [docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md).
 
@@ -96,7 +96,10 @@ Full index: [docs/README.md](docs/README.md).
 - [docs/WORKSPACE_AND_HOST_PROFILE.md](docs/WORKSPACE_AND_HOST_PROFILE.md) — multi-repo workspace + CC defaults
 - [docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) — other Novopay services
 - [docs/BOB_CONTEXT_AND_EVAL.md](docs/BOB_CONTEXT_AND_EVAL.md) — context pack + eval regression
-- [docs/KAFKA_FOR_BOB.md](docs/KAFKA_FOR_BOB.md) — Kafka discover / verify
+- [docs/EVIDENCE_AND_VERIFY.md](docs/EVIDENCE_AND_VERIFY.md) — DB / logs / Kafka / Redis verify docs + `evidence/`
+- [docs/KAFKA_FOR_BOB.md](docs/KAFKA_FOR_BOB.md) — Kafka discover / verify / `evidence/kafka/`
+- [docs/REDIS_FOR_BOB.md](docs/REDIS_FOR_BOB.md) — Redis verify / `evidence/redis/`
+- [docs/MCP_TOOL_BRIDGE.md](docs/MCP_TOOL_BRIDGE.md) — optional MCP backend for tools (`BOB_TOOL_BACKEND=local` default)
 - [docs/GRAPH_OBSIDIAN.md](docs/GRAPH_OBSIDIAN.md) — Obsidian graph export
 - [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md) — paths; **Bob never commits or pushes**
 - [docs/NEXT.md](docs/NEXT.md) — backlog + scorecard (`bob next`)

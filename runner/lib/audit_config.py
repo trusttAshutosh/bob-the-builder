@@ -43,8 +43,41 @@ def e2e_scenario_crns(
     return out
 
 
-def db_verify_sql_header(base_crn: str, schema: str) -> list[str]:
+def audit_attribute_keys(spec: dict) -> list[str]:
+    """Optional transaction_audit_attributes.attr_key columns on dashboard SELECTs."""
+    run = spec.get("run") or {}
+    if keys := run.get("audit_attribute_keys"):
+        return [str(k) for k in keys if str(k).strip()]
+    env = spec.get("_env") or {}
+    audit = env.get("audit") or {}
+    if keys := audit.get("attribute_keys"):
+        return [str(k) for k in keys if str(k).strip()]
+    return []
+
+
+def _audit_attr_scalar_sql(attr_key: str, audit_table: str) -> str:
+    key_safe = str(attr_key).replace("'", "''")
+    col = re.sub(r"[^a-zA-Z0-9_]", "_", key_safe)
+    if col[0].isdigit():
+        col = f"attr_{col}"
+    return (
+        f"(SELECT taa.attr_value FROM transaction_audit_attributes taa "
+        f"WHERE taa.transaction_audit_id = {audit_table}.id "
+        f"AND taa.attr_key = '{key_safe}' LIMIT 1) AS {col}"
+    )
+
+
+def db_verify_sql_header(
+    base_crn: str, schema: str, attribute_keys: list[str] | None = None
+) -> list[str]:
     crn_safe = base_crn.replace("'", "''")
+    dash_cols = (
+        "txn_status, txn_result_code, txn_result_description, internal_txn_desc"
+    )
+    keys = attribute_keys or []
+    if keys:
+        dash_cols += ", " + ", ".join(keys)
+    dash_cols += ", assert_result"
     return [
         "-- Bob generated after validate-ticket. Your part: run these in MySQL Workbench.",
         f"-- @BASE_CRN: {base_crn}",
@@ -55,7 +88,7 @@ def db_verify_sql_header(base_crn: str, schema: str) -> list[str]:
         f"USE {schema};",
         "",
         "-- Dashboard (all E2E scenarios): scenario_id, scenario_description, client_reference_code,",
-        "-- txn_status, txn_result_code, txn_result_description, internal_txn_desc, assert_result",
+        f"-- {dash_cols}",
         "",
     ]
 
@@ -119,9 +152,15 @@ def build_scenario_audit_select(
     sid_safe = str(scenario_id).replace("'", "''")
     desc_safe = scenario_description(scenario_id, scenario_name).replace("'", "''")
     pass_expr = _sql_pass_fail_expr(db_expect or {})
+    attr_keys = audit_attribute_keys(spec)
+    attr_sql = ""
+    if attr_keys:
+        attr_sql = ", " + ", ".join(
+            _audit_attr_scalar_sql(k, a["table"]) for k in attr_keys
+        )
     inner = (
         f"SELECT '{sid_safe}' AS scenario_id, '{desc_safe}' AS scenario_description, "
-        f"'{crn_safe}' AS client_reference_code, {audit_cols}, {pass_expr} "
+        f"'{crn_safe}' AS client_reference_code, {audit_cols}{attr_sql}, {pass_expr} "
         f"FROM {a['table']} WHERE {a['crn_column']}='{crn_safe}' "
         f"ORDER BY {a['order_by']} LIMIT 1"
     )
@@ -145,6 +184,29 @@ def build_audit_dashboard_query(
         for sid, name, crn, db_expect in scenario_rows
     ]
     return "\nUNION ALL\n".join(parts)
+
+
+def build_audit_attributes_raw_query(base_crn: str, attribute_keys: list[str]) -> str:
+    """All attribute rows for this Bob run (manual spot-check in Workbench)."""
+    if not attribute_keys:
+        return ""
+    keys_sql = ", ".join(
+        "'" + str(k).replace("'", "''") + "'" for k in attribute_keys
+    )
+    return (
+        "-- Raw rows: transaction_audit_attributes for this Bob run\n"
+        "\n"
+        "SELECT ta.client_reference_code,\n"
+        "       ta.txn_status,\n"
+        "       ta.txn_result_code,\n"
+        "       taa.attr_key,\n"
+        "       taa.attr_value\n"
+        "FROM transaction_audit ta\n"
+        "JOIN transaction_audit_attributes taa ON taa.transaction_audit_id = ta.id\n"
+        "WHERE ta.client_reference_code LIKE CONCAT(@BASE_CRN, '%')\n"
+        f"  AND taa.attr_key IN ({keys_sql})\n"
+        "ORDER BY ta.client_reference_code, taa.attr_key;"
+    )
 
 
 def build_audit_query(crn: str, spec: dict) -> str:

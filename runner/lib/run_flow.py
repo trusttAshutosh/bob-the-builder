@@ -13,7 +13,12 @@ if str(_LIB) not in sys.path:
     sys.path.insert(0, str(_LIB))
 
 from _yaml_util import repo_root, tdd_root  # noqa: E402
-from assertions import check_db_row, resolve_db_expect  # noqa: E402
+from assertions import (  # noqa: E402
+    check_api_response,
+    check_db_row,
+    load_last_api_response,
+    resolve_db_expect,
+)
 from evidence import (  # noqa: E402
     copy_api_responses,
     publish_report,
@@ -33,6 +38,8 @@ from stub_registry import (  # noqa: E402
 )
 from audit_config import (  # noqa: E402
     audit_settings,
+    audit_attribute_keys,
+    build_audit_attributes_raw_query,
     build_audit_dashboard_query,
     build_audit_query,
     build_scenario_audit_select,
@@ -115,7 +122,8 @@ def _write_db_verify_queries(
         return None
     audit = audit_settings(spec)
     dashboard_rows: list[tuple[str, str, str, dict | None]] = []
-    lines = list(db_verify_sql_header(base_crn, audit["schema"]))
+    attr_keys = audit_attribute_keys(spec)
+    lines = list(db_verify_sql_header(base_crn, audit["schema"], attr_keys))
     for sc in scenarios(spec):
         sid = sc.get("id", "?")
         if sid not in scenario_crns:
@@ -133,6 +141,10 @@ def _write_db_verify_queries(
                 + "; ".join(sql_errors)
             )
         lines.append(dash + ";")
+        lines.append("")
+    raw_attrs = build_audit_attributes_raw_query(base_crn, attr_keys)
+    if raw_attrs:
+        lines.append(raw_attrs)
         lines.append("")
     lines.append("-- Per-scenario detail")
     lines.append("")
@@ -660,7 +672,36 @@ def run(ticket_dir: Path) -> int:
                 )
                 summary.append(f"  api rc={rc} CRN={scenario_crn}")
                 sc_ok = rc == 0 and sc_ok
-                rec.end_step("pass" if rc == 0 else "fail", ", ".join(api_ids) or "no api_id")
+                scenario_api = sc.get("api") or {}
+                if rc == 0:
+                    for step in steps:
+                        aid = step.get("api_id") or step.get("api")
+                        if not aid:
+                            continue
+                        step_api = step.get("api_expect") or {}
+                        if not step_api and aid == (api_ids[-1] if api_ids else ""):
+                            step_api = scenario_api
+                        if not step_api:
+                            continue
+                        payload = load_last_api_response(ticket_dir, sid, aid)
+                        if payload is None:
+                            api_ok, api_errs = False, [f"no saved response for {sid}-{aid}"]
+                        else:
+                            api_ok, api_errs = check_api_response(step_api, payload, aid)
+                        summary.append(
+                            f"  api assert {aid} {'PASS' if api_ok else 'FAIL'}: {api_errs}"
+                        )
+                        sc_ok = api_ok and sc_ok
+                        rec.add_assertion(
+                            sid,
+                            f"api:{aid}",
+                            api_ok,
+                            step_api,
+                            {"api_id": aid},
+                            api_errs,
+                        )
+                        sc_detail.append(f"api:{aid} {'PASS' if api_ok else 'FAIL'}")
+                rec.end_step("pass" if rc == 0 and sc_ok else "fail", ", ".join(api_ids) or "no api_id")
                 sc_detail.append(f"apis={api_ids} rc={rc} crn={scenario_crn}")
                 results[sid] = {"pass": sc_ok, "level": level, "api_executed": True}
             else:

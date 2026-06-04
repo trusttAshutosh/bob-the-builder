@@ -15,7 +15,7 @@ Do **not** treat this tree as credit-card-only. Fresh installs start **empty** (
 | `stub-registry/` | Reusable WireMock fixtures |
 | `platform-graph/` | Processor/API knowledge graph |
 | `assertion-catalog/` | Optional DB/log assertion presets |
-| `examples/` | **Reference only** — not used by Bob automatically |
+| `examples/` | **Reference only** — includes [sample validate-ticket output](examples/sample-validate-output/README.md) (DB/log/Kafka/Redis verify + evidence) |
 
 ## Novopay CC reference
 

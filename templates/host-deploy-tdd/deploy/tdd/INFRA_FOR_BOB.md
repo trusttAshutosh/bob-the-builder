@@ -31,6 +31,10 @@ Besides **services, DB, logs, Kafka, Redis**, Novopay stacks often include:
 
 For **LOC dummy-jumbo** tickets, the critical path is: **CC + masterdata + MySQL + WireMock + Redis config prime**.
 
+## Service boot (Bob auto-remediation)
+
+Set `MYSQL_USER` / `MYSQL_PASS` in `{BOB_LOCAL}/user.env`. Bob overrides datasource passwords on boot for all Novopay services, loads dist `application.properties` when present, disables ES health noise, and retries with stronger Kafka/Redis overrides after reading `boot.log`. See `bob-the-builder/runner/lib/boot_remediation.py`.
+
 ## Redis (config cache)
 
 CC reads HDFC URLs from Redis after masterdata load.
