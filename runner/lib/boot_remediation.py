@@ -1,6 +1,7 @@
 """Diagnose bootRun failures and build Spring override args (MySQL, dist props, Kafka, Redis)."""
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -115,6 +116,16 @@ def escalation_chain(initial_profiles: list[str]) -> list[str]:
     return out
 
 
+def _jdbc_db_name(text: str) -> str:
+    m = re.search(r"^spring\.datasource\.url\s*=\s*jdbc:mysql://[^/]+/([^?\s]+)", text, re.M)
+    if m:
+        return m.group(1).strip()
+    m = re.search(r"^novopay\.platform\.master\.datasource\.db\s*=\s*(\S+)", text, re.M)
+    if m:
+        return m.group(1).strip()
+    return (os.environ.get("MYSQL_PLATFORM_SCHEMA") or "platform_master").strip()
+
+
 def build_spring_args(
     repo: Path,
     profile: str,
@@ -126,6 +137,8 @@ def build_spring_args(
     """Space-separated Spring Boot CLI properties for Gradle --args=."""
     text = _props_text(repo)
     parts: list[str] = []
+    mysql_host = (os.environ.get("MYSQL_HOST") or "127.0.0.1").strip()
+    mysql_port = (os.environ.get("MYSQL_PORT") or "3306").strip()
 
     if dist_properties_path(repo):
         parts.append(
@@ -136,10 +149,17 @@ def build_spring_args(
     if _props_has(text, "spring.datasource."):
         parts.append(f"--spring.datasource.username={mysql_user}")
         parts.append(f"--spring.datasource.password={mysql_pass}")
+        if _props_has(text, "spring.datasource.url"):
+            db = _jdbc_db_name(text)
+            parts.append(
+                f"--spring.datasource.url=jdbc:mysql://{mysql_host}:{mysql_port}/{db}"
+            )
 
     if _props_has(text, "novopay.platform.master.datasource."):
         parts.append(f"--novopay.platform.master.datasource.username={mysql_user}")
         parts.append(f"--novopay.platform.master.datasource.password={mysql_pass}")
+        parts.append(f"--novopay.platform.master.datasource.host={mysql_host}")
+        parts.append(f"--novopay.platform.master.datasource.port={mysql_port}")
 
     parts.append("--management.health.elasticsearch.enabled=false")
 

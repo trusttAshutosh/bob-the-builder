@@ -31,7 +31,7 @@ class ScenarioSnapshot:
 @dataclass
 class EvalCompareResult:
     ok: bool
-    baseline_path: Path | None
+    baseline_path: Path | None = None
     regressions: list[str] = field(default_factory=list)
     fixed: list[str] = field(default_factory=list)
     new_scenarios: list[str] = field(default_factory=list)

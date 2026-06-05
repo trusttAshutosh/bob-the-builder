@@ -29,11 +29,31 @@ Besides **services, DB, logs, Kafka, Redis**, Novopay stacks often include:
 - **Batch / schedulers** - not in Bob E2E loop
 - **External HDFC UAT** - only when Redis/masterdata not pointed at WireMock
 
-For **LOC dummy-jumbo** tickets, the critical path is: **CC + masterdata + MySQL + WireMock + Redis config prime**.
+For **LOC dummy-jumbo** tickets, the critical path is: **CC + MySQL + WireMock + Redis config prime** (masterdata bootRun optional when stubs + SQL + Redis prime are applied).
 
-## Service boot (Bob auto-remediation)
+## Service boot policy (changed-only default)
 
-Set `MYSQL_USER` / `MYSQL_PASS` in `{BOB_LOCAL}/user.env`. Bob overrides datasource passwords on boot for all Novopay services, loads dist `application.properties` when present, disables ES health noise, and retries with stronger Kafka/Redis overrides after reading `boot.log`. See `bob-the-builder/runner/lib/boot_remediation.py`.
+Bob discovers **all peers** needed for the ticket flow (env profile, Java imports, properties, session registry). By default it **bootRun's only repos with changes** (`impacted.repos` + git diff + host repo). Unchanged peers are **not** started - they are covered by:
+
+| Peer type | Mock path |
+|-----------|-----------|
+| HDFC / bank APIs | WireMock (`stubs[]` + ticket `stubs/`) |
+| Masterdata config URLs | `masterdata-stub-urls.sql` + optional Redis prime (no masterdata JVM required) |
+| Other internal services | WireMock or an already-running / QA instance |
+
+Before boot, Bob prints the plan and asks **Proceed? [Y/n]** (default yes). Type **`all`** to boot every discovered service (legacy behavior). Non-interactive: `--yes` or `run.boot_confirm: never`.
+
+**ticket-spec:**
+
+```yaml
+run:
+  boot_policy: changed_only  # changed_only | all
+  boot_confirm: prompt       # prompt | never
+```
+
+CLI: `bob validate-ticket <id> --yes` (skip prompt), `--boot-all` (boot everything discovered).
+
+Set `MYSQL_USER` / `MYSQL_PASS` in `{BOB_LOCAL}/user.env`. Bob syncs credentials into service `application.properties` before boot, loads dist `application.properties` when present, disables ES health noise, and retries with stronger Kafka/Redis overrides after reading `boot.log`. See `bob-the-builder/runner/lib/boot_plan.py` and `boot_remediation.py`.
 
 ## Redis (config cache)
 

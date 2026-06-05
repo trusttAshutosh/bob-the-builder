@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=f8270c8 -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-06-04 -->
+<!-- PRODUCT-VERIFY:COMMIT=4836d5f -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-06 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,34 +28,35 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-04 · commit `f8270c8` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-06 · commit `4836d5f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `f8270c8` — feat(validate): boot remediation, API asserts, and audit SQL
-**Date:** 2026-06-04
+**Commit:** `4836d5f` — feat(boot): boot only changed repos with confirmable plan
+**Date:** 2026-06-06
 
 ### Files changed
-- `.gitattributes`
-- `README.md`
-- `assets/README.md`
-- `assets/examples/README.md`
-- `assets/kafka-fixtures/bulk-lead-min.json`
-- `assets/kafka-fixtures/bulk-lead-missing-agent.json`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
-- `runner/lib/assertions.py`
-- `runner/lib/audit_config.py`
+- `assets/platform-graph/platform-graph.yaml`
+- `assets/stub-registry/bank-operations/getCardSummary/__files/card-summary-success.xml`
+- `assets/stub-registry/bank-operations/getCardSummary/success-200.yaml`
+- `runner/config/bob-defaults.yaml`
+- `runner/lib/application_props_sync.py`
+- `runner/lib/boot_plan.py`
 - `runner/lib/boot_remediation.py`
+- `runner/lib/builder_cli.py`
+- `runner/lib/eval_regression.py`
 - `runner/lib/run_flow.py`
 - `runner/lib/service_boot.py`
+- `runner/schemas/ticket-spec.schema.yaml`
+- `runner/tests/test_application_props_sync.py`
+- `runner/tests/test_boot_plan.py`
 - `templates/host-deploy-tdd/deploy/tdd/INFRA_FOR_BOB.md`
 
 ### Features touched in this commit
+- Core CLI entry (`cli-core`) — files touched
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
 - Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
-- Stub registry & WireMock runtime (`stub-wiremock`) — files touched
-- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
-- CC reference pack (examples only) (`examples-novopay-cc`) — files touched
+- Git branch policy (default none) (`git-branch-policy`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).

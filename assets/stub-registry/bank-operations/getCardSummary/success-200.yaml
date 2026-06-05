@@ -1,0 +1,12 @@
+fixture_id: success-200
+bank_operation: getCardSummary
+masterdata_prop_key: hdfc.soap.card.summary.url
+wiremock:
+  request:
+    method: POST
+    urlPath: /stub/card-summary
+  response:
+    status: 200
+    headers:
+      Content-Type: text/xml;charset=utf-8
+    bodyFile: card-summary-success.xml

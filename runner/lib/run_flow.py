@@ -249,9 +249,11 @@ def _persist_db_verify(
     return path
 
 
-def run(ticket_dir: Path) -> int:
+def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
     spec = load_spec(ticket_dir)
     spec["_ticket_dir"] = str(ticket_dir)
+    if cli_flags:
+        spec["_cli_flags"] = cli_flags
     ticket = spec.get("ticket") or {}
     tid = ticket.get("id", ticket_dir.name)
     title = ticket.get("title", "")
@@ -407,36 +409,61 @@ def run(ticket_dir: Path) -> int:
             rec.end_step("pass" if plat_ok else "fail", plat_out[:300] if not plat_ok else "getAgentDetails -> 127.0.0.1:9090")
 
     if auto_boot_enabled(spec):
+        from boot_plan import apply_boot_plan_to_spec, build_boot_plan, confirm_boot_plan
         from service_boot import ensure_services_running
 
         from service_boot import primary_service_key
 
         primary = primary_service_key(spec)
-        _bob_progress(
-            f"booting services ({primary} first, then peers; first start may take 2-3 min)"
-        )
-        rec.begin_step("boot_services", "Boot services (host primary + peers)")
-        boot_out = ensure_services_running(spec)
-        boot_summary = summarize_boot_outcomes(boot_out)
-        ok_count = boot_summary["up_count"]
-        for row in boot_summary["rows"]:
-            summary.append(f"  boot {row['service']}: {row['status']} — {row['detail'][:160]}")
-        rec.set_decisions(
-            boot_services_up=boot_summary["up"],
-            boot_services_down=boot_summary["down"],
-            boot_services_detail=boot_summary["detail_short"],
-        )
-        if not boot_out:
-            rec.end_step(
-                "skip",
-                "no bootable services (set BOB_HOST_REPO to a Gradle repo or fix BUILDER_WORKSPACE_ROOT)",
-            )
-        elif ok_count == len(boot_out):
-            rec.end_step("pass", boot_summary["detail_short"])
+        boot_plan = build_boot_plan(spec)
+        boot_plan = confirm_boot_plan(boot_plan, spec)
+        if boot_plan is None:
+            rec.begin_step("boot_services", "Boot services (host primary + peers)")
+            rec.end_step("skip", "user declined boot plan")
+            summary.append("  boot: skipped (user declined boot plan)")
         else:
-            rec.end_step("fail", boot_summary["detail_short"])
-            for key in boot_summary["down"]:
-                e2e_blockers.append(f"Boot failed: `{key}` is DOWN")
+            apply_boot_plan_to_spec(spec, boot_plan)
+            boot_targets = ", ".join(e.repo_dir or e.service_key for e in boot_plan.boot) or primary
+            mock_targets = ", ".join(e.repo_dir or e.service_key for e in boot_plan.mock)
+            _bob_progress(
+                f"booting changed services only ({boot_targets}); "
+                f"mock/skip peers: {mock_targets or 'none'}"
+            )
+            rec.begin_step("boot_services", "Boot services (changed repos only)")
+            rec.set_decisions(
+                boot_policy=boot_plan.policy,
+                boot_plan_boot=[e.repo_dir or e.service_key for e in boot_plan.boot],
+                boot_plan_mock=[
+                    f"{e.repo_dir or e.service_key}: {e.mock_via}" for e in boot_plan.mock
+                ],
+                boot_plan_skip=[e.repo_dir or e.service_key for e in boot_plan.skip],
+                changed_repos=sorted(boot_plan.changed_repos),
+            )
+            boot_out = ensure_services_running(spec)
+            boot_summary = summarize_boot_outcomes(boot_out)
+            ok_count = boot_summary["up_count"]
+            for row in boot_summary["rows"]:
+                summary.append(f"  boot {row['service']}: {row['status']} — {row['detail'][:160]}")
+            for entry in boot_plan.mock:
+                summary.append(
+                    f"  mock {entry.repo_dir or entry.service_key}: {entry.mock_via}"
+                )
+            rec.set_decisions(
+                boot_services_up=boot_summary["up"],
+                boot_services_down=boot_summary["down"],
+                boot_services_detail=boot_summary["detail_short"],
+            )
+            if not boot_out:
+                rec.end_step(
+                    "skip",
+                    "no bootable services (set BOB_HOST_REPO to a Gradle repo or fix BUILDER_WORKSPACE_ROOT)",
+                )
+            elif ok_count == len(boot_out):
+                rec.end_step("pass", boot_summary["detail_short"])
+            else:
+                rec.end_step("fail", boot_summary["detail_short"])
+                for key in boot_summary["down"]:
+                    e2e_blockers.append(f"Boot failed: `{key}` is DOWN")
     else:
         rec.begin_step("boot_services", "Boot Gradle services")
         rec.end_step("skip", "run.auto_boot_services: false")

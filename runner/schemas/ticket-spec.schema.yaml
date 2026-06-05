@@ -31,6 +31,8 @@ impacted:
 run:
   auto_boot_services: true
   auto_discover_services: true  # host properties + Java imports + local/agent/required-services.yaml
+  boot_policy: changed_only  # changed_only | all — boot only impacted repos; mock unchanged peers via WireMock
+  boot_confirm: prompt  # prompt | never — confirm boot plan before bootRun (default yes; type 'all' to boot everything)
   boot_wait_seconds: 180
   audit_db: dsa_credit_card_mgmt  # override per service; see deploy/tdd mysql.schemas.audit
   wiremock_port: 9090

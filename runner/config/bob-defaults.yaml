@@ -28,3 +28,6 @@ setup_optional_peers:
   - service_key: masterdata_management
     base_env_var: MD_BASE
     default_base: http://localhost:8015/masterdata
+  - service_key: api_gateway
+    base_env_var: API_GATEWAY_BASE
+    default_base: http://localhost:8001/api-gateway

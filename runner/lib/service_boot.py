@@ -465,10 +465,16 @@ def start_service(
     if not pre_ok:
         return False, f"{service_key}: {pre_msg}"
 
+    from application_props_sync import sync_application_properties_from_prefs
+
+    sync_ok, sync_msg = sync_application_properties_from_prefs(repo)
+    if not sync_ok:
+        return False, f"{service_key}: {sync_msg}"
+
     log = _log_file(service_key)
     user, _pw = _mysql_creds()
     log.write_text(
-        f"=== boot {service_key} (MYSQL_USER={user}) ===\n",
+        f"=== boot {service_key} (MYSQL_USER={user}) ===\n{sync_msg}\n",
         encoding="utf-8",
     )
 
@@ -552,7 +558,7 @@ def caller_service_config(spec: dict | None = None) -> dict | None:
     return inferred
 
 
-def _collect_boot_configs(spec: dict) -> list[dict]:
+def _discover_all_boot_configs(spec: dict) -> list[dict]:
     """
     Ordered boot targets: primary/caller host first, then profile peers and discovery.
     Caller repo counts as bootable even when peer discovery returns empty.
@@ -613,6 +619,19 @@ def _collect_boot_configs(spec: dict) -> list[dict]:
         if key not in ordered_keys:
             ordered_keys.append(key)
     return [by_key[k] for k in ordered_keys]
+
+
+def _collect_boot_configs(spec: dict) -> list[dict]:
+    """Boot targets after boot_plan filtering (changed-only default)."""
+    plan = spec.get("_boot_plan")
+    if plan is not None:
+        return plan.boot_configs
+
+    from boot_plan import BOOT_POLICY_ALL, boot_policy, build_boot_plan
+
+    if boot_policy(spec) == BOOT_POLICY_ALL:
+        return _discover_all_boot_configs(spec)
+    return build_boot_plan(spec).boot_configs
 
 
 def services_for_spec(spec: dict) -> list[str]:

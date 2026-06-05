@@ -472,11 +472,15 @@ def _bash_available() -> bool:
         return False
 
 
-def _run_ticket_python(ticket_dir: Path) -> int:
+def _run_ticket_python(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
     from setup_prefs import load_prefs_into_environ
 
     load_prefs_into_environ()
     os.environ["BOB_HOST_REPO"] = str(repo_root())
+    if "--yes" in (cli_flags or []) or "-y" in (cli_flags or []):
+        os.environ["BOB_BOOT_YES"] = "1"
+    if "--boot-all" in (cli_flags or []):
+        os.environ["BOB_BOOT_POLICY"] = "all"
     for line in (ticket_dir / "tdd.env").read_text(encoding="utf-8").splitlines() if (ticket_dir / "tdd.env").exists() else []:
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
@@ -489,30 +493,39 @@ def _run_ticket_python(ticket_dir: Path) -> int:
     sys.path.insert(0, str(_LIB))
     from run_flow import run
 
-    return run(ticket_dir)
+    spec_flags = cli_flags or []
+    # Pass CLI flags into run() via ticket-spec load path
+    os.environ["BOB_VALIDATE_CLI_FLAGS"] = ",".join(spec_flags)
+    return run(ticket_dir, cli_flags=spec_flags)
 
 
 def cmd_validate_ticket(args: list[str]) -> int:
     _banner("validate-ticket")
     if not args:
-        _usage("validate-ticket", "<ticket-id>")
+        _usage("validate-ticket", "<ticket-id> [--yes] [--boot-all]")
         return 1
-    td = _ticket_dir(args[0])
+    ticket_id = args[0]
+    cli_flags = [a for a in args[1:] if a.startswith("-")]
+    td = _ticket_dir(ticket_id)
     spec_file = td / "ticket-spec.yaml"
     if not spec_file.exists():
         print(f"Missing {spec_file} — run: {CLI_SHORT} init-ticket {args[0]} \"Title\"", file=sys.stderr)
         return 1
     # Windows: always use Python runner (no bash/WSL required for WireMock, MySQL, APIs).
     if sys.platform == "win32":
-        return _run_ticket_python(td)
+        return _run_ticket_python(td, cli_flags=cli_flags)
     script = tdd_root() / "run-tdd.sh"
     env = os.environ.copy()
     env["BOB_HOST_REPO"] = str(repo_root())
+    if "--yes" in cli_flags or "-y" in cli_flags:
+        env["BOB_BOOT_YES"] = "1"
+    if "--boot-all" in cli_flags:
+        env["BOB_BOOT_POLICY"] = "all"
     r = subprocess.run(["bash", str(script), str(spec_file)], cwd=repo_root(), env=env)
     if r.returncode not in (126, 127):
         return r.returncode
     print("bash unavailable — using Python runner", file=sys.stderr)
-    return _run_ticket_python(td)
+    return _run_ticket_python(td, cli_flags=cli_flags)
 
 
 def cmd_list_tickets(_: list[str]) -> int:
@@ -755,11 +768,18 @@ def cmd_discover_services(args: list[str]) -> int:
                 "BUILDER_WORKSPACE_ROOT, or required-services.yaml)."
             )
             return 0
-    print(f"Discovered {len(found)} service(s):")
+    print(f"Discovered {len(found)} service(s) for flow:")
     for cfg in found:
         reason = cfg.get("reason", "")
         print(f"  - {cfg.get('repo_dir')}: {cfg.get('default_base')}  ({reason})")
-        register_required_service(cfg.get("repo_dir") or cfg.get("service_key", ""), reason=reason)
+
+    from boot_plan import build_boot_plan, format_boot_plan
+
+    plan = build_boot_plan(spec)
+    print()
+    print(format_boot_plan(plan))
+    for cfg in found:
+        register_required_service(cfg.get("repo_dir") or cfg.get("service_key", ""), reason=cfg.get("reason", ""))
 
     if "--boot" in args or "-b" in args:
         print()
@@ -770,7 +790,8 @@ def cmd_discover_services(args: list[str]) -> int:
                 rc = 1
         return rc
     print()
-    print("Boot all: python bob.py discover-services --boot")
+    print("Boot changed only: python bob.py discover-services --boot")
+    print("Boot all discovered: BOB_BOOT_POLICY=all python bob.py discover-services --boot")
     return 0
 
 
