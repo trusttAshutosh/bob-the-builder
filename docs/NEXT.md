@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=4836d5f -->
+<!-- PRODUCT-VERIFY:COMMIT=51c6854 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-06 -->
 
 <!-- SCORECARD:START -->
@@ -28,17 +28,18 @@
 | Team handoff | B+ | First commit + remote remaining (P0) |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-06 · commit `4836d5f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-06 · commit `51c6854` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `4836d5f` — feat(boot): boot only changed repos with confirmable plan
+**Commit:** `51c6854` — feat(boot): boot only changed repos with confirmable plan
 **Date:** 2026-06-06
 
 ### Files changed
 - `assets/platform-graph/platform-graph.yaml`
 - `assets/stub-registry/bank-operations/getCardSummary/__files/card-summary-success.xml`
 - `assets/stub-registry/bank-operations/getCardSummary/success-200.yaml`
+- `docs/NEXT.md`
 - `runner/config/bob-defaults.yaml`
 - `runner/lib/application_props_sync.py`
 - `runner/lib/boot_plan.py`
@@ -57,6 +58,7 @@
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
 - Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
 - Git branch policy (default none) (`git-branch-policy`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
