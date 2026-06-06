@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=07aae17 -->
+<!-- PRODUCT-VERIFY:COMMIT=17ac102 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-07 -->
 
 <!-- SCORECARD:START -->
@@ -28,55 +28,18 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-07 · commit `07aae17` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-07 · commit `17ac102` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `07aae17` — feat(onboard): squad Cursor kit, integrated plugins, and memory budgeting
+**Commit:** `17ac102` — docs(readme): neutral squad setup heading and trim clone section
 **Date:** 2026-06-07
 
 ### Files changed
 - `README.md`
-- `docs/BOB_CHEATSHEET.md`
-- `docs/KT_CURSOR_AND_BOB.md`
-- `docs/ONBOARDING_DEVELOPER.md`
-- `runner/lib/builder_cli.py`
-- `runner/lib/context_assembly.py`
-- `runner/lib/cursor_hook.py`
-- `runner/lib/cursor_plugins.py`
-- `runner/lib/graph_retrieval.py`
-- `runner/lib/memory_budget.py`
-- `runner/lib/onboard.py`
-- `runner/lib/setup_prefs.py`
-- `runner/lib/ticket_spec.py`
-- `runner/tests/test_memory_budget.py`
-- `runner/tests/test_onboard.py`
-- `templates/onboarding/README.onboarding.md`
-- `templates/onboarding/host-cc/.cursor/hooks.json`
-- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-nudge.sh`
-- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-stop-followup.sh`
-- `templates/onboarding/host-cc/.cursor/rules/cc-backend-tests-required.mdc`
-- `templates/onboarding/host-cc/.cursor/rules/development-guidelines.mdc`
-- `templates/onboarding/host-cc/.cursor/rules/documentation-punctuation.mdc`
-- `templates/onboarding/novopay/.cursor/hooks.json`
-- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-nudge.sh`
-- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-stop-followup.sh`
-- `templates/onboarding/novopay/.cursor/rules/cc-backend-tests-required.mdc`
-- `templates/onboarding/novopay/.cursor/rules/development-guidelines.mdc`
-- `templates/onboarding/novopay/.cursor/rules/documentation-punctuation.mdc`
-- `templates/onboarding/novopay/.cursor/rules/memory-budgeting.mdc`
-- `templates/onboarding/novopay/.cursor/skills/README.md`
-- `templates/onboarding/novopay/.cursor/skills/cc-backend-test-generation/SKILL.md`
-- `templates/onboarding/novopay/.cursor/skills/generate-test-plan-change-flow-based/SKILL.md`
-- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/SKILL.md`
-- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/examples.md`
-- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/templates.md`
-- `templates/onboarding/novopay/AGENTS.md.stub`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Workspace setup & install (`workspace-setup`) — files touched
-- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- (none mapped — docs-only or infra)
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
