@@ -17,7 +17,7 @@ bob-the-builder/
   docs/               # developer guide, cheatsheet
 ```
 
-## Squad setup (same Cursor + Bob as the lead dev)
+## Squad setup (Cursor + Bob)
 
 One command after clone. Everything squad-owned is in `templates/onboarding/` and deploys via `bob onboard`.
 
@@ -110,24 +110,13 @@ python bob.py validate-ticket sample-gateway-health-check
 
 Read [docs/KT_CURSOR_AND_BOB.md](docs/KT_CURSOR_AND_BOB.md) for the 4-gate workflow (Plan / Build / Prove / Ship).
 
-### What is not cloned from the lead dev's machine
-
-| Item | Why |
-|------|-----|
-| Learned bullets in `AGENTS.md` | Continual Learning fills these on each machine |
-| Cursor chat history | Local IDE state |
-| Marketplace plugins | Manual Install clicks during onboard plugin step (same as `bob plugins`) |
-| MySQL password / absolute paths | Machine-specific; prompted in onboard |
-
-Refresh squad defaults after git updates to `templates/onboarding/`: `python bob.py onboard --force --skip-setup`.
-
 ### Power-user commands (not first-time)
 
 | Command | Use |
 |---------|-----|
 | `bob setup` | Reconfigure workspace root, MySQL, service URLs |
 | `bob install` | Re-seed assets or reinstall git hooks |
-| `bob onboard --force` | Overwrite existing Cursor rules / AGENTS.md / skills |
+| `bob onboard --force` | Overwrite existing Cursor rules / AGENTS.md / skills (after template updates in git) |
 
 More detail: [docs/ONBOARDING_DEVELOPER.md](docs/ONBOARDING_DEVELOPER.md).
 
