@@ -1,0 +1,42 @@
+# {{WORKSPACE_NAME}} workspace
+
+## Orchestrator model (fixed - do not let Continual Learning edit this section)
+
+**You (human):** approve or reject at four gates only - Plan, Build, Prove, Ship.
+
+**Agent:** everything else - workspace, memory, skills, Bob runs, boot fixes, hygiene.
+
+**Bob:** proof engine (not redundant). Agent implements; Bob produces `REPORT.md` evidence.
+
+Do not ask the human to pin files, switch workspace, or run memory chores.
+
+### Gate checklist for the human
+
+1. **Plan** - Is scope right? Any client questions?
+2. **Build** - Does the diff match the plan?
+3. **Prove** - Does Bob `GATE_SUMMARY.md` show PASS on Plan/Build/Prove for the right ticket?
+4. **Ship** - OK to commit/PR?
+
+---
+
+Plain bullets below are for Continual Learning. Keep section names exactly as named.
+
+## Learned User Preferences
+
+- Do not commit or push changes unless explicitly asked.
+- Prefer `bob validate-ticket <ticket-id>` when testing; Bob autoboot should be true and boot fixes should be encoded in Bob, not re-prompted each session.
+- Stay on the active ticket; do not mix docs or test artifacts from unrelated tickets.
+- For security fixes, prove the vulnerability before fixing, then re-run the same checks after.
+- Fix failing unit tests by updating tests, not production classes, unless prod code is genuinely wrong.
+- No one-line helper methods; put constants in the appropriate constants class.
+- Gateway stays generic; domain-specific auth and business rules belong in domain services (e.g. actor).
+- Use ASCII hyphens in markdown docs, not em dashes.
+
+## Learned Workspace Facts
+
+- Workspace root: `{{WORKSPACE_ROOT}}`
+- Bob CLI: `bob-the-builder/bob.py` (or workspace `bob.py` shortcut after `bob install --launchers`)
+- Canonical agent skills: `{{WORKSPACE_ROOT}}/.cursor/skills/`
+- Bob TDD artifacts: each host service `docs/tdd-runs/<ticket-id>/` (REPORT.md, GATE_SUMMARY.md, postman, DB verify SQL)
+- Orchestrator rule: `~/.cursor/rules/novopay-orchestrator.mdc`
+- Multi-root workspace: `novopay.code-workspace` in this folder

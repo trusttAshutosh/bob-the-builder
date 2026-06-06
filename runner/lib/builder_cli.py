@@ -26,6 +26,29 @@ CMD_ALIASES: dict[str, str] = {
     # Preferred names
     "setup": "setup",
     "configure": "setup",
+    "onboard": "onboard",
+    "bootstrap": "onboard",
+    "plugins": "plugins",
+    "cursor-plugins": "plugins",
+    "meta-review": "meta-review",
+    "meta_review": "meta-review",
+    "metareview": "meta-review",
+    "context-audit": "context-audit",
+    "context_audit": "context-audit",
+    "contextaudit": "context-audit",
+    "chat-hygiene": "chat-hygiene",
+    "chat_hygiene": "chat-hygiene",
+    "chathygiene": "chat-hygiene",
+    "archive-chats": "chat-hygiene",
+    "prune-overhead": "prune-overhead",
+    "prune_overhead": "prune-overhead",
+    "pruneoverhead": "prune-overhead",
+    "mcp-audit": "mcp-audit",
+    "mcp_audit": "mcp-audit",
+    "mcpaudit": "mcp-audit",
+    "cursor-hook": "cursor-hook",
+    "cursor_hook": "cursor-hook",
+    "cursorhook": "cursor-hook",
     "install": "install",
     "install-hooks": "install-hooks",
     "cleanup-workspace": "cleanup-workspace",
@@ -109,6 +132,13 @@ def _print_help() -> None:
     print()
     print("Commands (name = purpose):")
     print("  setup              First-time: workspace root (Novopay folder), MySQL, service URLs")
+    print("  onboard [--dry-run] [--yes] [--smoke]  Bootstrap: setup + install + Cursor templates")
+    print("  plugins            Recommended Cursor marketplace plugins (manual install)")
+    print("  meta-review [--dry-run] [--days N]  Usage audit -> docs/META_REVIEW.md (monthly; stop hook auto-runs)")
+    print("  context-audit [--dry-run]           Cursor context % audit -> docs/CONTEXT_USAGE_AUDIT.md")
+    print("  chat-hygiene [--dry-run] [--auto]  Archive stale/overflow Cursor chats (never delete)")
+    print("  mcp-audit [--dry-run] [--json]       MCP + plugin keep/disable audit -> docs/MCP_AUDIT.md")
+    print("  prune-overhead [--dry-run|--apply]   Apply squad policy (after mcp-audit)")
     print("  host               Show BOB_HOST_REPO, workspace clones, deploy/tdd profile")
     print("  refresh-samples    Regenerate assets/examples/sample-validate-output/ (doc bundle)")
     print("  install [--force] [--launchers]  Seed assets/local; install post-commit hook")
@@ -120,7 +150,7 @@ def _print_help() -> None:
     print("  sync-graph         Refresh platform graph in BOB_HOME")
     print("  validate-ticket ID Run stubs, APIs, DB checks; write evidence/")
     print("  ticket-status ID   Show last run PASS/FAIL + decision trace")
-    print("  open-report ID     Print paths to REPORT.md, REPORT.html, run-summary.json")
+    print("  open-report ID     Print paths to GATE_SUMMARY.md, REPORT.md, REPORT.html, run-summary.json")
     print("  list-tickets       List ticket folders in host repo")
     print("  next               Improvement backlog (docs/NEXT.md)")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
@@ -196,6 +226,31 @@ def _next_steps(command: str, args: list[str], rc: int) -> list[tuple[str, str]]
         "setup": [
             _step("Seed assets and local folders", f"{CLI_SHORT} install"),
             _step("Optional workspace shortcuts", f"{CLI_SHORT} install --launchers"),
+            _step("Full dev bootstrap", f"{CLI_SHORT} onboard"),
+        ],
+        "onboard": [
+            _step("Read teammate KT", "bob-the-builder/docs/KT_CURSOR_AND_BOB.md"),
+            _step("Smoke validate (optional)", f"{CLI_SHORT} validate-ticket sample-gateway-health-check"),
+            _step("Start a real ticket", f'{CLI_SHORT} init-ticket {tid} "Title"'),
+        ],
+        "meta-review": [
+            _step("Open written report", "bob-the-builder/docs/META_REVIEW.md"),
+            _step("Context detail", f"{CLI_SHORT} context-audit"),
+            _step("Preview without write", f"{CLI_SHORT} meta-review --dry-run"),
+        ],
+        "context-audit": [
+            _step("Open written report", "bob-the-builder/docs/CONTEXT_USAGE_AUDIT.md"),
+            _step("Archive hot chats", f"{CLI_SHORT} chat-hygiene --auto"),
+            _step("Preview without write", f"{CLI_SHORT} context-audit --dry-run"),
+        ],
+        "mcp-audit": [
+            _step("Open written report", "bob-the-builder/docs/MCP_AUDIT.md"),
+            _step("Apply policy", f"{CLI_SHORT} prune-overhead --apply"),
+            _step("Preview without write", f"{CLI_SHORT} mcp-audit --dry-run"),
+        ],
+        "prune-overhead": [
+            _step("Audit first", f"{CLI_SHORT} mcp-audit"),
+            _step("Preview only", f"{CLI_SHORT} prune-overhead --dry-run"),
         ],
         "install": [
             _step("Copy host deploy/tdd into a service repo", "see templates/host-deploy-tdd/README.md"),
@@ -275,6 +330,65 @@ def cmd_setup(_: list[str]) -> int:
     from setup_prefs import run_setup_wizard
 
     return run_setup_wizard(reconfigure=True)
+
+
+def cmd_onboard(args: list[str]) -> int:
+    _banner("onboard")
+    from onboard import run_onboard
+
+    return run_onboard(args)
+
+
+def cmd_plugins(_: list[str]) -> int:
+    _banner("plugins")
+    from cursor_plugins import ensure_product_doc, print_plugin_notice
+    from host_repo import infer_workspace_root, runner_bootstrap_repo
+
+    ensure_product_doc()
+    ws = infer_workspace_root() or runner_bootstrap_repo().resolve().parent
+    print_plugin_notice(prominent=True, workspace=ws)
+    return 0
+
+
+def cmd_meta_review(args: list[str]) -> int:
+    _banner("meta-review")
+    from meta_review import run_meta_review
+
+    return run_meta_review(args)
+
+
+def cmd_context_audit(args: list[str]) -> int:
+    _banner("context-audit")
+    from context_audit import run_context_audit
+
+    return run_context_audit(args)
+
+
+def cmd_chat_hygiene(args: list[str]) -> int:
+    _banner("chat-hygiene")
+    from chat_hygiene import run_chat_hygiene_cli
+
+    return run_chat_hygiene_cli(args)
+
+
+def cmd_prune_overhead(args: list[str]) -> int:
+    _banner("prune-overhead")
+    from prune_cursor_overhead import run_prune_cursor_overhead
+
+    return run_prune_cursor_overhead(args)
+
+
+def cmd_mcp_audit(args: list[str]) -> int:
+    _banner("mcp-audit")
+    from cursor_overhead import run_mcp_audit
+
+    return run_mcp_audit(args)
+
+
+def cmd_cursor_hook(args: list[str]) -> int:
+    from cursor_hook import run_cursor_hook_cli
+
+    return run_cursor_hook_cli(args)
 
 
 def cmd_install(args: list[str]) -> int:
@@ -1130,6 +1244,14 @@ def main() -> int:
     handlers = {
         "help": lambda a: (_print_help() or 0),
         "setup": cmd_setup,
+        "onboard": cmd_onboard,
+        "plugins": cmd_plugins,
+        "meta-review": cmd_meta_review,
+        "context-audit": cmd_context_audit,
+        "chat-hygiene": cmd_chat_hygiene,
+        "prune-overhead": cmd_prune_overhead,
+        "mcp-audit": cmd_mcp_audit,
+        "cursor-hook": cmd_cursor_hook,
         "install": cmd_install,
         "install-hooks": cmd_install_hooks,
         "cleanup-workspace": cmd_cleanup_workspace,
@@ -1166,7 +1288,20 @@ def main() -> int:
         _print_help()
         return 1
     rc = h(args)
-    if cmd not in ("help", "version", "next", "verify-product", "remind"):
+    if cmd not in (
+        "help",
+        "version",
+        "next",
+        "verify-product",
+        "remind",
+        "plugins",
+        "meta-review",
+        "context-audit",
+        "chat-hygiene",
+        "prune-overhead",
+        "mcp-audit",
+        "cursor-hook",
+    ):
         _print_next_steps(cmd, args, rc)
     from product_reminder import print_nudge_after_command
 

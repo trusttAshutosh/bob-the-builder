@@ -115,5 +115,43 @@
     "_Sample bundle \u2014 illustrative only._",
     ""
   ],
-  "test_plan_path": "TEST_PLAN.md"
+  "test_plan_path": "C:\\Users\\ashutosh.kumar\\Desktop\\novopay\\bob-the-builder\\assets\\examples\\sample-validate-output\\TEST_PLAN.md",
+  "orchestrator_gates": {
+    "gates": [
+      {
+        "id": "plan",
+        "name": "Plan",
+        "status": "PASS",
+        "detail": "2 scenario(s), 2 acceptance criteria",
+        "evidence": "[ticket-spec.yaml](./ticket-spec.yaml) | [TEST_PLAN.md](./TEST_PLAN.md)",
+        "orchestrator_checkbox": true
+      },
+      {
+        "id": "build",
+        "name": "Build",
+        "status": "REVIEW",
+        "detail": "no unit scenarios; e2e/integration only",
+        "evidence": "pipeline steps in REPORT.md",
+        "orchestrator_checkbox": false
+      },
+      {
+        "id": "prove",
+        "name": "Prove",
+        "status": "PASS",
+        "detail": "overall PASS; 2/2 scenarios passed",
+        "evidence": "scenario table below | [run-summary.json](./run-summary.json)",
+        "orchestrator_checkbox": true
+      },
+      {
+        "id": "ship",
+        "name": "Ship",
+        "status": "REVIEW",
+        "detail": "review upstream gates first",
+        "evidence": "commit/PR only when you check this box",
+        "orchestrator_checkbox": false
+      }
+    ],
+    "ready_for_ship_review": false,
+    "orchestrator_summary": "One or more gates need attention before Ship"
+  }
 }

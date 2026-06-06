@@ -1,0 +1,154 @@
+# Developer onboarding (Cursor + Bob)
+
+Goal: clone Novopay layout → working `bob validate-ticket` with minimal manual steps.
+
+---
+
+## Today (manual, ~30-60 min)
+
+1. **Clone repos** under one parent (e.g. `Desktop/novopay`):
+   - `bob-the-builder`
+   - `novopay-platform-creditcard-management` (or your host service)
+   - `novopay-platform-lib` (if host uses composite build)
+2. **Cursor**
+   - Install recommended plugins (Superpowers, Team Kit, Continual Learning)
+   - Copy squad template: `novopay-orchestrator.mdc` → `~/.cursor/rules/`
+   - Open `novopay.code-workspace` (in novopay parent) or `Desktop/novopay`
+3. **Bob**
+   ```bash
+   cd bob-the-builder
+   python bob.py setup
+   python bob.py install
+   python bob.py install --launchers   # optional workspace bob.py shortcut
+   ```
+4. **Smoke**
+   ```bash
+   python bob.py validate-ticket sample-gateway-health-check
+   # or a real ticket id under host docs/tdd-runs/
+   ```
+5. **Read** [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md)
+
+---
+
+## `bob onboard` (one approve)
+
+Single command after clone:
+
+```bash
+cd bob-the-builder
+python bob.py onboard [--dry-run] [--yes] [--smoke]
+```
+
+**Flags:**
+
+| Flag | Effect |
+|------|--------|
+| `--dry-run` | Print prerequisite check + planned file actions only |
+| `--yes` / `-y` | Skip the final "apply changes?" prompt |
+| `--skip-setup` | Use existing `user.env` prefs |
+| `--reconfigure` | Force interactive `bob setup` |
+| `--force` / `-f` | Overwrite existing Cursor rule / AGENTS.md / workspace file |
+| `--no-launchers` | Skip workspace `bob.py` shortcut |
+| `--skip-cursor-open` | Do not run `cursor novopay.code-workspace` |
+| `--smoke` | Run `validate-ticket sample-gateway-health-check` after bootstrap |
+| `--skip-smoke` | Skip smoke prompt |
+
+**Steps (automated where safe):**
+
+| Step | Action | Needs human approve? |
+|------|--------|----------------------|
+| 1 | Verify JDK, Python, Git, MySQL client | No |
+| 2 | Run `bob setup` with detected workspace root | Yes (confirm path + DB password) |
+| 3 | Run `bob install` + hooks | No |
+| 4 | Copy template files from `templates/onboarding/` | Yes (unless `--yes`) |
+| 5 | Cursor: write `~/.cursor/rules/novopay-orchestrator.mdc` | Yes (unless `--yes` / `--force`) |
+| 6 | Cursor: prominent plugin notice + `docs/CURSOR_PLUGINS.md` + `.cursor/CURSOR_PLUGINS.md` | Inform only (marketplace clicks) |
+| 7 | Write `novopay.code-workspace` to workspace root if missing | No |
+| 8 | Smoke `validate-ticket` on sample ticket | Yes (unless `--smoke` or prompt declined) |
+
+**Cannot fully automate (IDE limits):**
+
+- Installing Cursor plugins (user clicks in marketplace) - Bob prints a banner and writes [CURSOR_PLUGINS.md](CURSOR_PLUGINS.md); re-show with `bob plugins`
+- Opening workspace in Cursor (`bob onboard` tries `cursor novopay.code-workspace` when available)
+
+**Template bundle:** `bob-the-builder/templates/onboarding/` (see `README.onboarding.md`)
+
+---
+
+## Continuous usage evaluation
+
+Meta loop (squad-level, not per-developer):
+
+| Cadence | Job | Output |
+|---------|-----|--------|
+| Weekly | `workflow-from-chats` + Bob `NEXT.md` review | `AGENTS.md` updates, hygiene PR |
+| Session start | `bob chat-hygiene --auto --hook session` | Archive stale/overflow chats (never delete) |
+| Weekly stop | `bob chat-hygiene --hook stop --learn` | Learn reminder + archive nudge |
+| Monthly stop hook | `bob meta-review --hook stop` (auto when 30d due) | [META_REVIEW.md](META_REVIEW.md) + [CONTEXT_USAGE_AUDIT.md](CONTEXT_USAGE_AUDIT.md) - human approves changes |
+| Monthly manual | `bob meta-review` | Same reports on demand |
+| Per release | `bob verify-product` + scorecard | [NEXT.md](NEXT.md) grades |
+
+### `bob meta-review`
+
+```bash
+python bob.py meta-review              # write docs/META_REVIEW.md + CONTEXT_USAGE_AUDIT.md
+python bob.py meta-review --dry-run    # preview only
+python bob.py meta-review --days 14    # chat keyword window
+python bob.py meta-review --hook stop  # stop hook: auto-run when 30d since last run
+python bob.py meta-review --hook stop --interval-days 30  # override cadence (testing)
+```
+
+**Scans (local only):**
+
+- Bob: ticket pass rates, boot/health failure patterns, open NEXT.md items
+- Cursor: orchestrator rule drift vs onboarding template, hooks, duplicate skills
+- Plugins: weak cache-dir signals + `bob plugins` pointer
+- Chats: parent transcript keyword counts (no message content stored)
+- Context: `contextUsagePercent` per chat from Cursor `state.vscdb` + transcript inventory -> [CONTEXT_USAGE_AUDIT.md](CONTEXT_USAGE_AUDIT.md)
+- MCP/plugins: local `~/.cursor` scan -> [MCP_AUDIT.md](MCP_AUDIT.md)
+
+Emits **suggestions only**; human approves changes to rules/skills/Bob. Re-run monthly; apply changes manually or `bob onboard --force` for orchestrator rule sync only.
+
+### `bob context-audit`
+
+```bash
+python bob.py context-audit              # write docs/CONTEXT_USAGE_AUDIT.md
+python bob.py context-audit --dry-run    # preview only
+```
+
+Reads Cursor `composer.composerHeaders` for last-known `contextUsagePercent` on active, archived, and deleted-header chats; cross-checks `.cursor/projects/*/agent-transcripts`. Per-category Context panel breakdown (System prompt, Tools, Rules) is runtime-only and not stored historically.
+
+### `bob mcp-audit` / `bob prune-overhead`
+
+```bash
+python bob.py mcp-audit                  # audit this machine -> docs/MCP_AUDIT.md
+python bob.py mcp-audit --json           # machine-readable summary
+python bob.py prune-overhead --apply     # apply Bob squad keep/disable policy
+```
+
+Bob does **not** run MCP servers or replace Cursor. It reads local `~/.cursor` state on **any** machine where Bob is installed, prints keep/disable recommendations for Novopay backend work, and optionally applies them. Reload Cursor after `prune-overhead --apply`.
+
+Cursor lifecycle hooks use one silent runner: `~/.cursor/hooks/bob-hook-runner.sh` (logic in `bob cursor-hook`). Close the tab if it appears - you do not edit it during normal work. Re-install via `bob onboard`.
+
+### `bob chat-hygiene`
+
+```bash
+python bob.py chat-hygiene --dry-run     # preview archive targets
+python bob.py chat-hygiene --auto        # archive stale (7d+) + cap overflow (max 8 active)
+python bob.py chat-hygiene --max-active 6 --stale-days 7
+```
+
+Never deletes chats - sets `isArchived: true` in Cursor `state.vscdb` only. If Cursor is running, it may overwrite DB writes; quit Cursor for manual bulk archive, or use the sessionStart hook on next launch.
+
+---
+
+## Onboarding checklist (printable)
+
+- [ ] Repos cloned under one workspace root
+- [ ] `bob setup` completed
+- [ ] `bob install` completed
+- [ ] Sample or real `validate-ticket` PASS once
+- [ ] Cursor workspace opened (`novopay.code-workspace`)
+- [ ] `novopay-orchestrator.mdc` in user rules
+- [ ] Read KT doc + GATE_SUMMARY on one real ticket
+- [ ] Know: archive chats, don't delete unless noise

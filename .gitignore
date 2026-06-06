@@ -24,6 +24,7 @@ runner/stub-profiles/
 __pycache__/
 *.pyc
 .pytest_cache/
+runner/tests/_scratch_context_audit/
 *.hprof
 
 # IDE (IntelliJ / Cursor)

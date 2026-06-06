@@ -266,4 +266,7 @@ def run_setup_wizard(*, reconfigure: bool = True) -> int:
     print(f"BOB_HOME: {assets}")
     print(f"BOB_LOCAL: {bob_local_root()}")
     print("Next: bob install   bob init-ticket <id> \"Title\"")
+    from cursor_plugins import print_plugin_notice
+
+    print_plugin_notice(prominent=False)
     return 0

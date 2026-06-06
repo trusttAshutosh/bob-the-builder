@@ -7,6 +7,17 @@
 - **Overall:** **PASS** (exit 0)
 - **Branch:** `main`
 
+## Orchestrator gates
+
+**One or more gates need attention before Ship** | [GATE_SUMMARY.md](./GATE_SUMMARY.md)
+
+| # | Gate | Bob (auto) | You approve |
+|---|------|------------|-------------|
+| 1 | **Plan** | **PASS** — 2 scenario(s), 2 acceptance criteria | [x] |
+| 2 | **Build** | **REVIEW** — no unit scenarios; e2e/integration only | [ ] |
+| 3 | **Prove** | **PASS** — overall PASS; 2/2 scenarios passed | [x] |
+| 4 | **Ship** | **REVIEW** — review upstream gates first | [ ] |
+
 ## Test plan
 
 Planned scenarios and acceptance criteria: [TEST_PLAN.md](./TEST_PLAN.md)
@@ -75,11 +86,7 @@ _Sample bundle — illustrative only._
 
 ## Execution log
 
-```
-=== Bob sample-validate-output (synthetic PASS run) ===
-ticket=sample-gateway-health-check
-This bundle is for documentation; run validate-ticket on your host repo for real evidence.
-```
+_See [execution-summary.txt](./execution-summary.txt) in this ticket folder._
 
 ## Evidence paths
 

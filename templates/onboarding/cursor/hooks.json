@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "./hooks/bob-hook-runner.sh session"
+      }
+    ],
+    "stop": [
+      {
+        "command": "./hooks/bob-hook-runner.sh stop",
+        "loop_limit": 1
+      }
+    ]
+  }
+}

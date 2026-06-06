@@ -93,4 +93,7 @@ python "%~dp0bob-the-builder\bob.py" %*
     print()
     print(hook_msg)
     print("  After each git commit, Bob auto-refreshes docs/NEXT.md (separate [bob] commit).")
+    print()
+    print("Bob: Install recommended Cursor plugins for plan/review/memory workflows.")
+    print("     Run: bob plugins   (see docs/CURSOR_PLUGINS.md)")
     return 0

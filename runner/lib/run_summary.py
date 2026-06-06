@@ -387,6 +387,12 @@ def publish_run_summary(
     relative_paths: bool = False,
 ) -> tuple[Path, Path, Path | None]:
     """Write REPORT.md (single human report), run-summary.json, and REPORT.html."""
+    from orchestrator_gates import (
+        build_orchestrator_gates,
+        render_gate_section_md,
+        render_gate_summary_md,
+    )
+
     ticket_dir.mkdir(parents=True, exist_ok=True)
     if spec:
         ensure_test_plan(ticket_dir, spec)
@@ -396,11 +402,28 @@ def publish_run_summary(
             test_plan.name if relative_paths else str(test_plan.resolve())
         )
 
+    gate_payload = build_orchestrator_gates(ticket_dir, run_data, spec=spec)
+    run_data = dict(run_data)
+    run_data["orchestrator_gates"] = gate_payload
+    gate_md_path = ticket_dir / "GATE_SUMMARY.md"
+    gate_md_path.write_text(
+        render_gate_summary_md(run_data.get("ticket_id", ticket_dir.name), gate_payload),
+        encoding="utf-8",
+    )
+
     json_path = ticket_dir / "run-summary.json"
     json_path.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
 
     md_path = ticket_dir / "REPORT.md"
-    md_path.write_text(_render_markdown(run_data, spec=spec, execution_log=execution_log), encoding="utf-8")
+    md_path.write_text(
+        _render_markdown(
+            run_data,
+            spec=spec,
+            execution_log=execution_log,
+            gate_section=render_gate_section_md(gate_payload),
+        ),
+        encoding="utf-8",
+    )
 
     legacy = ticket_dir / "RUN_SUMMARY.md"
     if legacy.exists():
@@ -416,6 +439,7 @@ def _render_markdown(
     *,
     spec: dict | None = None,
     execution_log: list[str] | None = None,
+    gate_section: list[str] | None = None,
 ) -> str:
     tid = d.get("ticket_id", "")
     lines = [
@@ -429,6 +453,8 @@ def _render_markdown(
         f"- **Branch:** `{d.get('branch', '')}`",
         "",
     ]
+    if gate_section:
+        lines.extend(gate_section)
     if spec:
         lines += [
             "## Test plan",
@@ -722,6 +748,13 @@ def print_status(ticket_id: str) -> int:
     print(f"Title:    {data.get('title', '')}")
     print(f"When:     {data.get('finished_at', data.get('started_at', ''))}")
     print(f"Duration: {data.get('duration_seconds', 0)}s  branch={data.get('branch', '')}")
+    og = data.get("orchestrator_gates") or {}
+    if og.get("gates"):
+        print()
+        print("Orchestrator gates:")
+        for i, g in enumerate(og["gates"], 1):
+            print(f"  {i}. {g.get('name', '?'):5}  {g.get('status', '?'):6}  {g.get('detail', '')[:50]}")
+        print(f"  → {og.get('orchestrator_summary', '')}")
     print()
     print("Scenarios:")
     for sc in data.get("scenarios") or []:
@@ -737,6 +770,9 @@ def print_status(ticket_id: str) -> int:
             mark = "OK" if a.get("passed") else "FAIL"
             print(f"  [{mark}] {a.get('scenario_id')} {a.get('kind')}")
     print()
+    gate = td / "GATE_SUMMARY.md"
+    if gate.exists():
+        print(f"Gates:        {_fmt_path(gate)}")
     print(f"Report:       {_fmt_path(td / 'REPORT.md')}")
     print(f"Test plan:    {_fmt_path(td / 'TEST_PLAN.md')}")
     print(f"HTML report:  {_fmt_path(td / 'REPORT.html')}")
@@ -755,6 +791,8 @@ def print_open(ticket_id: str) -> int:
     html = td / "REPORT.html"
     ev = td / "evidence"
     print(f"Ticket dir:   {_fmt_path(td)}")
+    gate = td / "GATE_SUMMARY.md"
+    print(f"GATE_SUMMARY: {_fmt_path(gate)}{'' if gate.exists() else ' (orchestrator checklist — run validate-ticket)'}")
     print(f"REPORT.md:    {_fmt_path(report)}{'' if report.exists() else ' (not generated — run bob validate-ticket first)'}")
     print(f"TEST_PLAN.md: {_fmt_path(test_plan)}{'' if test_plan.exists() else ' (created on validate-ticket)'}")
     print(f"REPORT.html:    {_fmt_path(html)}{'' if html.exists() else ' (not generated)'}")
