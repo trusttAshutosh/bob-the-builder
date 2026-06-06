@@ -86,7 +86,11 @@ _Sample bundle — illustrative only._
 
 ## Execution log
 
-_See [execution-summary.txt](./execution-summary.txt) in this ticket folder._
+```
+=== Bob sample-validate-output (synthetic PASS run) ===
+ticket=sample-gateway-health-check
+This bundle is for documentation; run validate-ticket on your host repo for real evidence.
+```
 
 ## Evidence paths
 

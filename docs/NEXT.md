@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=51c6854 -->
+<!-- PRODUCT-VERIFY:COMMIT=53bec4c -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-06 -->
 
 <!-- SCORECARD:START -->
@@ -25,40 +25,59 @@
 | Reusability / generic story | B+ | Empty `assets/`; CC in `examples/`; engine defaults still Novopay-shaped |
 | Repo cleanliness | A- | Dead code removed; staged for first publish |
 | Docs & operability | A- | Guides, cheatsheet, `bob next`, this scorecard |
-| Team handoff | B+ | First commit + remote remaining (P0) |
+| Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-06 · commit `51c6854` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-06 · commit `53bec4c` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `51c6854` — feat(boot): boot only changed repos with confirmable plan
+**Commit:** `53bec4c` — feat(cursor): onboard hooks, context audit, and MCP overhead pruning
 **Date:** 2026-06-06
 
 ### Files changed
-- `assets/platform-graph/platform-graph.yaml`
-- `assets/stub-registry/bank-operations/getCardSummary/__files/card-summary-success.xml`
-- `assets/stub-registry/bank-operations/getCardSummary/success-200.yaml`
-- `docs/NEXT.md`
-- `runner/config/bob-defaults.yaml`
-- `runner/lib/application_props_sync.py`
-- `runner/lib/boot_plan.py`
-- `runner/lib/boot_remediation.py`
+- `.gitignore`
+- `assets/examples/sample-validate-output/GATE_SUMMARY.md`
+- `assets/examples/sample-validate-output/REPORT.md`
+- `assets/examples/sample-validate-output/run-summary.json`
+- `docs/BOB_CHEATSHEET.md`
+- `docs/CURSOR_PLUGINS.md`
+- `docs/KT_CURSOR_AND_BOB.md`
+- `docs/ONBOARDING_DEVELOPER.md`
+- `docs/README.md`
 - `runner/lib/builder_cli.py`
-- `runner/lib/eval_regression.py`
-- `runner/lib/run_flow.py`
-- `runner/lib/service_boot.py`
-- `runner/schemas/ticket-spec.schema.yaml`
-- `runner/tests/test_application_props_sync.py`
-- `runner/tests/test_boot_plan.py`
-- `templates/host-deploy-tdd/deploy/tdd/INFRA_FOR_BOB.md`
+- `runner/lib/chat_hygiene.py`
+- `runner/lib/context_audit.py`
+- `runner/lib/cursor_hook.py`
+- `runner/lib/cursor_overhead.py`
+- `runner/lib/cursor_plugins.py`
+- `runner/lib/install_workspace.py`
+- `runner/lib/meta_review.py`
+- `runner/lib/onboard.py`
+- `runner/lib/orchestrator_gates.py`
+- `runner/lib/prune_cursor_overhead.py`
+- `runner/lib/run_summary.py`
+- `runner/lib/setup_prefs.py`
+- `runner/tests/test_chat_hygiene.py`
+- `runner/tests/test_context_audit.py`
+- `runner/tests/test_cursor_hook.py`
+- `runner/tests/test_cursor_overhead.py`
+- `runner/tests/test_meta_review.py`
+- `runner/tests/test_onboard.py`
+- `scripts/analyze_all_chats_cumulative.py`
+- `scripts/analyze_conversation_breakdown.py`
+- `scripts/audit_context_usage.py`
+- `templates/onboarding/README.onboarding.md`
+- `templates/onboarding/cursor/hooks.json`
+- `templates/onboarding/cursor/hooks/bob-hook-runner.sh`
+- `templates/onboarding/cursor/novopay-orchestrator.mdc`
+- `templates/onboarding/novopay/AGENTS.md.stub`
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
+- Workspace setup & install (`workspace-setup`) — files touched
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
-- Git branch policy (default none) (`git-branch-policy`) — files touched
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
+- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
@@ -104,6 +123,9 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 
 ## Next (P1 — reusability / less CC bias)
 
+- [x] **`bob onboard`** — one-command dev bootstrap: setup + install + copy Cursor rule/hooks/workspace templates (approve list); see [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) (2026-06-06)
+- [x] **`bob meta-review`** — monthly usage audit (Bob pass rates, boot failures, rule/skill drift vs templates); suggestions only (2026-06-06)
+- [x] **KT doc for teammates** — [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) (2026-06-06)
 - [x] **Neutral ticket-spec schema** — `HOST_REPO_FOLDER` placeholder; CC values documented as examples (2026-06-02)
 - [x] **Generic discover-apis skeleton** — `host_profile.discover_api_catalog_fields()` from host repo + deploy/tdd (2026-06-02)
 - [x] **Host profile layer** — `runner/lib/host_profile.py`, `runner/config/bob-defaults.yaml`, `bob host`, `docs/WORKSPACE_AND_HOST_PROFILE.md` (2026-06-02)

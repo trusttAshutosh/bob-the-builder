@@ -115,7 +115,7 @@
     "_Sample bundle \u2014 illustrative only._",
     ""
   ],
-  "test_plan_path": "C:\\Users\\ashutosh.kumar\\Desktop\\novopay\\bob-the-builder\\assets\\examples\\sample-validate-output\\TEST_PLAN.md",
+  "test_plan_path": "TEST_PLAN.md",
   "orchestrator_gates": {
     "gates": [
       {
