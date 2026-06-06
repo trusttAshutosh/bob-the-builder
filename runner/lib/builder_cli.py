@@ -36,6 +36,9 @@ CMD_ALIASES: dict[str, str] = {
     "context-audit": "context-audit",
     "context_audit": "context-audit",
     "contextaudit": "context-audit",
+    "memory-budget": "memory-budget",
+    "memory_budget": "memory-budget",
+    "memorybudget": "memory-budget",
     "chat-hygiene": "chat-hygiene",
     "chat_hygiene": "chat-hygiene",
     "chathygiene": "chat-hygiene",
@@ -131,11 +134,12 @@ def _print_help() -> None:
     print(f"Usage: {CLI_SHORT} <command> [args]     e.g. python bob.py <command>")
     print()
     print("Commands (name = purpose):")
-    print("  setup              First-time: workspace root (Novopay folder), MySQL, service URLs")
-    print("  onboard [--dry-run] [--yes] [--smoke]  Bootstrap: setup + install + Cursor templates")
+    print("  setup              Reconfigure prefs only (onboard runs this on first use)")
+    print("  onboard [--dry-run] [--yes] [--smoke]  ONE command: setup + install + Cursor kit + AGENTS.md")
     print("  plugins            Recommended Cursor marketplace plugins (manual install)")
     print("  meta-review [--dry-run] [--days N]  Usage audit -> docs/META_REVIEW.md (monthly; stop hook auto-runs)")
     print("  context-audit [--dry-run]           Cursor context % audit -> docs/CONTEXT_USAGE_AUDIT.md")
+    print("  memory-budget [--dry-run] [--json]  Working memory budget -> docs/MEMORY_BUDGET.md")
     print("  chat-hygiene [--dry-run] [--auto]  Archive stale/overflow Cursor chats (never delete)")
     print("  mcp-audit [--dry-run] [--json]       MCP + plugin keep/disable audit -> docs/MCP_AUDIT.md")
     print("  prune-overhead [--dry-run|--apply]   Apply squad policy (after mcp-audit)")
@@ -243,6 +247,11 @@ def _next_steps(command: str, args: list[str], rc: int) -> list[tuple[str, str]]
             _step("Archive hot chats", f"{CLI_SHORT} chat-hygiene --auto"),
             _step("Preview without write", f"{CLI_SHORT} context-audit --dry-run"),
         ],
+        "memory-budget": [
+            _step("Open written report", "bob-the-builder/docs/MEMORY_BUDGET.md"),
+            _step("Per-chat detail", f"{CLI_SHORT} context-audit"),
+            _step("Trim MCP overhead", f"{CLI_SHORT} prune-overhead --dry-run"),
+        ],
         "mcp-audit": [
             _step("Open written report", "bob-the-builder/docs/MCP_AUDIT.md"),
             _step("Apply policy", f"{CLI_SHORT} prune-overhead --apply"),
@@ -341,12 +350,11 @@ def cmd_onboard(args: list[str]) -> int:
 
 def cmd_plugins(_: list[str]) -> int:
     _banner("plugins")
-    from cursor_plugins import ensure_product_doc, print_plugin_notice
+    from cursor_plugins import run_plugins_flow
     from host_repo import infer_workspace_root, runner_bootstrap_repo
 
-    ensure_product_doc()
     ws = infer_workspace_root() or runner_bootstrap_repo().resolve().parent
-    print_plugin_notice(prominent=True, workspace=ws)
+    run_plugins_flow(ws, prominent=True, pause_if_missing=False)
     return 0
 
 
@@ -362,6 +370,13 @@ def cmd_context_audit(args: list[str]) -> int:
     from context_audit import run_context_audit
 
     return run_context_audit(args)
+
+
+def cmd_memory_budget(args: list[str]) -> int:
+    _banner("memory-budget")
+    from memory_budget import run_memory_budget
+
+    return run_memory_budget(args)
 
 
 def cmd_chat_hygiene(args: list[str]) -> int:
@@ -1248,6 +1263,7 @@ def main() -> int:
         "plugins": cmd_plugins,
         "meta-review": cmd_meta_review,
         "context-audit": cmd_context_audit,
+        "memory-budget": cmd_memory_budget,
         "chat-hygiene": cmd_chat_hygiene,
         "prune-overhead": cmd_prune_overhead,
         "mcp-audit": cmd_mcp_audit,

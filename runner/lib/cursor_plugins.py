@@ -205,3 +205,59 @@ def deploy_workspace_plugin_doc(workspace: Path, *, force: bool = False) -> Path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(plugin_doc_markdown(), encoding="utf-8")
     return dest
+
+
+def recommended_plugin_status() -> list[tuple[RecommendedPlugin, bool]]:
+    """Return (plugin, installed?) for each recommended-tier plugin."""
+    from cursor_overhead import discover_plugins
+
+    by_name = {record.name: record for record in discover_plugins()}
+    rows: list[tuple[RecommendedPlugin, bool]] = []
+    for plug in RECOMMENDED_PLUGINS:
+        if plug.tier != "recommended":
+            continue
+        record = by_name.get(plug.name)
+        rows.append((plug, bool(record and record.installed)))
+    return rows
+
+
+def format_plugin_status_summary() -> tuple[list[str], list[str]]:
+    lines = ["Cursor plugin status (marketplace - install manually if MISSING):"]
+    missing: list[str] = []
+    for plug, installed in recommended_plugin_status():
+        mark = "OK" if installed else "MISSING"
+        lines.append(f"  [{mark}] {plug.name}  (search: \"{plug.marketplace_search}\")")
+        if not installed:
+            missing.append(plug.name)
+    if not missing:
+        lines.append("  All recommended plugins detected on this machine.")
+    return lines, missing
+
+
+def run_plugins_flow(
+    workspace: Path | None = None,
+    *,
+    prominent: bool = True,
+    pause_if_missing: bool = False,
+) -> list[str]:
+    """Same work as `bob plugins`: docs, status, install guide. Returns missing plugin names."""
+    ensure_product_doc()
+    if workspace is not None:
+        deploy_workspace_plugin_doc(workspace, force=False)
+
+    status_lines, missing = format_plugin_status_summary()
+    print()
+    print("=== bob plugins (integrated) ===")
+    for line in status_lines:
+        print(line)
+    print_plugin_notice(prominent=prominent, workspace=workspace)
+
+    if pause_if_missing and missing:
+        print("Cursor should be open. Install MISSING plugins from the marketplace list above.")
+        try:
+            input("Press Enter when done (or Ctrl+C to skip): ")
+        except (EOFError, KeyboardInterrupt):
+            print()
+            print("(Skipped plugin wait - run `bob plugins` later to re-check.)")
+
+    return missing

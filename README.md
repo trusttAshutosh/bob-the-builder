@@ -17,29 +17,119 @@ bob-the-builder/
   docs/               # developer guide, cheatsheet
 ```
 
-## One-time setup
+## Squad setup (same Cursor + Bob as the lead dev)
 
-1. Clone this repo next to your service git clones:
+One command after clone. Everything squad-owned is in `templates/onboarding/` and deploys via `bob onboard`.
 
-   ```text
-   your-workspace/
-     bob-the-builder/          # this repo
-     novopay-platform-*/       # service repos
-   ```
+### Prerequisites
 
-2. From `bob-the-builder/`:
+| Tool | Notes |
+|------|-------|
+| **Git** | Clone repos below |
+| **Python 3** | Runs `bob.py` |
+| **JDK 21** | Gradle `bootRun` during `validate-ticket` |
+| **MySQL** | Local; default creds `root` / `root` (prompted in onboard) |
+| **Cursor 2.5+** | IDE + agent |
 
-   ```bash
-   python bob.py setup
-   python bob.py install
-   ```
+### 1. Clone under one parent folder
 
-   `setup` writes `local/user.env` with `BUILDER_WORKSPACE_ROOT` and service URLs from host `deploy/tdd` when present (`CC_BASE`, `MD_BASE`, …).  
-   `install` seeds `assets/` and installs a **post-commit hook** that auto-refreshes `docs/NEXT.md` after each git commit. Optional: `bob install --launchers` writes `../bob.py` shortcuts in the workspace parent.
+Example layout (adjust drive/path; onboard asks you to confirm the parent):
 
-3. Optional: copy `skills/builder-*` into your Cursor skills folder or open this repo in Cursor.
+```text
+Desktop/novopay/                          <- workspace root (BUILDER_WORKSPACE_ROOT)
+  bob-the-builder/
+  novopay-platform-creditcard-management/   <- host service (CC)
+  novopay-platform-lib/                     <- composite build from CC
+  novopay-platform-api-gateway/             <- optional peer
+  novopay-platform-actor/                   <- optional peer
+```
 
-4. **Host service glue** (optional but recommended): copy [`templates/host-deploy-tdd/`](templates/host-deploy-tdd/README.md) → `your-service/deploy/tdd/`. Bob can also **discover and boot peer services without this** — see [Service boot](#service-boot-dynamic-peers) below.
+Open the multi-root workspace after onboard: `novopay.code-workspace` (created at workspace root).
+
+**Host service glue** (optional): copy [`templates/host-deploy-tdd/`](templates/host-deploy-tdd/README.md) into CC `deploy/tdd/`. Bob can also discover and boot peers without it - see [Service boot](#service-boot-dynamic-peers).
+
+### 2. One command
+
+```bash
+cd bob-the-builder
+python bob.py onboard
+```
+
+Answer prompts once: **workspace root** (parent of clones), MySQL host/user/password, service base URLs (defaults from `deploy/tdd` when CC is cloned).
+
+Flags teammates often use:
+
+| Flag | When |
+|------|------|
+| `--yes` | Skip the final "apply changes?" prompt |
+| `--smoke` | Run sample `validate-ticket` at the end |
+| `--force --skip-setup` | Refresh squad skills/rules after template updates in git |
+
+You do **not** run `bob setup` + `bob install` separately on first use - `onboard` runs both.
+
+### 3. What `bob onboard` creates
+
+| Artifact | Path |
+|----------|------|
+| Agent memory stub | `{workspace}/AGENTS.md` |
+| Squad skills (3) | `{workspace}/.cursor/skills/` |
+| Squad workspace rules | `{workspace}/.cursor/rules/` |
+| CC rules + test hooks | `{workspace}/novopay-platform-creditcard-management/.cursor/` |
+| CC skills junction | CC `.cursor/skills` -> workspace `.cursor/skills` |
+| Multi-root workspace | `{workspace}/novopay.code-workspace` |
+| Orchestrator rule (always on) | `~/.cursor/rules/novopay-orchestrator.mdc` |
+| Bob lifecycle hooks | merged into `~/.cursor/hooks.json` |
+| Bob prefs | `bob-the-builder/local/user.env` (`BUILDER_WORKSPACE_ROOT`, MySQL, `{SERVICE}_BASE`) |
+| Plugin checklist | `{workspace}/.cursor/CURSOR_PLUGINS.md` + `bob plugins` |
+
+Skills deployed: `ticket-breakdown-planning`, `cc-backend-test-generation`, `generate-test-plan-change-flow-based`.
+
+Bob builder skills (`builder-analyst`, `builder-implementer`, `builder-verifier`, `builder-one-shot`) load from `bob-the-builder/skills/` when that repo is in the workspace - no extra copy step.
+
+### 4. Cursor plugins (built into onboard)
+
+`bob onboard` runs the same step as `bob plugins` after opening the workspace:
+
+- Writes `docs/CURSOR_PLUGINS.md` and `{workspace}/.cursor/CURSOR_PLUGINS.md`
+- Shows OK/MISSING for Superpowers, Team Kit, Continual Learning
+- Prints the install guide (marketplace search terms)
+- Waits for Enter so you can install missing plugins in Cursor (skip wait: `--yes` or `--skip-plugin-pause`)
+
+Bob still cannot click Install for you - Cursor has no headless marketplace API. Re-check anytime: `bob plugins`.
+
+Optional: `python bob.py prune-overhead --apply` then reload Cursor (MCP/plugin policy for Novopay backend work).
+
+### 5. Verify
+
+```bash
+python bob.py memory-budget
+python bob.py validate-ticket sample-gateway-health-check
+```
+
+`memory-budget` writes `docs/MEMORY_BUDGET.md` and refreshes `{workspace}/.cursor/memory-budget-status.json` (also on each Cursor session start).
+
+Read [docs/KT_CURSOR_AND_BOB.md](docs/KT_CURSOR_AND_BOB.md) for the 4-gate workflow (Plan / Build / Prove / Ship).
+
+### What is not cloned from the lead dev's machine
+
+| Item | Why |
+|------|-----|
+| Learned bullets in `AGENTS.md` | Continual Learning fills these on each machine |
+| Cursor chat history | Local IDE state |
+| Marketplace plugins | Manual Install clicks during onboard plugin step (same as `bob plugins`) |
+| MySQL password / absolute paths | Machine-specific; prompted in onboard |
+
+Refresh squad defaults after git updates to `templates/onboarding/`: `python bob.py onboard --force --skip-setup`.
+
+### Power-user commands (not first-time)
+
+| Command | Use |
+|---------|-----|
+| `bob setup` | Reconfigure workspace root, MySQL, service URLs |
+| `bob install` | Re-seed assets or reinstall git hooks |
+| `bob onboard --force` | Overwrite existing Cursor rules / AGENTS.md / skills |
+
+More detail: [docs/ONBOARDING_DEVELOPER.md](docs/ONBOARDING_DEVELOPER.md).
 
 ## Daily use (any service repo)
 

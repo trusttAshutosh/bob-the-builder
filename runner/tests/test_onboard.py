@@ -5,10 +5,14 @@ import json
 from pathlib import Path
 
 from onboard import (
+    HOST_CC_FOLDER,
+    WORKSPACE_CURSOR_BUNDLE,
+    ensure_skills_junction,
     merge_hooks_json,
     plan_writes,
     render_workspace_json,
     substitute,
+    sync_bundle_tree,
     template_root,
 )
 
@@ -84,12 +88,58 @@ def test_template_bundle_exists() -> None:
     root = template_root()
     assert (root / "cursor" / "novopay-orchestrator.mdc").is_file()
     assert (root / "novopay" / "AGENTS.md.stub").is_file()
+    assert (root / WORKSPACE_CURSOR_BUNDLE / "skills" / "ticket-breakdown-planning" / "SKILL.md").is_file()
+    assert (root / WORKSPACE_CURSOR_BUNDLE / "rules" / "development-guidelines.mdc").is_file()
+    assert (root / "host-cc" / ".cursor" / "rules" / "cc-backend-tests-required.mdc").is_file()
+
+
+def test_sync_bundle_tree_writes_and_skips(tmp_path: Path, monkeypatch) -> None:
+    bundle = tmp_path / "bundle" / WORKSPACE_CURSOR_BUNDLE
+    bundle.mkdir(parents=True)
+    (bundle / "skills" / "demo").mkdir(parents=True)
+    (bundle / "skills" / "demo" / "SKILL.md").write_text("demo", encoding="utf-8")
+    monkeypatch.setattr(
+        "onboard.template_root",
+        lambda: tmp_path / "bundle",
+    )
+    dest = tmp_path / "ws" / ".cursor"
+    rows = sync_bundle_tree(WORKSPACE_CURSOR_BUNDLE, dest, tmp_path / "ws", force=False)
+    assert any(action == "write" for _, action in rows)
+    assert (dest / "skills" / "demo" / "SKILL.md").read_text(encoding="utf-8") == "demo"
+    rows2 = sync_bundle_tree(WORKSPACE_CURSOR_BUNDLE, dest, tmp_path / "ws", force=False)
+    assert all(action == "skip" for _, action in rows2)
+
+
+def test_ensure_skills_junction_creates_link(tmp_path: Path) -> None:
+    target = tmp_path / "canonical" / "skills"
+    target.mkdir(parents=True)
+    link = tmp_path / "host" / ".cursor" / "skills"
+    action = ensure_skills_junction(link, target, force=False)
+    assert action == "junction"
+    assert link.exists()
+    assert link.resolve() == target.resolve()
+    action2 = ensure_skills_junction(link, target, force=False)
+    assert action2 == "skip (junction ok)"
+
+
+def test_plan_writes_includes_cursor_kit(tmp_path: Path, monkeypatch) -> None:
+    cursor = tmp_path / ".cursor"
+    cursor.mkdir()
+    monkeypatch.setattr("onboard.cursor_home", lambda: cursor)
+    (tmp_path / HOST_CC_FOLDER).mkdir()
+    plans = plan_writes(tmp_path, force=False)
+    labels = [p.label for p in plans]
+    assert any("Cursor kit" in label for label in labels)
+    assert any("junction" in label.lower() for label in labels)
 
 
 def test_plugin_notice_lists_recommended_plugins() -> None:
-    from cursor_plugins import RECOMMENDED_PLUGINS, format_plugin_notice
+    from cursor_plugins import RECOMMENDED_PLUGINS, format_plugin_notice, format_plugin_status_summary
 
     text = format_plugin_notice(prominent=True)
     for plug in RECOMMENDED_PLUGINS:
         assert plug.name in text
     assert "ticket-breakdown-planning" in format_plugin_notice()
+    status_lines, missing = format_plugin_status_summary()
+    assert status_lines
+    assert any("Superpowers" in line for line in status_lines)

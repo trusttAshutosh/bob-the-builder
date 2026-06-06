@@ -260,8 +260,9 @@ def write_context_slice(
     spec: dict | None = None,
     *,
     max_lines: int = 120,
+    top_k: int = 20,
 ) -> Path:
-    text = hybrid_query(keywords, spec, max_lines=max_lines)
+    text = hybrid_query(keywords, spec, max_lines=max_lines, top_k=top_k)
     ctx = agent_dir() / "kg-context-last.md"
     ctx.parent.mkdir(parents=True, exist_ok=True)
     ctx.write_text(text, encoding="utf-8")

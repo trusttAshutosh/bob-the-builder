@@ -204,6 +204,12 @@ def run_session_hook() -> int:
         stderr=subprocess.DEVNULL,
         timeout=180,
     )
+    subprocess.run(
+        [sys.executable, str(bob_py), "memory-budget", "--hook", "session"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=120,
+    )
     return 0
 
 

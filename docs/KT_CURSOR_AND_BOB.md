@@ -31,7 +31,9 @@ AGENTS.md + rules     → durable memory (not chat history)
 | **Cursor** 2.5+ | IDE + agent | Yes |
 | **Plugins:** Superpowers, Cursor Team Kit, Continual Learning | Process, review, memory | Recommended - see [CURSOR_PLUGINS.md](CURSOR_PLUGINS.md) or `bob plugins` |
 | **Postman plugin** | Cloud API sync | Optional (Bob local collections are default) |
-| **User rule** | `~/.cursor/rules/novopay-orchestrator.mdc` | Yes (copy from squad template) |
+| **User rule** | `~/.cursor/rules/novopay-orchestrator.mdc` | Yes (`bob onboard`) |
+| **Workspace skills** | `{workspace}/.cursor/skills/` | Yes (`bob onboard`) |
+| **Workspace rules** | `{workspace}/.cursor/rules/` | Yes (`bob onboard`) |
 | **Workspace** | Open `novopay.code-workspace` or `Desktop/novopay` | Yes |
 
 Plugins alone do nothing until **rules + workspace + Bob** are wired.
@@ -65,22 +67,25 @@ See [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) and [BOB_CHEA
 
 ---
 
-## 5. Memory and chat hygiene
+## 5. Memory, chat hygiene, and working memory budget
 
 | System | What it remembers | Your habit |
 |--------|-------------------|------------|
 | `AGENTS.md` (novopay root) | Learned prefs + facts | Let Continual Learning update it |
 | `novopay-orchestrator.mdc` | Hard rules (always on) | Rarely edit |
+| `memory-budgeting.mdc` | Context load rules (always on) | Deployed via `bob onboard` |
 | `.cursor/skills/` (novopay) | Ticket/test skills | Edit canonical copy only |
+| `TICKET_RESUME.md` per ticket | Continue in fresh chat | Update when pausing a ticket |
 | Chat archive | Raw history | **Archive > delete**; delete only noise |
 
-**Sidebar target:** pinned + today + yesterday at ~6-8 active chats combined.
+**Sidebar target:** pinned + today + yesterday at ~6-8 active chats combined. **Context target:** active ticket chats under ~60% (`bob memory-budget`).
 
 | Cadence | Automation | What happens |
 |---------|------------|--------------|
-| Session start | `bob-hook-runner.sh session` | Silent auto-archive via `bob cursor-hook session` |
+| Session start | `bob-hook-runner.sh session` | Auto-archive + refresh `.cursor/memory-budget-status.json` |
 | Weekly stop hook | `bob-hook-runner.sh stop` | `/workflow-from-chats` reminder + archive nudge (never delete) |
 | Monthly stop hook | `bob-hook-runner.sh stop` | Auto `bob meta-review` when 30d due (boot/plugins/context audit) |
+| Manual | `bob memory-budget` | Full report at `docs/MEMORY_BUDGET.md` |
 | Manual | `bob chat-hygiene --dry-run` | Preview stale/overflow archives before applying |
 
 Weekly hygiene (automatic): workflow-from-chats merge into `AGENTS.md`.
@@ -99,6 +104,8 @@ Monthly audit: stop hook auto-runs `bob meta-review --hook stop` every 30 days (
 | `bob-the-builder/` | Bob engine |
 | `<host>/docs/tdd-runs/<ticket>/` | Per-ticket evidence |
 | `<ticket>/GATE_SUMMARY.md` | Your review checklist |
+| `docs/tdd-runs/<ticket>/TICKET_RESUME.md` | Fresh-chat resume + memory budget for that ticket |
+| `{workspace}/.cursor/memory-budget-status.json` | Session hook status (warn/critical) |
 
 ---
 
@@ -108,6 +115,7 @@ Monthly audit: stop hook auto-runs `bob meta-review --hook stop` every 30 days (
 bob setup
 bob init-ticket <id> "Title"
 bob validate-ticket <id>
+bob memory-budget
 bob open-report <id>        # GATE_SUMMARY, REPORT, paths
 bob ticket-status <id>
 bob next                     # improvement backlog

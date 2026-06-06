@@ -83,6 +83,38 @@ def init_spec(ticket_id: str, title: str, description: str = "") -> Path:
         f"# {title}\n\n**Ticket:** {ticket_id}\n\n## Acceptance criteria\n\n- [ ] TBD\n",
         encoding="utf-8",
     )
+    (d / "TICKET_RESUME.md").write_text(
+        "\n".join(
+            [
+                f"# Ticket resume - {ticket_id}",
+                "",
+                f"**Title:** {title}",
+                "",
+                "Use this file to continue in a **fresh chat** without replaying history.",
+                "",
+                "## Current focus",
+                "",
+                "- ",
+                "",
+                "## Open items",
+                "",
+                "- ",
+                "",
+                "## Last Bob result",
+                "",
+                "- Status: (run `bob ticket-status {ticket_id}`)",
+                "- GATE_SUMMARY: `docs/tdd-runs/{ticket_id}/GATE_SUMMARY.md`",
+                "- REPORT: `docs/tdd-runs/{ticket_id}/REPORT.md`",
+                "",
+                "## Memory budget",
+                "",
+                "- Pin only this file + `ticket-spec.yaml` + 1-2 code files.",
+                "- Run `bob context --ticket {ticket_id}` once; link paths, do not paste logs.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
     return dest
 
 

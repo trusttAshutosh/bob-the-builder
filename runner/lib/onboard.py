@@ -11,6 +11,9 @@ from pathlib import Path
 from host_repo import infer_workspace_root, runner_bootstrap_repo
 
 ONBOARDING_DIR = "templates/onboarding"
+WORKSPACE_CURSOR_BUNDLE = "novopay/.cursor"
+HOST_CC_BUNDLE = "host-cc/.cursor"
+HOST_CC_FOLDER = "novopay-platform-creditcard-management"
 
 WORKSPACE_FOLDERS: list[tuple[str, str]] = [
     (".", "novopay (root)"),
@@ -50,6 +53,93 @@ def substitute(text: str, workspace: Path) -> str:
         text.replace("{{WORKSPACE_ROOT}}", ws)
         .replace("{{WORKSPACE_NAME}}", workspace.name)
     )
+
+
+def _substitute_file_types() -> frozenset[str]:
+    return frozenset({".md", ".mdc", ".json", ".sh", ".txt", ".yaml", ".yml"})
+
+
+def sync_bundle_tree(
+    bundle_rel: str,
+    dest_root: Path,
+    workspace: Path,
+    *,
+    force: bool = False,
+    do_substitute: bool = False,
+) -> list[tuple[Path, str]]:
+    """Copy a template subtree onto dest_root. Returns (path, action) rows."""
+    src_root = template_root() / bundle_rel
+    if not src_root.is_dir():
+        return []
+
+    rows: list[tuple[Path, str]] = []
+    for src in sorted(src_root.rglob("*")):
+        if not src.is_file():
+            continue
+        dest = dest_root / src.relative_to(src_root)
+        if dest.is_file() and not force:
+            rows.append((dest, "skip"))
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if do_substitute and src.suffix.lower() in _substitute_file_types():
+            dest.write_text(
+                substitute(src.read_text(encoding="utf-8"), workspace),
+                encoding="utf-8",
+            )
+        else:
+            shutil.copy2(src, dest)
+        rows.append((dest, "write"))
+    return rows
+
+
+def host_cc_repo(workspace: Path) -> Path | None:
+    candidate = workspace / HOST_CC_FOLDER
+    return candidate if candidate.is_dir() else None
+
+
+def ensure_skills_junction(
+    link: Path,
+    target: Path,
+    *,
+    force: bool = False,
+) -> str:
+    """Point host .cursor/skills at workspace canonical skills."""
+    target = target.resolve()
+    if not target.is_dir():
+        return "skip (canonical skills missing)"
+
+    if link.exists():
+        try:
+            if link.resolve() == target:
+                return "skip (junction ok)"
+        except OSError:
+            pass
+
+    if link.is_symlink():
+        if not force:
+            return "skip (link exists)"
+        link.unlink()
+    elif link.is_dir():
+        if any(link.rglob("SKILL.md")):
+            if not force:
+                return "skip (real skills dir; use --force)"
+        shutil.rmtree(link)
+    elif link.exists() and not force:
+        return "skip (path exists)"
+
+    link.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        proc = subprocess.run(
+            ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            link.symlink_to(target, target_is_directory=True)
+    else:
+        link.symlink_to(target, target_is_directory=True)
+    return "junction"
 
 
 def render_workspace_json(workspace: Path) -> str:
@@ -127,6 +217,43 @@ def plan_writes(workspace: Path, *, force: bool = False) -> list[PlannedWrite]:
     else:
         plans.append(PlannedWrite("Workspace AGENTS.md stub", agents, "write"))
 
+    ws_cursor = workspace / ".cursor"
+    bundle_cursor = template_root() / WORKSPACE_CURSOR_BUNDLE
+    if bundle_cursor.is_dir():
+        skill_count = len(list((bundle_cursor / "skills").rglob("SKILL.md")))
+        plans.append(
+            PlannedWrite(
+                f"Workspace Cursor kit ({skill_count} skills, rules, hooks)",
+                ws_cursor,
+                "sync",
+            )
+        )
+
+    cc_repo = host_cc_repo(workspace)
+    if cc_repo:
+        plans.append(
+            PlannedWrite(
+                "CC repo Cursor overlay (rules, hooks)",
+                cc_repo / ".cursor",
+                "sync",
+            )
+        )
+        plans.append(
+            PlannedWrite(
+                "CC skills junction -> workspace/.cursor/skills",
+                cc_repo / ".cursor" / "skills",
+                "junction",
+            )
+        )
+
+    plans.append(
+        PlannedWrite(
+            "Cursor plugins (verify + install guide, same as bob plugins)",
+            Path("(bob plugins)"),
+            "step",
+        )
+    )
+
     plans.append(PlannedWrite("Bob setup wizard", Path("(interactive)"), "command"))
     plans.append(PlannedWrite("Bob install + git hooks", Path("(bob install)"), "command"))
     return plans
@@ -159,9 +286,12 @@ def print_plan(
     for p in plans:
         suffix = f" ({p.reason})" if p.reason else ""
         print(f"  - {p.label}: {p.action}{suffix} -> {p.dest}")
-    from cursor_plugins import print_plugin_notice
+    from cursor_plugins import format_plugin_status_summary
 
-    print_plugin_notice(prominent=False, workspace=workspace)
+    status_lines, missing = format_plugin_status_summary()
+    if missing:
+        print()
+        print("  Plugin pre-check:", ", ".join(missing), "not detected yet (installed during onboard step)")
 
 
 def confirm_apply(*, yes: bool, dry_run: bool) -> bool:
@@ -217,6 +347,51 @@ def apply_templates(workspace: Path, *, force: bool = False) -> None:
     if ws_doc:
         print(f"Wrote {ws_doc}")
 
+    _deploy_cursor_kits(workspace, force=force)
+
+
+def _deploy_cursor_kits(workspace: Path, *, force: bool = False) -> None:
+    bundle = template_root()
+    ws_kit = bundle / WORKSPACE_CURSOR_BUNDLE
+    if ws_kit.is_dir():
+        rows = sync_bundle_tree(
+            WORKSPACE_CURSOR_BUNDLE,
+            workspace / ".cursor",
+            workspace,
+            force=force,
+        )
+        _print_sync_rows("Workspace Cursor kit", rows)
+
+    cc_repo = host_cc_repo(workspace)
+    host_kit = bundle / HOST_CC_BUNDLE
+    if cc_repo and host_kit.is_dir():
+        rows = sync_bundle_tree(
+            HOST_CC_BUNDLE,
+            cc_repo / ".cursor",
+            workspace,
+            force=force,
+        )
+        _print_sync_rows("CC Cursor overlay", rows)
+        link = cc_repo / ".cursor" / "skills"
+        action = ensure_skills_junction(
+            link,
+            workspace / ".cursor" / "skills",
+            force=force,
+        )
+        print(f"CC skills junction: {action} -> {link}")
+
+
+def _print_sync_rows(label: str, rows: list[tuple[Path, str]]) -> None:
+    if not rows:
+        return
+    writes = sum(1 for _, action in rows if action == "write")
+    skips = sum(1 for _, action in rows if action == "skip")
+    print(f"{label}: wrote {writes}, skipped {skips} (existing)")
+    if writes <= 8:
+        for path, action in rows:
+            if action == "write":
+                print(f"  wrote {path}")
+
 
 def open_cursor_workspace(workspace: Path) -> None:
     ws_file = workspace / "novopay.code-workspace"
@@ -254,6 +429,8 @@ def run_onboard(args: list[str]) -> int:
     no_launchers = "--no-launchers" in args
     reconfigure = "--reconfigure" in args
     no_cursor = "--skip-cursor-open" in args
+    skip_plugins = "--skip-plugins" in args
+    skip_plugin_pause = "--skip-plugin-pause" in args
 
     prereqs = check_prerequisites()
     if any(status == "fail" for _, status, _ in prereqs):
@@ -297,6 +474,20 @@ def run_onboard(args: list[str]) -> int:
     if not no_cursor:
         open_cursor_workspace(workspace)
 
+    missing_plugins: list[str] = []
+    if not skip_plugins:
+        from cursor_plugins import run_plugins_flow
+
+        missing_plugins = run_plugins_flow(
+            workspace,
+            prominent=True,
+            pause_if_missing=not skip_plugin_pause and not yes,
+        )
+
+    from memory_budget import run_memory_budget
+
+    run_memory_budget([])
+
     if run_smoke:
         return run_smoke_validate()
 
@@ -309,9 +500,8 @@ def run_onboard(args: list[str]) -> int:
         if raw in ("y", "yes"):
             return run_smoke_validate()
 
-    from cursor_plugins import print_plugin_notice
-
     print()
     print("Onboarding complete. Read: bob-the-builder/docs/KT_CURSOR_AND_BOB.md")
-    print_plugin_notice(prominent=True, workspace=workspace)
+    if missing_plugins:
+        print(f"Plugins still missing: {', '.join(missing_plugins)}  (re-run: bob plugins)")
     return 0

@@ -12,6 +12,7 @@ from _yaml_util import load
 from bob_home import agent_dir, api_catalog_dir, platform_graph_path
 from graph_retrieval import hybrid_query, write_context_slice
 from host_repo import host_repo_root
+from memory_budget import format_agent_context_section
 from setup_prefs import load_all_prefs
 from ticket_spec import spec_path
 
@@ -236,7 +237,7 @@ def assemble_context_pack(
     ticket_dir: Path,
     keywords: str,
     *,
-    max_retrieval_lines: int = 100,
+    max_retrieval_lines: int = 60,
 ) -> tuple[Path, Path, list[StaleIssue]]:
     """
     Write CONTEXT_PACK.md (ticket + agent) and refresh kg-context-last.md.
@@ -244,10 +245,13 @@ def assemble_context_pack(
     """
     prefs = load_bob_preferences()
     stale = detect_stale(spec, ticket_dir)
-    retrieval = hybrid_query(keywords, spec, max_lines=max_retrieval_lines)
-    slice_path = write_context_slice(keywords, spec, max_lines=max_retrieval_lines)
-
     run_cfg = spec.get("run") or {}
+    mem_cfg = run_cfg.get("memory_budget") or {}
+    top_k = int(mem_cfg.get("top_k", 12))
+    max_lines = int(mem_cfg.get("max_retrieval_lines", max_retrieval_lines))
+    retrieval = hybrid_query(keywords, spec, max_lines=max_lines, top_k=top_k)
+    slice_path = write_context_slice(keywords, spec, max_lines=max_lines, top_k=top_k)
+
     postman = run_cfg.get("postman") or {}
     lines = [
         "# Bob context pack",
@@ -256,6 +260,7 @@ def assemble_context_pack(
         f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}",
         "",
     ]
+    lines.extend(format_agent_context_section())
     lines.extend(_format_preferences(prefs))
     lines.extend(_format_stale(stale))
 

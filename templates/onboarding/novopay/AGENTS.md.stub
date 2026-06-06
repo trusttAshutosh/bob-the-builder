@@ -31,12 +31,15 @@ Plain bullets below are for Continual Learning. Keep section names exactly as na
 - No one-line helper methods; put constants in the appropriate constants class.
 - Gateway stays generic; domain-specific auth and business rules belong in domain services (e.g. actor).
 - Use ASCII hyphens in markdown docs, not em dashes.
+- Working memory budget: one ticket per chat; pin ticket-spec + 1-2 files; Bob proof stays in REPORT/GATE_SUMMARY (~5 line summary). Run `bob memory-budget` when context feels full.
 
 ## Learned Workspace Facts
 
 - Workspace root: `{{WORKSPACE_ROOT}}`
 - Bob CLI: `bob-the-builder/bob.py` (or workspace `bob.py` shortcut after `bob install --launchers`)
 - Canonical agent skills: `{{WORKSPACE_ROOT}}/.cursor/skills/`
+- CC repo skills junction: `{{WORKSPACE_ROOT}}/novopay-platform-creditcard-management/.cursor/skills` -> workspace skills (created by `bob onboard`)
 - Bob TDD artifacts: each host service `docs/tdd-runs/<ticket-id>/` (REPORT.md, GATE_SUMMARY.md, postman, DB verify SQL)
 - Orchestrator rule: `~/.cursor/rules/novopay-orchestrator.mdc`
 - Multi-root workspace: `novopay.code-workspace` in this folder
+- Memory budget status: `{{WORKSPACE_ROOT}}/.cursor/memory-budget-status.json` (updated by session hook + `bob memory-budget`)

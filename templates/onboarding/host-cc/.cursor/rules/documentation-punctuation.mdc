@@ -1,0 +1,39 @@
+---
+description: Use ASCII hyphens in markdown docs and proposals (no em/en dashes)
+globs: docs/**/*.md,**/*.md
+alwaysApply: true
+---
+
+# Documentation punctuation
+
+When writing or editing markdown documentation (especially under `docs/`), use **ASCII hyphen-minus** (`-`, U+002D) only. Do not use typographic dashes.
+
+## Do not use
+
+- Em dash: `—` (U+2014)
+- En dash: `–` (U+2013)
+
+## Use instead
+
+| Instead of | Use |
+|------------|-----|
+| Em dash between clauses | ` - ` (space-hyphen-space) |
+| En dash in ranges | `-` (e.g. `1-5 min`, `Phase 0-2`) |
+| Table option labels | `A - Tune SQL` not `A — Tune SQL` |
+
+## Examples
+
+- Good: `CC Lead MIS Report - Improvement Proposal`
+- Bad: `CC Lead MIS Report — Improvement Proposal`
+
+- Good: `read - while keeping all business rules`
+- Bad: `read—while keeping` or `read-while keeping` (missing spaces)
+
+- Good: `1-2 weeks`, `2-5 minutes`
+- Bad: `1–2 weeks`, `2–5 minutes`
+
+## Compound words
+
+Hyphenated **words** stay joined (no spaces): `on-demand`, `pre-built`, `no-cost`, `short-term`.
+
+Only **clause breaks** use spaced hyphen: `not sufficient - rules stay in SQL`.

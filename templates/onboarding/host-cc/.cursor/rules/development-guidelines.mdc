@@ -1,0 +1,266 @@
+---
+name: development-guidelines-cc
+Description: A guide for development within credit-card microservice.
+alwaysApply: true
+---
+# Novopay Credit Card Management - Development Guidelines
+
+## Project Overview
+This is a Spring Boot microservice for credit card management with HDFC bank integration, supporting both DAP (Direct API) and Salesforce channels.
+
+## Key Architecture Patterns
+
+### 1. Entity Management
+- Entities are in `src/main/java/in/novopay/creditcard/entity/`
+- Always use Lombok annotations.
+- Follow JPA annotations pattern with `@Column` for custom column names
+
+### 2. Service Layer Patterns
+
+#### 2.1 AbstractProcessor Pattern (Simple Services)
+**Use when**: Service doesn't require common CC functionalities like transaction audit, API channel selection, or complex error handling.
+
+**Example**: `FetchEkycDetailsProcessor` - Simple data fetching without transaction tracking.
+
+```java
+@Processor
+public class SimpleServiceProcessor extends AbstractProcessor {
+    
+    @Override
+    protected void process(ExecutionContext executionContext) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Direct business logic implementation
+        // No transaction audit or complex error handling
+        try {
+            // Service implementation
+            doServiceWork(executionContext);
+        } catch (Exception e) {
+            throw new NovopayFatalException("4000181", "Service failed");
+        }
+    }
+    
+    private void doServiceWork(ExecutionContext executionContext) {
+        // Business logic here
+    }
+}
+```
+
+**Characteristics**:
+- Extends `AbstractProcessor` directly
+- Implements single `process()` method
+- No transaction audit tracking
+- Simple error handling
+- No API channel selection logic
+- Suitable for utility services, data fetching, validation
+
+#### 2.2 AbstractCreditCardManager Pattern (Complex Services)
+**Use when**: Service requires full CC functionality including transaction audit, API channel selection, error handling, and reversal capabilities.
+
+**Example**: `CreateOrUpdateCCApplicationProcessor` - Full transaction processing with audit.
+
+```java
+@Processor
+public class ComplexServiceProcessor extends AbstractCreditCardManager {
+    
+    @Override
+    protected void beforeReal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Prepare request data
+        // Set up transaction audit attributes
+        // Validate inputs
+        // Create audit logs
+        log.info("Preparing request for transaction: {}", transactionAudit.getId());
+        
+        // Set API channel in TransactionAudit
+        String apiChannel = selectApiChannel(executionContext.getStringValue(PARTNER_ID));
+        transactionAudit.setApiChannel(apiChannel);
+        
+        // Store in ExecutionContext for service implementations
+        executionContext.put("selected_api_channel", apiChannel);
+        
+        // Create audit attributes
+        createOrUpdateAttribute(transactionAudit.getId(), "key", "value");
+        
+        // Create audit log
+        createOrUpdateAuditLog(executionContext, transactionAudit, TransactionAuditLogsStatus.NA);
+    }
+    
+    @Override
+    protected void onReal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Execute the actual service call
+        // API channel selection is already done in beforeReal
+        String selectedApiChannel = executionContext.getStringValue("selected_api_channel");
+        
+        if (SALESFORCE_CHANNEL.equalsIgnoreCase(selectedApiChannel)) {
+            salesForceServicePartnerDiscoveryService.executeService(executionContext);
+        } else {
+            creditCardServicePartnerDiscoveryService.executeService(executionContext);
+        }
+    }
+    
+    @Override
+    protected void postReal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Process response
+        // Update transaction audit
+        // Create success audit logs
+        // Set response data in execution context
+        
+        String responseCode = executionContext.getStringValue("response_code");
+        transactionAudit.setExternalApplicationReferenceCode(responseCode);
+        
+        // Update audit attributes
+        createOrUpdateAttribute(transactionAudit.getId(), "response_code", responseCode);
+        
+        // Create success audit log
+        createOrUpdateAuditLog(executionContext, transactionAudit, TransactionAuditLogsStatus.SUCCESS);
+    }
+    
+    // Optional: Override reversal methods if needed
+    @Override
+    protected void beforeReversal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Prepare reversal request
+    }
+    
+    @Override
+    protected void onReversal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Execute reversal
+    }
+    
+    @Override
+    protected void postReversal(ExecutionContext executionContext, TransactionAudit transactionAudit) 
+            throws NovopayFatalException, NovopayNonFatalException {
+        // Process reversal response
+    }
+}
+```
+
+**Characteristics**:
+- Extends `AbstractCreditCardManager`
+- Implements `beforeReal()` → `onReal()` → `postReal()` pattern
+- Full transaction audit tracking
+- API channel selection logic
+- Comprehensive error handling with reversal
+- Trial mode support
+- Audit logging at each stage
+### 3. Service Selection Guidelines
+
+#### When to Use AbstractProcessor:
+- ✅ Simple data fetching (e.g., `FetchEkycDetailsProcessor`)
+- ✅ Utility services without transaction tracking
+- ✅ Validation services
+- ✅ Configuration services
+- ✅ No API channel selection required
+- ✅ No complex error handling needed
+
+#### When to Use AbstractCreditCardManager:
+- ✅ Full transaction processing
+- ✅ Services requiring audit trails
+- ✅ API channel selection (DAP vs Salesforce)
+- ✅ Complex error handling with reversal
+- ✅ Trial mode support needed
+- ✅ Services that modify transaction state
+
+## Database Schema Patterns
+
+### TransactionAudit Table
+- Primary table for tracking all credit card transactions
+- Contains fields for both DAP and Salesforce processing
+- `api_channel` field identifies which system processed the transaction
+- Status tracking via `TransactionAuditStatus` enum (NA, FAIL, SUCCESS)
+
+## Integration Patterns
+
+### HDFC Bank Integration
+- Two channels: DAP (Direct API) and Salesforce
+- Channel selection based on corporate configuration
+- Different URLs and authentication for each channel
+- Service implementations in `novopay-platform-lib/infra-transaction-hdfc/`
+
+### Service Discovery Pattern
+- Use `CreditCardServicePartnerDiscoveryService` for service routing
+- Services implement specific interfaces (e.g., `CreditCardService`)
+- Dynamic bean selection based on execution context
+
+## Configuration Management
+- Use `@NovopayConfig` annotations for configuration
+- Default values should be provided for all configs
+- Channel-specific configs (e.g., `hdfc.cc.bank.api.channel`)
+- Once a new config annotation is added you need to add a flyway for `novopay-platform-masterdata-management` in `configuration` table
+
+## Error Handling Patterns
+- Use `NovopayFatalException` for unrecoverable errors (DB saving is not required)
+- Use `NovopayNonFatalException` for recoverable errors (DB saving is required)
+- Always log errors with context information
+- Update `TransactionAudit` with error codes and descriptions
+
+## Logging Patterns
+- Use SLF4J Logger with class-specific loggers
+- Log transaction boundaries with BEGIN/END markers
+- Include relevant IDs (transaction ID, client reference, etc.)
+- Log API channel selection decisions
+
+## Common util libraries
+Use org.apache.commons.lang3.StringUtils whenever required
+Use common utils available in novopay-platform-lib\util-platform project
+
+## Testing Considerations
+- Consider both DAP and Salesforce scenarios
+- Test API channel selection logic
+- Verify transaction audit updates
+- Test error handling paths
+
+## Common Tasks and Solutions
+
+### Adding New Fields to TransactionAudit
+1. Add field to entity with getter/setter
+2. Create flyway migration (follow workflow above)
+3. Update `insertTransactionAudit()` method if needed
+
+### Implementing API Channel Logic
+1. Use `selectApiChannel()` method for determination
+2. Store in `TransactionAudit.apiChannel`
+3. Pass via `ExecutionContext` with key `"selected_api_channel"`
+4. Service implementations read from ExecutionContext
+
+### Service URL Selection for `novopay-platform-lib` -> `infra-transaction-hdfc`
+1. Move URL selection logic to `doServiceCall()` method
+2. Read API channel from ExecutionContext
+3. Set URL based on channel (DAP vs Salesforce)
+4. Add appropriate logging
+
+## File Structure Reference
+```
+src/main/java/in/novopay/creditcard/
+├── entity/                    # JPA entities
+├── service/                   # Business logic services
+├── transaction/processor/     # Transaction processors
+├── common/processors/         # Common processors
+└── constants/                 # Constants and enums
+
+src/main/resources/sql/migrations/
+└── product/                   # Flyway migrations
+└── dsa/                       # DSA Tenant specific queries
+```
+
+## Key Constants and Enums
+- Define constants in `novopay-platform-creditcard-management\src\main\java\in\novopay\creditcard\constants`
+
+## Integration Points
+- `novopay-platform-lib`: Shared libraries and integrations
+- `infra-transaction-hdfc`: HDFC bank integration services
+- `infra-transaction-interface`: Service interfaces
+
+## Performance Considerations
+- Use async processing where appropriate
+- When using async use DefaultExecutionContext, dont pass shared executionContext
+- Efficient database queries
+
+## Security Patterns
+- Audit logging for all operations
+
+## Documentation
+- Any newly added knowledge should be added to Readme.md file

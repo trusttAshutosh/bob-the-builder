@@ -1,10 +1,26 @@
 # Developer onboarding (Cursor + Bob)
 
-Goal: clone Novopay layout → working `bob validate-ticket` with minimal manual steps.
+Goal: clone Novopay layout → working `bob validate-ticket` with **one command**.
+
+## Teammate quick start
+
+```bash
+# 1. Clone under one parent (e.g. Desktop/novopay):
+#    bob-the-builder, novopay-platform-creditcard-management, novopay-platform-lib, ...
+
+cd bob-the-builder
+python bob.py onboard
+```
+
+Answer the setup prompts once (workspace root, MySQL). Bob then installs itself, deploys the squad Cursor kit, and writes **`{workspace}/AGENTS.md`** at the centralized root you chose.
+
+Install Cursor plugins manually when the banner appears (`bob plugins`).
+
+You do **not** need separate `bob setup` + `bob install` on first run - `onboard` runs both.
 
 ---
 
-## Today (manual, ~30-60 min)
+## Today (manual, ~30-60 min) - legacy only
 
 1. **Clone repos** under one parent (e.g. `Desktop/novopay`):
    - `bob-the-builder`
@@ -50,6 +66,8 @@ python bob.py onboard [--dry-run] [--yes] [--smoke]
 | `--force` / `-f` | Overwrite existing Cursor rule / AGENTS.md / workspace file |
 | `--no-launchers` | Skip workspace `bob.py` shortcut |
 | `--skip-cursor-open` | Do not run `cursor novopay.code-workspace` |
+| `--skip-plugins` | Skip integrated `bob plugins` step (verify + install guide) |
+| `--skip-plugin-pause` | Do not wait for Enter after plugin install prompt |
 | `--smoke` | Run `validate-ticket sample-gateway-health-check` after bootstrap |
 | `--skip-smoke` | Skip smoke prompt |
 
@@ -62,16 +80,18 @@ python bob.py onboard [--dry-run] [--yes] [--smoke]
 | 3 | Run `bob install` + hooks | No |
 | 4 | Copy template files from `templates/onboarding/` | Yes (unless `--yes`) |
 | 5 | Cursor: write `~/.cursor/rules/novopay-orchestrator.mdc` | Yes (unless `--yes` / `--force`) |
-| 6 | Cursor: prominent plugin notice + `docs/CURSOR_PLUGINS.md` + `.cursor/CURSOR_PLUGINS.md` | Inform only (marketplace clicks) |
-| 7 | Write `novopay.code-workspace` to workspace root if missing | No |
-| 8 | Smoke `validate-ticket` on sample ticket | Yes (unless `--smoke` or prompt declined) |
+| 6 | Cursor: deploy workspace kit (skills, rules, hooks) under `{workspace}/.cursor/` | Yes (unless `--yes`; skip existing files unless `--force`) |
+| 7 | Cursor: deploy CC overlay + skills junction (when CC repo cloned) | Yes (unless `--yes`; junction needs `--force` if real dir exists) |
+| 8 | Cursor plugins: integrated `bob plugins` (status + install guide; opens Cursor first) | Manual marketplace clicks; optional Enter pause |
+| 9 | Write `novopay.code-workspace` to workspace root if missing | No |
+| 10 | Smoke `validate-ticket` on sample ticket | Yes (unless `--smoke` or prompt declined) |
 
 **Cannot fully automate (IDE limits):**
 
 - Installing Cursor plugins (user clicks in marketplace) - Bob prints a banner and writes [CURSOR_PLUGINS.md](CURSOR_PLUGINS.md); re-show with `bob plugins`
 - Opening workspace in Cursor (`bob onboard` tries `cursor novopay.code-workspace` when available)
 
-**Template bundle:** `bob-the-builder/templates/onboarding/` (see `README.onboarding.md`)
+**Template bundle:** `bob-the-builder/templates/onboarding/` (see `README.onboarding.md`). Includes workspace skills, rules, CC overlay, and junction setup. Refresh a machine with `bob onboard --force` after squad kit updates.
 
 ---
 

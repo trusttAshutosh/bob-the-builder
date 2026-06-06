@@ -7,10 +7,11 @@
 | `bob plugins` | Recommended Cursor marketplace plugins (manual install; maps to squad workflows) |
 | `bob meta-review [--dry-run]` | Monthly usage audit -> `docs/META_REVIEW.md` + context/MCP audits (stop hook every 30d) |
 | `bob context-audit [--dry-run]` | Cursor context % audit across active/archived chats |
+| `bob memory-budget [--dry-run] [--json]` | Working memory budget -> `docs/MEMORY_BUDGET.md` + workspace status JSON |
 | `bob mcp-audit [--dry-run] [--json]` | MCP + plugin keep/disable list for this machine -> `docs/MCP_AUDIT.md` |
 | `bob prune-overhead --dry-run` / `--apply` | Apply Bob squad MCP/plugin policy; reload Cursor after apply |
 | `bob chat-hygiene [--dry-run] [--auto]` | Archive stale/overflow Cursor chats (never delete) |
-| `bob onboard` | Setup + install + Cursor templates + plugin notice |
+| `bob onboard` | Setup + install + full squad Cursor kit (skills, rules, hooks, CC junction) + plugin notice |
 | `bob setup` | Workspace, MySQL, `{SERVICE}_BASE` URLs from host `deploy/tdd` → `BOB_LOCAL/user.env` |
 | `bob host` | Show `BOB_HOST_REPO`, workspace repos, active `deploy/tdd` profile |
 | `bob install` | Seed **empty** `assets/` from `_seed` + `local/`; install post-commit hook |

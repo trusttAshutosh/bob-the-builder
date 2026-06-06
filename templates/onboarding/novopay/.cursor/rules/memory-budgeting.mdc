@@ -1,0 +1,33 @@
+---
+description: Working memory budgeting - keep Cursor context under control for Novopay + Bob tickets
+alwaysApply: true
+---
+
+# Memory budgeting (Cursor + Bob)
+
+Treat the context window as a fixed budget (~200K). Squad target: **stay under ~60%** on active ticket chats.
+
+## Four buckets
+
+| Bucket | What belongs | Examples |
+|--------|----------------|----------|
+| **A - Fixed** | Always needed | Active ticket id, 4-gate checklist, orchestrator rules |
+| **B - Session** | This chat only | ticket-spec.yaml, files you are editing, last Bob PASS/FAIL summary |
+| **C - On demand** | Fetch when needed | One processor YAML, one DB verify query, `bob query-graph` slice |
+| **D - Never** | Out of chat | Full repo @, unrelated `docs/tdd-runs/`, Gradle/boot logs, old tickets |
+
+## Agent habits
+
+- **One ticket per chat.** Archive when switching tickets (`bob chat-hygiene --auto`).
+- **Pin sparingly:** ticket-spec + 1-2 files max.
+- **Bob proof stays in files:** read `GATE_SUMMARY.md` / `REPORT.md` paths; summarize in ~5 lines, do not paste logs.
+- **Start heavy work fresh:** if context feels full, new chat + `docs/tdd-runs/<id>/TICKET_RESUME.md`.
+- **Run once per ticket:** `bob context --ticket <id>` - link paths, do not dump the whole CONTEXT_PACK.
+
+## Session status
+
+If `{workspace}/.cursor/memory-budget-status.json` shows `"status": "critical"` or `"warn"`, prefer a **new chat** before large edits and run `bob memory-budget`.
+
+## Commands
+
+`bob memory-budget` · `bob context-audit` · `bob chat-hygiene --auto` · `bob prune-overhead --apply`

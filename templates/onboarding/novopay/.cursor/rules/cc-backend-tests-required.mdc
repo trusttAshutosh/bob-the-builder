@@ -1,0 +1,33 @@
+---
+description: When editing credit-card service code or CC orchestration, add or update backend tests using the cc-backend-test-generation skill.
+globs:
+  - "**/in/novopay/creditcard/**/*.java"
+  - "**/deploy/application/orchestration/**/*.xml"
+alwaysApply: false
+---
+
+# Credit card, bulk, add-on (AOC), and LOC — backend tests
+
+When your change touches **production** code under `in/novopay/creditcard` (including bulk, LOC, add-on/AOC-related processors, services, consumers, or controllers) or **orchestration** under `deploy/application/orchestration`, treat automated tests as part of the same deliverable.
+
+## Default scope policy (important)
+
+- By default, generate tests only for the **current diff / changed files** and immediate impacted collaborators.
+- Do **not** run full-repo test-generation scans unless the user explicitly asks for a repo-wide sweep.
+- If scope is unclear, ask for the smallest intended scope first (class/package/flow).
+
+## What to do before you consider the task done
+
+1. Read and follow **`.cursor/skills/cc-backend-test-generation/SKILL.md`** for matrices (T1–T4, JT1–JT3), patterns (JUnit 5 + Mockito, controller slice tests), and flow anchors (manageCC, bulk, add-on (AOC), LOC).
+2. **Add or update** unit tests, and where the change affects an API or ordering of steps, add or extend **integration-style** (`MockMvc` / slice) and **journey** tests as that skill describes.
+3. Run **targeted** Gradle tests for the packages or classes you touched, then widen if needed before hand-off.
+
+## Scope notes
+
+- **Test-only edits** under `src/test/java/.../creditcard/` still must stay consistent with behavior and compile; prefer extending coverage when fixing bugs in those areas.
+- **Orchestration XML** changes warrant contract or processor tests that assert the branches you changed (`function_code`, `function_sub_code`, `run_mode`, validators, controls).
+- Do **not** add unrelated refactors; keep test changes tied to the behavioral surface you modified.
+
+## If you cannot add tests in the same change
+
+State briefly what is blocked (missing deps, flaky environment, follow-up ticket id) and list the **minimal** test cases you would add next.
