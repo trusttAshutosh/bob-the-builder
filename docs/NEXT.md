@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=53bec4c -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-06-06 -->
+<!-- PRODUCT-VERIFY:COMMIT=07aae17 -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-07 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,56 +28,55 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-06 · commit `53bec4c` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-07 · commit `07aae17` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `53bec4c` — feat(cursor): onboard hooks, context audit, and MCP overhead pruning
-**Date:** 2026-06-06
+**Commit:** `07aae17` — feat(onboard): squad Cursor kit, integrated plugins, and memory budgeting
+**Date:** 2026-06-07
 
 ### Files changed
-- `.gitignore`
-- `assets/examples/sample-validate-output/GATE_SUMMARY.md`
-- `assets/examples/sample-validate-output/REPORT.md`
-- `assets/examples/sample-validate-output/run-summary.json`
+- `README.md`
 - `docs/BOB_CHEATSHEET.md`
-- `docs/CURSOR_PLUGINS.md`
 - `docs/KT_CURSOR_AND_BOB.md`
 - `docs/ONBOARDING_DEVELOPER.md`
-- `docs/README.md`
 - `runner/lib/builder_cli.py`
-- `runner/lib/chat_hygiene.py`
-- `runner/lib/context_audit.py`
+- `runner/lib/context_assembly.py`
 - `runner/lib/cursor_hook.py`
-- `runner/lib/cursor_overhead.py`
 - `runner/lib/cursor_plugins.py`
-- `runner/lib/install_workspace.py`
-- `runner/lib/meta_review.py`
+- `runner/lib/graph_retrieval.py`
+- `runner/lib/memory_budget.py`
 - `runner/lib/onboard.py`
-- `runner/lib/orchestrator_gates.py`
-- `runner/lib/prune_cursor_overhead.py`
-- `runner/lib/run_summary.py`
 - `runner/lib/setup_prefs.py`
-- `runner/tests/test_chat_hygiene.py`
-- `runner/tests/test_context_audit.py`
-- `runner/tests/test_cursor_hook.py`
-- `runner/tests/test_cursor_overhead.py`
-- `runner/tests/test_meta_review.py`
+- `runner/lib/ticket_spec.py`
+- `runner/tests/test_memory_budget.py`
 - `runner/tests/test_onboard.py`
-- `scripts/analyze_all_chats_cumulative.py`
-- `scripts/analyze_conversation_breakdown.py`
-- `scripts/audit_context_usage.py`
 - `templates/onboarding/README.onboarding.md`
-- `templates/onboarding/cursor/hooks.json`
-- `templates/onboarding/cursor/hooks/bob-hook-runner.sh`
-- `templates/onboarding/cursor/novopay-orchestrator.mdc`
+- `templates/onboarding/host-cc/.cursor/hooks.json`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-nudge.sh`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-stop-followup.sh`
+- `templates/onboarding/host-cc/.cursor/rules/cc-backend-tests-required.mdc`
+- `templates/onboarding/host-cc/.cursor/rules/development-guidelines.mdc`
+- `templates/onboarding/host-cc/.cursor/rules/documentation-punctuation.mdc`
+- `templates/onboarding/novopay/.cursor/hooks.json`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-nudge.sh`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-stop-followup.sh`
+- `templates/onboarding/novopay/.cursor/rules/cc-backend-tests-required.mdc`
+- `templates/onboarding/novopay/.cursor/rules/development-guidelines.mdc`
+- `templates/onboarding/novopay/.cursor/rules/documentation-punctuation.mdc`
+- `templates/onboarding/novopay/.cursor/rules/memory-budgeting.mdc`
+- `templates/onboarding/novopay/.cursor/skills/README.md`
+- `templates/onboarding/novopay/.cursor/skills/cc-backend-test-generation/SKILL.md`
+- `templates/onboarding/novopay/.cursor/skills/generate-test-plan-change-flow-based/SKILL.md`
+- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/SKILL.md`
+- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/examples.md`
+- `templates/onboarding/novopay/.cursor/skills/ticket-breakdown-planning/templates.md`
 - `templates/onboarding/novopay/AGENTS.md.stub`
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
 - Workspace setup & install (`workspace-setup`) — files touched
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
