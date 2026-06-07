@@ -85,13 +85,6 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 
 ## Next (P1 — reusability / less CC bias)
 
-- [x] **`bob onboard`** — one-command dev bootstrap: setup + install + copy Cursor rule/hooks/workspace templates (approve list); see [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) (2026-06-06)
-- [x] **`bob meta-review`** — monthly usage audit (Bob pass rates, boot failures, rule/skill drift vs templates); suggestions only (2026-06-06)
-- [x] **KT doc for teammates** — [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) (2026-06-06)
-- [x] **Neutral ticket-spec schema** — `HOST_REPO_FOLDER` placeholder; CC values documented as examples (2026-06-02)
-- [x] **Generic discover-apis skeleton** — `host_profile.discover_api_catalog_fields()` from host repo + deploy/tdd (2026-06-02)
-- [x] **Host profile layer** — `runner/lib/host_profile.py`, `runner/config/bob-defaults.yaml`, `bob host`, `docs/WORKSPACE_AND_HOST_PROFILE.md` (2026-06-02)
-- [x] **Setup wizard env names** — `bob setup` prompts each `{SERVICE}_BASE` from deploy/tdd via `service_base_prompts()` (2026-06-02)
 - [ ] **Header profiles** — today single profile `dsa-agent-app`; add neutral template + example under `assets/examples/`
 - [ ] **Second reference pack** — e.g. `assets/examples/novopay-payments/` when a second service dogfoods Bob (proves the empty-catalog model)
 
@@ -99,8 +92,6 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 
 - [ ] **Windows validate-ticket** — document bash requirement; expand Python fallback parity with `run-tdd.sh`
 - [ ] **Orchestration-less hosts** — discovery today requires `deploy/application/orchestration/`; support OpenAPI-only or Gradle route scan as alternative
-- [ ] **CI beyond doc-lint** — smoke `bob install` + `bob discover-apis` against a fixture host in GitHub Actions
-- [ ] **`bob next --edit`** — open this file in `$EDITOR` (optional convenience)
 - [ ] **Agent skill pointer** — builder-analyst skill should cite `docs/NEXT.md` when scoping work
 
 ---
@@ -118,7 +109,16 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 | 2025-05-23 | **Git branch policy** — `git.branch_policy: none \| novopay-feature`; default `none`; checkout only when explicitly enabled |
 | 2025-05-23 | **Central backlog** — this file (`docs/NEXT.md`) + `bob next` |
 | 2026-05-23 | **Scorecard + feature registry** — `product-features.yaml`, `bob verify-product`, CI `product-verify.yml`; auto sections in this doc |
+| 2026-06-07 | **CI smoke** — `.github/workflows/bob-smoke.yml` runs `bob install` + `bob discover-apis` on `runner/tests/fixtures/ci-host/` |
+| 2026-06-07 | **`bob next --edit`** — open `docs/NEXT.md` in `$VISUAL` / `$EDITOR` (`notepad` on Windows) |
 | 2026-06-02 | **Host profile + doc index** — `host_profile.py`, `bob host`, deploy/tdd setup URLs, [docs/README.md](README.md); cheatsheet + guide updates |
+| 2026-06-02 | **Setup wizard env names** — `bob setup` prompts each `{SERVICE}_BASE` from deploy/tdd via `service_base_prompts()` |
+| 2026-06-02 | **Host profile layer** — `runner/lib/host_profile.py`, `runner/config/bob-defaults.yaml`, `bob host`, [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) |
+| 2026-06-02 | **Neutral ticket-spec schema** — `HOST_REPO_FOLDER` placeholder; CC values documented as examples |
+| 2026-06-02 | **Generic discover-apis skeleton** — `host_profile.discover_api_catalog_fields()` from host repo + deploy/tdd |
+| 2026-06-06 | **`bob onboard`** — one-command dev bootstrap: setup + install + squad Cursor kit; see [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) |
+| 2026-06-06 | **`bob meta-review`** — monthly usage audit (pass rates, boot failures, rule/skill drift); suggestions only |
+| 2026-06-06 | **KT doc for teammates** — [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) |
 
 ---
 

@@ -1,0 +1,22 @@
+# Minimal deploy/tdd profile for CI smoke (fixture host only).
+header_profile: dsa-agent-app
+primary_service: credit_card_management
+
+services:
+  credit_card_management:
+    base_env_var: CC_BASE
+    default_base: http://localhost:8016/cc-mgmt
+    health_path: /actuator/health
+    boot:
+      task: bootRun
+
+mysql:
+  schemas:
+    audit: dsa_credit_card_mgmt
+
+audit:
+  table: transaction_audit
+  crn_column: client_reference_code
+  order_by: updated_on DESC
+  columns:
+    - txn_status

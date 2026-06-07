@@ -64,6 +64,8 @@ def apply_prefs_to_environ(prefs: dict[str, str]) -> None:
 
 
 def load_prefs_into_environ() -> dict[str, str]:
+    if os.environ.get("BOB_IGNORE_PREFS", "").strip().lower() in ("1", "true", "yes"):
+        return {}
     prefs = load_all_prefs()
     apply_prefs_to_environ(prefs)
     return prefs

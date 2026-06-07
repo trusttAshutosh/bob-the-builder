@@ -1,0 +1,19 @@
+# Smoke bob install + discover-apis against a minimal fixture host (no live Novopay clone).
+name: Bob install discover smoke
+on:
+  pull_request:
+    paths:
+      - '**/*'
+  push:
+    branches: [master, main]
+jobs:
+  smoke-install-discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyyaml
+      - name: Smoke bob install + discover-apis
+        run: python3 runner/ci/smoke-install-discover.py

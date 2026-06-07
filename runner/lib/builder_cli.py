@@ -156,7 +156,7 @@ def _print_help() -> None:
     print("  ticket-status ID   Show last run PASS/FAIL + decision trace")
     print("  open-report ID     Print paths to GATE_SUMMARY.md, REPORT.md, REPORT.html, run-summary.json")
     print("  list-tickets       List ticket folders in host repo")
-    print("  next               Improvement backlog (docs/NEXT.md)")
+    print("  next [--edit|-e]   Improvement backlog (docs/NEXT.md); --edit opens in $EDITOR")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
     print("  remind [--fix]     One-line status; --fix refreshes docs/NEXT.md for you")
     print("  start-services [--ticket ID | --profile NAME] [service-key...]")
@@ -1214,12 +1214,42 @@ def _next_doc_path() -> Path:
     return candidates[0]
 
 
-def cmd_next(_: list[str]) -> int:
+def _resolve_editor_argv() -> list[str]:
+    import shlex
+    import shutil
+
+    for key in ("VISUAL", "EDITOR"):
+        raw = os.environ.get(key, "").strip()
+        if raw:
+            return shlex.split(raw, posix=(os.name != "nt"))
+    if os.name == "nt":
+        return ["notepad"]
+    for fallback in ("nano", "vi"):
+        if shutil.which(fallback):
+            return [fallback]
+    return ["vi"]
+
+
+def _open_path_in_editor(path: Path) -> int:
+    editor = _resolve_editor_argv()
+    try:
+        proc = subprocess.run([*editor, str(path)], check=False)
+        return proc.returncode
+    except FileNotFoundError:
+        print(f"Editor not found: {editor[0]}", file=sys.stderr)
+        print("Set EDITOR or VISUAL (e.g. export EDITOR=nano).", file=sys.stderr)
+        return 1
+
+
+def cmd_next(args: list[str]) -> int:
     path = _next_doc_path()
     if not path.is_file():
         print(f"Missing backlog: {path}", file=sys.stderr)
         print("Create docs/NEXT.md in the bob-the-builder repo.", file=sys.stderr)
         return 1
+    if "--edit" in args or "-e" in args:
+        print(f"Opening backlog in editor: {path}")
+        return _open_path_in_editor(path)
     text = path.read_text(encoding="utf-8")
     print(f"Improvement backlog: {path}")
     print()

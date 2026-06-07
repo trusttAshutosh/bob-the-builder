@@ -178,7 +178,7 @@ def discover_apis() -> int:
     from bob_home import ensure_bob_home
 
     home = ensure_bob_home()
-    print(f"API catalog → {home / 'api-catalog'}")
+    print(f"API catalog -> {home / 'api-catalog'}")
     if not yaml:
         print("Install PyYAML: pip install pyyaml", file=sys.stderr)
         return 1
