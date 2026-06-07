@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=2b7036f -->
+<!-- PRODUCT-VERIFY:COMMIT=fd0f812 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,18 +28,39 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `2b7036f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `fd0f812` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `2b7036f` — docs: refresh NEXT.md and sample validate output [bob]
+**Commit:** `fd0f812` — feat: builder-intel, path shims, fresh boot, and terminal diagnostics
 **Date:** 2026-06-08
 
 ### Files changed
+- `bob.ps1`
+- `docs/BOB_CHEATSHEET.md`
+- `docs/BOB_GUIDE.md`
 - `docs/NEXT.md`
+- `docs/doc-invariants.yaml`
+- `docs/internal/BUILDER_INTEL.md`
+- `docs/product-features.yaml`
+- `runner/ci/verify-product.py`
+- `runner/hooks/post-commit`
+- `runner/lib/boot_plan.py`
+- `runner/lib/builder_cli.py`
+- `runner/lib/builder_intel_sync.py`
+- `runner/lib/path_shim.py`
+- `runner/lib/service_boot.py`
+- `runner/tests/test_boot_plan.py`
+- `runner/tests/test_builder_intel_sync.py`
+- `runner/tests/test_path_shim.py`
 
 ### Features touched in this commit
+- Core CLI entry (`cli-core`) — files touched
+- Workspace setup & install (`workspace-setup`) — files touched
+- Gradle bootRun + dynamic peer discovery (`service-boot`) — files touched
 - Improvement backlog & reminders (`improvement-backlog`) — files touched
+- PATH shim (bob on PATH) (`path-shim`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
