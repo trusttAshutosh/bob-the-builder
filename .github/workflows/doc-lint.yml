@@ -22,6 +22,7 @@ jobs:
             ':!runner/lib/cleanup_workspace.py' \
             ':!docs/BOB_CHEATSHEET.md' \
             ':!docs/NEXT.md' \
+            ':!docs/doc-invariants.yaml' \
             ':!runner/lib/bob_home.py' \
             ':!.github/workflows/doc-lint.yml'; then
             echo "Legacy path references found (see grep output above)." >&2

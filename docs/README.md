@@ -9,9 +9,9 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 | [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) | **KT / handoff** — Cursor + Bob + orchestrator gates for teammates |
 | [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) | New dev machine setup + `bob onboard` |
 | [CURSOR_PLUGINS.md](CURSOR_PLUGINS.md) | Marketplace plugins that pair with Bob workflows (`bob plugins`) |
-| [META_REVIEW.md](META_REVIEW.md) | Latest `bob meta-review` audit output (suggestions only) |
-| [CONTEXT_USAGE_AUDIT.md](CONTEXT_USAGE_AUDIT.md) | Latest `bob context-audit` Cursor context % report |
-| [MCP_AUDIT.md](MCP_AUDIT.md) | Latest `bob mcp-audit` MCP + plugin keep/disable report |
+| [META_REVIEW.md](META_REVIEW.md) | Latest `bob meta-review` output (generated locally; optional in git) |
+| [CONTEXT_USAGE_AUDIT.md](CONTEXT_USAGE_AUDIT.md) | Latest `bob context-audit` report (generated locally) |
+| [MCP_AUDIT.md](MCP_AUDIT.md) | Latest `bob mcp-audit` report (generated locally) |
 | [../README.md](../README.md) | Clone, `bob setup`, daily commands |
 | [../assets/examples/sample-validate-output/README.md](../assets/examples/sample-validate-output/README.md) | **See sample outputs** — requirement → generated files (refreshed with engine) |
 | [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) | Full workflow, architecture, FAQ |

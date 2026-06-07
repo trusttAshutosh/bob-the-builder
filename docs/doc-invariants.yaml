@@ -216,3 +216,10 @@ markdown_links:
     - docs/MCP_AUDIT.md
     - assets/examples/sample-validate-output/REPORT.md
     - assets/examples/sample-validate-output/REPORT.html
+
+# Written locally by bob meta-review / context-audit / mcp-audit / memory-budget — not required in git.
+generated_docs:
+  - docs/META_REVIEW.md
+  - docs/CONTEXT_USAGE_AUDIT.md
+  - docs/MCP_AUDIT.md
+  - docs/MEMORY_BUDGET.md

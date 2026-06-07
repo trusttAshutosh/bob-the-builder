@@ -220,10 +220,19 @@ def _is_external_link(target: str) -> bool:
     return t.startswith("http://") or t.startswith("https://") or t.startswith("mailto:")
 
 
+def _normalize_link_target(from_file: Path, target: str) -> str:
+    resolved = (from_file.parent / target).resolve()
+    try:
+        return str(resolved.relative_to(ROOT.resolve())).replace("\\", "/")
+    except ValueError:
+        return target.replace("\\", "/")
+
+
 def check_markdown_links(data: dict) -> list[Finding]:
     findings: list[Finding] = []
     block = data.get("markdown_links") or {}
     exclude = {x.replace("\\", "/") for x in (block.get("exclude_files") or [])}
+    generated = {x.replace("\\", "/") for x in (data.get("generated_docs") or [])}
     link_re = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
     for path in _expand_files(block.get("scan_globs") or []):
         rel = _rel(path)
@@ -236,6 +245,9 @@ def check_markdown_links(data: dict) -> list[Finding]:
                 continue
             target = target.split("#", 1)[0].strip()
             if not target:
+                continue
+            norm = _normalize_link_target(path, target)
+            if norm in generated:
                 continue
             resolved = (path.parent / target).resolve()
             try:

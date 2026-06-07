@@ -19,6 +19,21 @@ sys.modules["verify_docs"] = verify_docs
 _spec.loader.exec_module(verify_docs)
 
 
+def test_generated_doc_links_allowed(tmp_path: Path, monkeypatch) -> None:
+    root = tmp_path / "repo"
+    docs = root / "docs"
+    docs.mkdir(parents=True)
+    (docs / "index.md").write_text("[meta](META_REVIEW.md)\n", encoding="utf-8")
+    inv = {
+        "markdown_links": {"scan_globs": ["docs/**/*.md"], "exclude_files": []},
+        "generated_docs": ["docs/META_REVIEW.md"],
+    }
+    monkeypatch.setattr(verify_docs, "ROOT", root)
+    monkeypatch.setattr(verify_docs, "INVARIANTS_YAML", root / "docs" / "doc-invariants.yaml")
+    findings, _ = verify_docs.verify_all(inv)
+    assert not any(f.rule_id == "markdown_links" for f in findings)
+
+
 def test_verify_all_passes_on_product_tree() -> None:
     findings, _ = verify_docs.verify_all()
     assert findings == [], [f"{f.rule_id}: {f.detail}" for f in findings]
