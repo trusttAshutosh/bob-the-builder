@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=823e714 -->
+<!-- PRODUCT-VERIFY:COMMIT=ab8b668 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,19 +28,22 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `823e714` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `ab8b668` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `823e714` — fix: install-hooks return tuple (was 3-tuple parse bug)
+**Commit:** `ab8b668` — fix(ci): doc-lint exclude invariants; allow generated audit doc links
 **Date:** 2026-06-08
 
 ### Files changed
-- `runner/lib/git_hooks.py`
-- `runner/tests/test_git_hooks.py`
+- `.github/workflows/doc-lint.yml`
+- `docs/README.md`
+- `docs/doc-invariants.yaml`
+- `runner/ci/verify-docs.py`
+- `runner/tests/test_verify_docs.py`
 
 ### Features touched in this commit
-- Workspace setup & install (`workspace-setup`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
