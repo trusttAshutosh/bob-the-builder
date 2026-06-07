@@ -1,5 +1,22 @@
-# CI fixture host
+# CI / fresh-install fixture host
 
-Minimal Novopay-shaped host tree for GitHub Actions smoke tests (`bob install`, `bob discover-apis`).
+Minimal Novopay-shaped **non-CC** host tree for:
 
-Not a runnable service - only orchestration XML + `deploy/tdd/` profile.
+- `runner/ci/verify-fresh-install.py`
+- `.github/workflows/bob-smoke.yml`
+
+Not a runnable service - orchestration XML + `deploy/tdd/` only.
+
+| Property | Value |
+|----------|--------|
+| Simulated clone name | `novopay-platform-payments-fixture` |
+| Catalog `service` slug | `payments-fixture` |
+| Base env var | `PAYMENTS_BASE` |
+| APIs in XML | `smokeGetHealth`, `smokeSubmitOrder` |
+
+Run locally:
+
+```bash
+python runner/ci/verify-fresh-install.py
+# or: bob verify-fresh-install
+```

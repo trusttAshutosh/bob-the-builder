@@ -174,6 +174,8 @@ Full index: [docs/README.md](docs/README.md).
 - [docs/BOB_CHEATSHEET.md](docs/BOB_CHEATSHEET.md) — commands
 - [docs/WORKSPACE_AND_HOST_PROFILE.md](docs/WORKSPACE_AND_HOST_PROFILE.md) — multi-repo workspace + CC defaults
 - [docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) — other Novopay services
+- [docs/FRESH_INSTALL_VERIFY.md](docs/FRESH_INSTALL_VERIFY.md) — empty catalog + non-CC discover proof (`bob verify-fresh-install`)
+- [docs/CONTRIBUTING_REFERENCE_PACKS.md](docs/CONTRIBUTING_REFERENCE_PACKS.md) — optional `assets/examples/` via branch + PR
 - [docs/BOB_CONTEXT_AND_EVAL.md](docs/BOB_CONTEXT_AND_EVAL.md) — context pack + eval regression
 - [docs/EVIDENCE_AND_VERIFY.md](docs/EVIDENCE_AND_VERIFY.md) — DB / logs / Kafka / Redis verify docs + `evidence/`
 - [docs/KAFKA_FOR_BOB.md](docs/KAFKA_FOR_BOB.md) — Kafka discover / verify / `evidence/kafka/`

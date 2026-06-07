@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CI smoke entry — delegates to verify-fresh-install."""
+"""CI + local: verify bob install seeds empty catalog; discover-apis works on non-CC host."""
 from __future__ import annotations
 
 import sys

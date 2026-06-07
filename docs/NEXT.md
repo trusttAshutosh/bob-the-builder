@@ -93,13 +93,11 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 ## Now (P0 — blocks “works for any team”)
 
 - [ ] **Publish product repo** — initial commit + GitHub remote; document clone URL in README
-- [ ] **Host glue template in CC (optional)** — if CC team uses Bob again: copy `templates/host-deploy-tdd/` → `deploy/tdd/` without shipping `tools/tdd-runner/` in the service repo
-- [ ] **Verify fresh install story** — `bob install` on a clean clone → empty `assets/api-catalog`, discover from a non-CC host repo works end-to-end
 
 ## Next (P1 — reusability / less CC bias)
 
 - [ ] **Header profiles** — today single profile `dsa-agent-app`; add neutral template + example under `assets/examples/`
-- [ ] **Second reference pack** — e.g. `assets/examples/novopay-payments/` when a second service dogfoods Bob (proves the empty-catalog model)
+- [ ] **Second reference pack** — e.g. `assets/examples/novopay-payments/` when a second service dogfoods Bob; contribution flow in [CONTRIBUTING_REFERENCE_PACKS.md](CONTRIBUTING_REFERENCE_PACKS.md)
 
 ## Later (P2 — polish)
 
@@ -122,6 +120,8 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 | 2025-05-23 | **Git branch policy** — `git.branch_policy: none \| novopay-feature`; default `none`; checkout only when explicitly enabled |
 | 2025-05-23 | **Central backlog** — this file (`docs/NEXT.md`) + `bob next` |
 | 2026-05-23 | **Scorecard + feature registry** — `product-features.yaml`, `bob verify-product`, CI `product-verify.yml`; auto sections in this doc |
+| 2026-06-07 | **CC host glue** — `novopay-platform-creditcard-management/deploy/tdd/` synced from Bob template; README; no embedded TDD runner |
+| 2026-06-07 | **Fresh install verify** — `bob verify-fresh-install` + CI; empty catalog after install, discover from non-CC fixture host ([FRESH_INSTALL_VERIFY.md](FRESH_INSTALL_VERIFY.md)) |
 | 2026-06-07 | **CI smoke** — `.github/workflows/bob-smoke.yml` runs `bob install` + `bob discover-apis` on `runner/tests/fixtures/ci-host/` |
 | 2026-06-07 | **`bob next --edit`** — open `docs/NEXT.md` in `$VISUAL` / `$EDITOR` (`notepad` on Windows) |
 | 2026-06-02 | **Host profile + doc index** — `host_profile.py`, `bob host`, deploy/tdd setup URLs, [docs/README.md](README.md); cheatsheet + guide updates |

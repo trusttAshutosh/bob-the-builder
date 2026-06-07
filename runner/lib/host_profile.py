@@ -46,6 +46,13 @@ def env_block(spec: dict | None = None) -> dict[str, Any]:
     return {}
 
 
+def _resolved_env_block(spec: dict | None = None) -> dict[str, Any]:
+    block = env_block(spec)
+    if block:
+        return block
+    return effective_env_block()
+
+
 def _base_env_var_for_service(service_key: str) -> str:
     d = bob_defaults()
     if service_key == d.get("primary_service"):
@@ -64,7 +71,7 @@ def infer_primary_service_key_from_host() -> str:
 
 
 def primary_service_key(spec: dict | None = None) -> str:
-    block = env_block(spec)
+    block = _resolved_env_block(spec)
     if block.get("primary_service"):
         return str(block["primary_service"])
     inferred = infer_primary_service_key_from_host()
@@ -75,7 +82,7 @@ def primary_service_key(spec: dict | None = None) -> str:
 
 def primary_service_entry(spec: dict | None = None) -> dict[str, Any]:
     key = primary_service_key(spec)
-    block = env_block(spec)
+    block = _resolved_env_block(spec)
     services = block.get("services") or {}
     if isinstance(services.get(key), dict):
         return dict(services[key])
@@ -119,7 +126,7 @@ def resolved_primary_base(spec: dict | None = None) -> str:
 
 
 def gateway_v2_segment(spec: dict | None = None) -> str:
-    block = env_block(spec)
+    block = _resolved_env_block(spec)
     custom = block.get("gateway_v2_segment") or block.get("gateway_service")
     if custom:
         return str(custom)

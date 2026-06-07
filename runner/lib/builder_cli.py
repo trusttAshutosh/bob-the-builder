@@ -69,6 +69,8 @@ CMD_ALIASES: dict[str, str] = {
     "roadmap": "next",
     "backlog": "next",
     "verify-product": "verify-product",
+    "verify-fresh-install": "verify-fresh-install",
+    "fresh-install": "verify-fresh-install",
     "start-services": "start-services",
     "boot-services": "start-services",
     "need-service": "need-service",
@@ -158,6 +160,7 @@ def _print_help() -> None:
     print("  list-tickets       List ticket folders in host repo")
     print("  next [--edit|-e]   Improvement backlog (docs/NEXT.md); --edit opens in $EDITOR")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
+    print("  verify-fresh-install  Clean install + non-CC discover-apis (CI fixture; see docs/FRESH_INSTALL_VERIFY.md)")
     print("  remind [--fix]     One-line status; --fix refreshes docs/NEXT.md for you")
     print("  start-services [--ticket ID | --profile NAME] [service-key...]")
     print("                     Gradle bootRun for workspace services (health wait)")
@@ -774,6 +777,16 @@ def cmd_verify_product(args: list[str]) -> int:
     return subprocess.run(cmd, cwd=str(bob_product_root())).returncode
 
 
+def cmd_verify_fresh_install(args: list[str]) -> int:
+    _banner("verify-fresh-install")
+    from fresh_install_verify import main as verify_main
+
+    argv = ["verify-fresh-install"]
+    if "--quiet" in args or "-q" in args:
+        argv.append("--quiet")
+    return verify_main(argv)
+
+
 def cmd_remind(args: list[str]) -> int:
     _banner("remind")
     from product_reminder import remind_message
@@ -1312,6 +1325,7 @@ def main() -> int:
         "open-report": cmd_open_report,
         "next": cmd_next,
         "verify-product": cmd_verify_product,
+        "verify-fresh-install": cmd_verify_fresh_install,
         "remind": cmd_remind,
         "start-services": cmd_start_services,
         "need-service": cmd_need_service,
@@ -1339,6 +1353,7 @@ def main() -> int:
         "version",
         "next",
         "verify-product",
+        "verify-fresh-install",
         "remind",
         "plugins",
         "meta-review",

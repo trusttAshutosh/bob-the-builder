@@ -72,6 +72,10 @@ Run `bob host` to confirm `BOB_HOST_REPO` and which `deploy/tdd` profile is load
 
 Details: [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md).
 
+**Prove the empty-catalog path** (no CC repo required): `bob verify-fresh-install` — see [FRESH_INSTALL_VERIFY.md](FRESH_INSTALL_VERIFY.md). CI runs the same check on every push.
+
+**Share a reference pack later (optional):** after dogfooding, curate `assets/examples/<your-service>/` and open a PR from branch `examples/<name>-initial` — [CONTRIBUTING_REFERENCE_PACKS.md](CONTRIBUTING_REFERENCE_PACKS.md). Bob never pushes for you.
+
 ## Prerequisites
 
 - Git clone `bob-the-builder` next to service repos under one parent folder

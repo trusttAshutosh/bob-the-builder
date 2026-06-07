@@ -1,18 +1,19 @@
-# Minimal deploy/tdd profile for CI smoke (fixture host only).
+# Non-CC fixture profile (payments-shaped). Filename matches bob-defaults env_profile lookup.
 header_profile: dsa-agent-app
-primary_service: credit_card_management
+primary_service: payments_management
+gateway_v2_segment: payments_management
 
 services:
-  credit_card_management:
-    base_env_var: CC_BASE
-    default_base: http://localhost:8016/cc-mgmt
+  payments_management:
+    base_env_var: PAYMENTS_BASE
+    default_base: http://localhost:8020/payments
     health_path: /actuator/health
     boot:
       task: bootRun
 
 mysql:
   schemas:
-    audit: dsa_credit_card_mgmt
+    audit: dsa_payments
 
 audit:
   table: transaction_audit

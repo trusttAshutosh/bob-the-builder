@@ -35,6 +35,7 @@
 | `bob next` | Print improvement backlog → [NEXT.md](NEXT.md) |
 | `bob next --edit` | Open [NEXT.md](NEXT.md) in `$EDITOR` |
 | `bob verify-product` | Check feature registry; `--update` refreshes scorecard sections in NEXT.md |
+| `bob verify-fresh-install` | Prove empty catalog after install + non-CC `discover-apis` (CI fixture) |
 | `bob ensure-peers` | Scan host code/properties; boot peer services not already up (no deploy/tdd required) |
 | `bob need-service NAME` | Register + boot one peer by hint (`notifications`, `consents`, `masterdata`, …) |
 | `bob discover-services` | List peers; add `--boot` to start all |

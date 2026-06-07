@@ -24,6 +24,8 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 |-----|----------|
 | [WORKSPACE_AND_HOST_PROFILE.md](WORKSPACE_AND_HOST_PROFILE.md) | `BUILDER_WORKSPACE_ROOT`, `BOB_HOST_REPO`, `bob host`, CC defaults vs other services |
 | [ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) | Onboarding a non-CC Novopay service (one shared Bob, no fork) |
+| [FRESH_INSTALL_VERIFY.md](FRESH_INSTALL_VERIFY.md) | Prove empty catalog + non-CC `discover-apis` (`bob verify-fresh-install`) |
+| [CONTRIBUTING_REFERENCE_PACKS.md](CONTRIBUTING_REFERENCE_PACKS.md) | Optional `assets/examples/<service>/` via branch + PR (after dogfood) |
 | [../templates/host-deploy-tdd/README.md](../templates/host-deploy-tdd/README.md) | Copy `deploy/tdd/` into a host repo |
 
 ## Validate-ticket and evidence
@@ -60,8 +62,8 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 
 ## Product config (not prose)
 
-| Path | Role |
+| Doc | Role |
 |------|------|
-| `runner/config/bob-defaults.yaml` | CC/DSA fallbacks when host `deploy/tdd` is missing |
-| `runner/lib/host_profile.py` | Host profile resolution (used by setup, discover-apis, validate) |
-| `assets/examples/novopay-cc/` | Optional CC reference catalog — not auto-loaded |
+| [bob-defaults.yaml](../runner/config/bob-defaults.yaml) | CC/DSA fallbacks when host `deploy/tdd` is missing |
+| [host_profile.py](../runner/lib/host_profile.py) | Host profile resolution (used by setup, discover-apis, validate) |
+| [novopay-cc reference pack](../assets/examples/novopay-cc/README.md) | Optional CC reference catalog — not auto-loaded |
