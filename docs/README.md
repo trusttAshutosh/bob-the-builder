@@ -6,7 +6,8 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 
 | Doc | Use when |
 |-----|----------|
-| [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) | **KT / handoff** — Cursor + Bob + orchestrator gates for teammates |
+| [BOB_GUIDE.md](BOB_GUIDE.md) | **One doc for everything** - KT, presentation, Cursor vs Bob, full vs minimal TDD, setup, FAQ |
+| [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) | Short pointer → [BOB_GUIDE.md](BOB_GUIDE.md) (legacy bookmark) |
 | [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) | New dev machine setup + `bob onboard` |
 | [CURSOR_PLUGINS.md](CURSOR_PLUGINS.md) | Marketplace plugins that pair with Bob workflows (`bob plugins`) |
 | [META_REVIEW.md](META_REVIEW.md) | Latest `bob meta-review` output (generated locally; optional in git) |

@@ -42,7 +42,7 @@ You do **not** need separate `bob setup` + `bob install` on first run - `onboard
    python bob.py validate-ticket sample-gateway-health-check
    # or a real ticket id under host docs/tdd-runs/
    ```
-5. **Read** [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md)
+5. **Read** [BOB_GUIDE.md](BOB_GUIDE.md) (team KT - one doc)
 
 ---
 
@@ -170,5 +170,5 @@ Never deletes chats - sets `isArchived: true` in Cursor `state.vscdb` only. If C
 - [ ] Sample or real `validate-ticket` PASS once
 - [ ] Cursor workspace opened (`novopay.code-workspace`)
 - [ ] `novopay-orchestrator.mdc` in user rules
-- [ ] Read KT doc + GATE_SUMMARY on one real ticket
+- [ ] Read BOB_GUIDE + GATE_SUMMARY on one real ticket
 - [ ] Know: archive chats, don't delete unless noise

@@ -18,21 +18,35 @@ Bob is **not** a second AI and does **not** write Java. It is a **CLI + ticket l
 |---|--------------------------|-------------------------|
 | **Role** | Plan, implement, review in chat | Run `validate-ticket` and write evidence |
 | **Typical work** | Raw requirement → `ticket-spec.yaml`, `TEST_PLAN.md`, Java/tests | Boot services + WireMock, hit APIs, DB/log/Kafka/Redis checks |
-| **Skills** | Workspace skills + optional `builder-analyst`, `builder-implementer`, `builder-verifier` (playbooks for the agent — not auto-on) | Commands: `init-ticket`, `discover-apis`, `validate-ticket`, … |
+| **Skills** | Workspace skills + optional `builder-analyst`, `builder-implementer`, `builder-verifier` (playbooks for the agent - not auto-on) | Commands: `init-ticket`, `discover-apis`, `validate-ticket`, … |
 | **Output** | Code, unit tests, ticket docs under `<host>/docs/tdd-runs/<id>/` | `REPORT.md`, `GATE_SUMMARY.md`, `evidence/` |
 
-**Full squad loop (ideal for non-trivial tickets):**
+### Was Bob required if Cursor is enough?
+
+| Need | Cursor alone | Bob |
+|------|--------------|-----|
+| Understand requirement, write Java | Yes | No |
+| Unit tests (`gradle test`) | Yes | Can run from spec, but not magic |
+| WireMock bank APIs in a repeatable run | Painful / manual | **Core Bob** |
+| Boot CC + peers + same proof every time | Manual | **Core Bob** |
+| `REPORT.md` / `GATE_SUMMARY` for the squad | No standard | **Core Bob** |
+
+Bob was not redundant for bank mimicry + standardized local proof. It was never meant to replace thinking and coding - that was always Cursor (+ you).
+
+### Full Bob TDD vs minimal Bob
+
+**Full Bob TDD** (recommended for non-trivial tickets):
 
 ```text
 raw thoughts → (Cursor) ticket-spec + TEST_PLAN → (Cursor) code + unit tests
              → (Bob) validate-ticket → evidence/ → (you) GATE_SUMMARY gates → ship
 ```
 
-**Minimal loop (also valid):** implement in Cursor, then `bob validate-ticket <id>` when you want proof — you still need a ticket folder/spec for Bob to run scenarios.
+**Minimal Bob** (also valid): implement in Cursor, then `bob validate-ticket <id>` when you want proof. You still need a ticket folder/spec for Bob to run scenarios; code-first without a spec means less automated proof until someone fills `ticket-spec.yaml`.
 
-Saying **"bob"** in chat does not switch modes automatically; it nudges the agent toward this workflow. Explicit commands work best: *"plan only: init adhoc-foo, no code"* or *"bob validate-ticket adhoc-foo"*.
+Saying **"bob"** in chat does not switch modes automatically. Explicit commands work best: *"plan only: init adhoc-foo, no code"* or *"bob validate-ticket adhoc-foo"*.
 
-More detail: [docs/KT_CURSOR_AND_BOB.md](docs/KT_CURSOR_AND_BOB.md) · [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
+**Team guide (one doc - KT / presentation):** [docs/BOB_GUIDE.md](docs/BOB_GUIDE.md)
 
 ## Layout
 
@@ -144,7 +158,7 @@ python bob.py validate-ticket sample-gateway-health-check
 
 `memory-budget` writes `docs/MEMORY_BUDGET.md` and refreshes `{workspace}/.cursor/memory-budget-status.json` (also on each Cursor session start).
 
-Read [docs/KT_CURSOR_AND_BOB.md](docs/KT_CURSOR_AND_BOB.md) for the 4-gate workflow (Plan / Build / Prove / Ship).
+Read [docs/BOB_GUIDE.md](docs/BOB_GUIDE.md) for the 4-gate workflow (Plan / Build / Prove / Ship) and team KT.
 
 ### Power-user commands (not first-time)
 
@@ -206,7 +220,8 @@ Run `bob host` to print resolved host, workspace clones, and `deploy/tdd` profil
 Full index: [docs/README.md](docs/README.md).  
 **See what Bob generates:** [assets/examples/sample-validate-output/](assets/examples/sample-validate-output/README.md) (refreshed via `bob refresh-samples`).
 
-- [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) — main guide
+- [docs/BOB_GUIDE.md](docs/BOB_GUIDE.md) — team guide (KT / presentation)
+- [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md) — deep technical guide + architecture
 - [docs/BOB_CHEATSHEET.md](docs/BOB_CHEATSHEET.md) — commands
 - [docs/WORKSPACE_AND_HOST_PROFILE.md](docs/WORKSPACE_AND_HOST_PROFILE.md) — multi-repo workspace + CC defaults
 - [docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md](docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md) — other Novopay services

@@ -3,6 +3,7 @@
 **Bob the Builder** — ticket-driven local validation for backend microservices.  
 **CLI:** `python bob.py <command>` — command names describe what they do (`init-ticket`, `validate-ticket`, …). See [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md).  
 **Audience:** Developers adopting or presenting the framework.  
+**For team KT / one-doc overview:** [BOB_GUIDE.md](BOB_GUIDE.md) (presentation-ready; this file is the deep technical guide).
 **Scope:** This `bob-the-builder` repository (runner + assets + local), ticket bundles under each **host** service repo `docs/tdd-runs/` — not product-domain docs (KYC, bulk, etc.).
 
 ---

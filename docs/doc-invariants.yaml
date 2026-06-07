@@ -18,6 +18,7 @@ required_files:
   - docs/BOB_CHEATSHEET.md
   - docs/DATA_LAYOUT.md
   - docs/EVIDENCE_AND_VERIFY.md
+  - docs/BOB_GUIDE.md
   - docs/KT_CURSOR_AND_BOB.md
   - skills/builder-analyst/SKILL.md
   - skills/builder-implementer/SKILL.md
@@ -51,13 +52,36 @@ content_rules:
       - "docs/tdd-runs/<ticket-id>/"
       - "Bob never runs `git commit`"
 
-  - id: kt-gates-and-tickets
+  - id: readme-cursor-vs-bob
+    files: [README.md]
+    must_contain:
+      - "Was Bob required if Cursor is enough?"
+      - "Full Bob TDD vs minimal Bob"
+      - "docs/BOB_GUIDE.md"
+
+  - id: bob-guide-core
+    files: [docs/BOB_GUIDE.md]
+    must_contain:
+      - "Was Bob required if Cursor is enough?"
+      - "Full Bob TDD vs minimal Bob"
+      - "GATE_SUMMARY.md"
+      - "docs/tdd-runs/<ticket-id>/"
+      - "Bob product"
+      - "WireMock"
+
+  - id: kt-points-to-bob-guide
     files: [docs/KT_CURSOR_AND_BOB.md]
+    must_contain:
+      - "BOB_GUIDE.md"
+
+  - id: kt-gates-and-tickets
+    files: [docs/BOB_GUIDE.md]
     must_contain:
       - "GATE_SUMMARY.md"
       - "docs/tdd-runs/<id>/"
       - "TICKET_RESUME.md"
       - "Bob product backlog"
+      - "bob next"
 
   - id: tdd-two-backlogs
     files: [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md]
@@ -121,6 +145,7 @@ conditional_rules:
   - id: bob-next-means-product
     files:
       - docs/BOB_CHEATSHEET.md
+      - docs/BOB_GUIDE.md
       - docs/KT_CURSOR_AND_BOB.md
       - docs/README.md
       - README.md

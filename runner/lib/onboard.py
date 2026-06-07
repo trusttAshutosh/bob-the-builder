@@ -501,7 +501,7 @@ def run_onboard(args: list[str]) -> int:
             return run_smoke_validate()
 
     print()
-    print("Onboarding complete. Read: bob-the-builder/docs/KT_CURSOR_AND_BOB.md")
+    print("Onboarding complete. Read: bob-the-builder/docs/BOB_GUIDE.md")
     if missing_plugins:
         print(f"Plugins still missing: {', '.join(missing_plugins)}  (re-run: bob plugins)")
     return 0

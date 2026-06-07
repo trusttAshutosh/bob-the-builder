@@ -182,7 +182,7 @@ def plugin_doc_markdown() -> str:
             "| `cc-backend-test-generation` | CC unit/journey tests |",
             "| `generate-test-plan-change-flow-based` | QA test plans with API + DB matrices |",
             "",
-            "See also: [KT_CURSOR_AND_BOB.md](../docs/KT_CURSOR_AND_BOB.md)",
+            "See also: [BOB_GUIDE.md](../docs/BOB_GUIDE.md)",
         ]
     )
     return "\n".join(lines) + "\n"

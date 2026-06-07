@@ -247,7 +247,7 @@ def _next_steps(command: str, args: list[str], rc: int) -> list[tuple[str, str]]
             _step("Full dev bootstrap", f"{CLI_SHORT} onboard"),
         ],
         "onboard": [
-            _step("Read teammate KT", "bob-the-builder/docs/KT_CURSOR_AND_BOB.md"),
+            _step("Read team guide", "bob-the-builder/docs/BOB_GUIDE.md"),
             _step("Smoke validate (optional)", f"{CLI_SHORT} validate-ticket sample-gateway-health-check"),
             _step("Start a real ticket", f'{CLI_SHORT} init-ticket {tid} "Title"'),
         ],
