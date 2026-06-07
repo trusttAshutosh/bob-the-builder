@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=ab8b668 -->
+<!-- PRODUCT-VERIFY:COMMIT=d19a15f -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,22 +28,19 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `ab8b668` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `d19a15f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `ab8b668` — fix(ci): doc-lint exclude invariants; allow generated audit doc links
+**Commit:** `d19a15f` — docs: clarify Cursor vs Bob roles in README and KT
 **Date:** 2026-06-08
 
 ### Files changed
-- `.github/workflows/doc-lint.yml`
-- `docs/README.md`
-- `docs/doc-invariants.yaml`
-- `runner/ci/verify-docs.py`
-- `runner/tests/test_verify_docs.py`
+- `README.md`
+- `docs/KT_CURSOR_AND_BOB.md`
 
 ### Features touched in this commit
-- Feature integrity verifier (`product-verify`) — files touched
+- (none mapped — docs-only or infra)
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
