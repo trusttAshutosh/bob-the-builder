@@ -16,7 +16,7 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 | [../assets/examples/sample-validate-output/README.md](../assets/examples/sample-validate-output/README.md) | **See sample outputs** — requirement → generated files (refreshed with engine) |
 | [TDD_SYSTEM_DEVELOPER_GUIDE.md](TDD_SYSTEM_DEVELOPER_GUIDE.md) | Full workflow, architecture, FAQ |
 | [BOB_CHEATSHEET.md](BOB_CHEATSHEET.md) | Command quick reference |
-| [NEXT.md](NEXT.md) | Improvement backlog + scorecard (`bob next`) |
+| [NEXT.md](NEXT.md) | **Bob product** backlog + scorecard (`bob next`) — not host-ticket scope; tickets use `<host>/docs/tdd-runs/<id>/` |
 
 ## Workspace and host repo
 
@@ -64,6 +64,9 @@ Everything below lives under `bob-the-builder/docs/` unless noted.
 
 | Doc | Role |
 |------|------|
+| [doc-invariants.yaml](doc-invariants.yaml) | Machine-checked doc contract (`bob verify-docs`) |
+| [CONTRACT_GOVERNANCE.md](CONTRACT_GOVERNANCE.md) | Human approval required to weaken contracts (`bob approve-contract-change`) |
+| [product-features.yaml](product-features.yaml) | Registered product features (`bob verify-product`) |
 | [bob-defaults.yaml](../runner/config/bob-defaults.yaml) | CC/DSA fallbacks when host `deploy/tdd` is missing |
 | [host_profile.py](../runner/lib/host_profile.py) | Host profile resolution (used by setup, discover-apis, validate) |
 | [novopay-cc reference pack](../assets/examples/novopay-cc/README.md) | Optional CC reference catalog — not auto-loaded |

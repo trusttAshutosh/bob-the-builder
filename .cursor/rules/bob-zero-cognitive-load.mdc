@@ -12,8 +12,9 @@ The user does **not** memorize Bob habits. **You** (the agent) handle reminders,
 ## Before any git commit or push in `bob-the-builder/`
 
 1. **You do not need to refresh `docs/NEXT.md` manually** — run `bob install-hooks` once; after each `git commit`, Bob adds a small `[bob]` docs commit automatically.
-2. Before **push**, run: `python bob.py remind` (optional sanity check)
-3. Tell the user in **one sentence** what you did — no checklists unless they ask
+2. After **doc, skill, or contract YAML edits**, run `python bob.py verify-all`.
+3. Before **push**, run: `python bob.py remind` (optional sanity check)
+4. Tell the user in **one sentence** what you did — no checklists unless they ask
 
 ## When implementing / reading code / writing tests / stubs — peer services
 

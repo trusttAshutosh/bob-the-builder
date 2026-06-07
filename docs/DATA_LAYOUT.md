@@ -23,7 +23,7 @@ By default **`git.branch_policy: none`** — `validate-ticket` does not checkout
 
 Bob updates files under `assets/` and `local/` on disk. Whether those land in git is **your** decision, not Bob’s.
 
-**Product improvements:** [NEXT.md](NEXT.md) (`bob next`).
+**Product improvements:** [NEXT.md](NEXT.md) (`bob next`) — Bob engine backlog only. Host-ticket scope lives under `<host>/docs/tdd-runs/<ticket-id>/` (see table below).
 
 ## Host service repo (e.g. credit-card-management)
 

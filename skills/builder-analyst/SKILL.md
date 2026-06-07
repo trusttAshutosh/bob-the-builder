@@ -10,6 +10,15 @@ disable-model-invocation: true
 
 **Do not implement or run validate-ticket. Never `git commit` or `git push`.**
 
+## What to read first (scope)
+
+| You are scoping… | Read first (host repo paths unless noted) |
+|------------------|-------------------------------------------|
+| **A host ticket** (CC, payments, adhoc slug) | `docs/tdd-runs/<id>/ticket-spec.yaml`, `TEST_PLAN.md`, `CONTEXT_PACK.md` if present, `TICKET_RESUME.md` when resuming, `GATE_SUMMARY.md` for gate status |
+| **Bob product work** (engine in `bob-the-builder/`) | `bob-the-builder/docs/NEXT.md` (`bob next`) — product backlog only; not ticket scope |
+
+Do **not** use Bob's `docs/NEXT.md` for host-ticket Plan/Build/Prove/Ship — it tracks Bob-the-tool improvements, not your ticket.
+
 1. `bob host` if workspace/host is unclear
 2. `bob query-graph <keywords>` or `bob context --ticket <id>` after ticket exists
 3. Read `{BOB_LOCAL}/agent/kg-context-last.md`, ticket `CONTEXT_PACK.md` if present, `{BOB_HOME}/platform-graph/platform-graph.yaml`

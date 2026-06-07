@@ -1,0 +1,21 @@
+# Contract governance — weakening doc/product rules requires explicit human approval.
+# See docs/CONTRACT_GOVERNANCE.md and `bob approve-contract-change`.
+version: 1
+
+protected_files:
+  - docs/doc-invariants.yaml
+  - docs/product-features.yaml
+
+approvals_dir: docs/contract-approvals
+
+# Human must type this exact token in interactive approve flow (not in CI).
+approve_token: APPROVE
+
+# Approval records must include all of these fields.
+required_approval_fields:
+  - id
+  - approved_at
+  - approver
+  - reason
+  - file_hashes
+  - weakenings

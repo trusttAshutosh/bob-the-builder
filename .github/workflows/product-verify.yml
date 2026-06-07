@@ -20,6 +20,8 @@ jobs:
       - name: Verify registered features intact
         run: |
           python3 runner/ci/verify-product.py --check
+          python3 runner/ci/verify-docs.py --check
+          python3 runner/ci/verify-contract-governance.py --check
           BOB_PRODUCT_ROOT="${{ github.workspace }}" python3 bob.py refresh-samples
           if ! git diff --quiet assets/examples/sample-validate-output; then
             echo "::error::Sample output bundle is stale — run: python bob.py refresh-samples && commit"

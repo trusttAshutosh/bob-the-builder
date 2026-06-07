@@ -1,0 +1,218 @@
+# Doc contract for Bob the Builder — checked by `bob verify-docs` and CI.
+# Keeps product docs aligned with CLI, paths, and scope (host ticket vs Bob product).
+# Update this file when docs legitimately change; do not weaken rules to silence failures.
+version: 1
+
+# Critical product docs that must exist.
+required_files:
+  - README.md
+  - bob.py
+  - docs/README.md
+  - docs/NEXT.md
+  - docs/product-features.yaml
+  - docs/doc-invariants.yaml
+  - docs/contract-governance.yaml
+  - docs/CONTRACT_GOVERNANCE.md
+  - docs/contract-approvals/index.yaml
+  - docs/TDD_SYSTEM_DEVELOPER_GUIDE.md
+  - docs/BOB_CHEATSHEET.md
+  - docs/DATA_LAYOUT.md
+  - docs/EVIDENCE_AND_VERIFY.md
+  - docs/KT_CURSOR_AND_BOB.md
+  - skills/builder-analyst/SKILL.md
+  - skills/builder-implementer/SKILL.md
+  - skills/builder-verifier/SKILL.md
+
+# Plain content rules on specific files.
+content_rules:
+  - id: readme-clone-and-onboard
+    files: [README.md]
+    must_contain:
+      - "git clone https://github.com/"
+      - "python bob.py onboard"
+      - "do not ship the engine"
+
+  - id: readme-next-scope
+    files: [README.md]
+    must_contain:
+      - "Bob product"
+      - "docs/tdd-runs/<ticket-id>/"
+
+  - id: next-md-product-only
+    files: [docs/NEXT.md]
+    must_contain:
+      - "Before picking up Bob product work"
+      - "product-features.yaml"
+
+  - id: data-layout-dual-tree
+    files: [docs/DATA_LAYOUT.md]
+    must_contain:
+      - "Bob engine backlog only"
+      - "docs/tdd-runs/<ticket-id>/"
+      - "Bob never runs `git commit`"
+
+  - id: kt-gates-and-tickets
+    files: [docs/KT_CURSOR_AND_BOB.md]
+    must_contain:
+      - "GATE_SUMMARY.md"
+      - "docs/tdd-runs/<id>/"
+      - "TICKET_RESUME.md"
+      - "Bob product backlog"
+
+  - id: tdd-two-backlogs
+    files: [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md]
+    must_contain:
+      - "Two backlogs"
+      - "docs/tdd-runs/<id>/"
+      - "bob-the-builder/docs/NEXT.md"
+
+  - id: cheatsheet-env-vars
+    files: [docs/BOB_CHEATSHEET.md]
+    must_contain:
+      - "BUILDER_WORKSPACE_ROOT"
+      - "BOB_HOME"
+      - "BOB_LOCAL"
+      - "docs/tdd-runs/ID/"
+
+  - id: analyst-skill-contract
+    files: [skills/builder-analyst/SKILL.md]
+    must_contain:
+      - "docs/tdd-runs/<id>/"
+      - "GATE_SUMMARY"
+      - "Do **not** use Bob's `docs/NEXT.md` for host-ticket"
+      - "Never `git commit` or `git push`"
+
+  - id: implementer-skill-contract
+    files: [skills/builder-implementer/SKILL.md]
+    must_contain:
+      - "ticket-spec.yaml"
+      - "TICKET_RESUME.md"
+      - "Never `git commit` or `git push`"
+
+  - id: verifier-skill-contract
+    files: [skills/builder-verifier/SKILL.md]
+    must_contain:
+      - "validate-ticket"
+      - "GATE_SUMMARY.md"
+      - "Never `git commit` or `git push`"
+
+  - id: adopting-tickets-in-host
+    files: [docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md]
+    must_contain:
+      - "docs/tdd-runs/"
+      - "Do not fork Bob per team"
+
+  - id: contract-governance-doc
+    files: [docs/CONTRACT_GOVERNANCE.md]
+    must_contain:
+      - "approve-contract-change"
+      - "type **`APPROVE`**"
+      - "Weakening either file to silence CI is blocked"
+
+  - id: evidence-master-map
+    files: [docs/EVIDENCE_AND_VERIFY.md]
+    must_contain:
+      - "evidence/api"
+      - "evidence/db"
+      - "CONTEXT_PACK.md"
+
+# If a file mentions trigger text, it must also include all required phrases (same file).
+conditional_rules:
+  - id: bob-next-means-product
+    files:
+      - docs/BOB_CHEATSHEET.md
+      - docs/KT_CURSOR_AND_BOB.md
+      - docs/README.md
+      - README.md
+      - docs/TDD_SYSTEM_DEVELOPER_GUIDE.md
+    when_contains: "bob next"
+    must_also_contain:
+      - "Bob product"
+
+  - id: validate-ticket-host-path
+    files:
+      - docs/BOB_CHEATSHEET.md
+      - docs/TDD_SYSTEM_DEVELOPER_GUIDE.md
+    when_contains: "validate-ticket"
+    must_also_contain:
+      - "docs/tdd-runs"
+
+# Forbidden needles in scanned doc trees (substring match).
+forbidden_in_docs:
+  scan_globs:
+    - "docs/**/*.md"
+    - "skills/**/*.md"
+    - "README.md"
+  exclude_files:
+    - docs/NEXT.md
+    - docs/META_REVIEW.md
+    - docs/CONTEXT_USAGE_AUDIT.md
+    - docs/CONTEXT_ALL_CHATS_CUMULATIVE.md
+    - docs/CONTEXT_ALL_CHATS_CUMULATIVE.json
+    - docs/CONTEXT_CONVERSATION_BREAKDOWN.md
+    - docs/CONTEXT_CONVERSATION_BREAKDOWN.json
+    - docs/MEMORY_BUDGET.md
+    - docs/MCP_AUDIT.md
+  patterns:
+    - id: no-legacy-runner
+      needle: "tools/tdd-runner"
+    - id: no-legacy-novopay-tdd
+      needle: "novopay-tdd.py"
+    - id: no-host-next-as-ticket-backlog
+      needle: "<host>/docs/NEXT.md"
+    - id: no-improvement-backlog-unqualified
+      needle: "improvement backlog"
+    - id: no-run-next-for-tickets
+      needle: "run bob next before each ticket"
+    - id: no-tdd-runs-in-bob-repo-as-live-tickets
+      needle: "bob-the-builder/docs/tdd-runs/<id>"
+
+# Cheatsheet `bob <cmd>` entries must map to registered CLI handlers (first token).
+cheatsheet:
+  file: docs/BOB_CHEATSHEET.md
+  skip_rows_containing:
+    - "Host setup"
+  extra_commands:
+    - graph
+    - eval
+    - kafka
+    - tools
+
+# Registered product-feature commands must appear in cheatsheet (user-facing discoverability).
+feature_commands_in_cheatsheet:
+  file: docs/BOB_CHEATSHEET.md
+  skip_commands:
+    - remind
+    - refresh-samples
+    - update-graph
+    - install-hooks
+    - cleanup-workspace
+    - cursor-hook
+    - version
+    - help
+    - contract-diff
+    - approve-contract-change
+
+# CLI help text contracts (builder_cli.py _print_help output).
+cli_help_contract:
+  - command: next
+    must_contain: "Bob product backlog"
+  - command: open-report
+    must_contain: "GATE_SUMMARY.md"
+
+# Relative markdown links in product docs must resolve to existing files.
+markdown_links:
+  scan_globs:
+    - "docs/**/*.md"
+    - "skills/**/*.md"
+    - "README.md"
+    - "templates/**/*.md"
+  exclude_files:
+    - docs/META_REVIEW.md
+    - docs/CONTEXT_USAGE_AUDIT.md
+    - docs/CONTEXT_ALL_CHATS_CUMULATIVE.md
+    - docs/CONTEXT_CONVERSATION_BREAKDOWN.md
+    - docs/MEMORY_BUDGET.md
+    - docs/MCP_AUDIT.md
+    - assets/examples/sample-validate-output/REPORT.md
+    - assets/examples/sample-validate-output/REPORT.html

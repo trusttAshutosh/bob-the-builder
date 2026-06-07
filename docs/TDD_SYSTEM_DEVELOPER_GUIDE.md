@@ -109,6 +109,13 @@ ADR: [`ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md).
 | **Verifier** | `builder-verifier` | `validate-ticket` → evidence | Change code to fake green |
 | **One-shot** | `builder-one-shot` | End-to-end orchestration | — |
 
+**Two backlogs (do not mix):**
+
+| Work | Read first |
+|------|------------|
+| **Host ticket** | `<host>/docs/tdd-runs/<id>/` — `ticket-spec.yaml`, `TEST_PLAN.md`, `GATE_SUMMARY.md`, `TICKET_RESUME.md` when resuming |
+| **Bob product** | `bob-the-builder/docs/NEXT.md` (`bob next`) — engine/docs/CI only |
+
 ---
 
 ## Directory map
@@ -438,4 +445,4 @@ Defaults on `validate-ticket`: context pack, eval `check` (if baseline exists), 
 
 *Bob the Builder: service-agnostic validation; engine in `bob-the-builder/` only; host repos carry tickets and deploy profiles.*
 
-**Improvement backlog:** [NEXT.md](NEXT.md) — run `bob next` after each session to see or update what to tackle next.
+**Bob product backlog:** [NEXT.md](NEXT.md) — `bob next` when improving the Bob engine (not for host-ticket scope; tickets live in `<host>/docs/tdd-runs/<id>/`).

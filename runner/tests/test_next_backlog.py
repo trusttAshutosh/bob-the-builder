@@ -23,7 +23,7 @@ def test_cmd_next_prints_backlog(tmp_path: Path, monkeypatch, capsys) -> None:
     out = capsys.readouterr().out
 
     assert rc == 0
-    assert "Improvement backlog" in out
+    assert "Bob product backlog" in out
     assert "item" in out
 
 

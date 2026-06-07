@@ -7,6 +7,8 @@ disable-model-invocation: true
 
 # Builder one-shot
 
+**Scoping:** host ticket → `docs/tdd-runs/<id>/` (`ticket-spec`, `TEST_PLAN`, `GATE_SUMMARY`). Bob product work only → `bob-the-builder/docs/NEXT.md` (`bob next`). See `builder-analyst` for the full table.
+
 **Bob must never run `git commit`, `git push`, or create PRs.** File writes only.
 
 ```bash

@@ -32,9 +32,14 @@
 | `bob list-tickets` | List ticket IDs |
 | `bob query-graph [words]` | Agent context slice |
 | `bob help` | Full command list (`bob bobhelp`, `bob h`, `bob ?`) |
-| `bob next` | Print improvement backlog → [NEXT.md](NEXT.md) |
+| `bob next` | Print **Bob product** backlog → [NEXT.md](NEXT.md) (engine work only; not ticket Plan/Build/Prove) |
 | `bob next --edit` | Open [NEXT.md](NEXT.md) in `$EDITOR` |
 | `bob verify-product` | Check feature registry; `--update` refreshes scorecard sections in NEXT.md |
+| `bob verify-docs` | Check docs vs [doc-invariants.yaml](doc-invariants.yaml) + CLI (wrong/incomplete product docs) |
+| `bob verify-all` | `verify-product` + `verify-docs` + `verify-contract-governance` |
+| `bob verify-contract-governance` | Block contract weakening without recorded human approval |
+| `bob contract-diff [--vs REF]` | Show contract weakenings vs base (read before approving) |
+| `bob approve-contract-change --reason "..."` | Human-only: type **APPROVE** after review; writes `docs/contract-approvals/` |
 | `bob verify-fresh-install` | Prove empty catalog after install + non-CC `discover-apis` (CI fixture) |
 | `bob ensure-peers` | Scan host code/properties; boot peer services not already up (no deploy/tdd required) |
 | `bob need-service NAME` | Register + boot one peer by hint (`notifications`, `consents`, `masterdata`, …) |

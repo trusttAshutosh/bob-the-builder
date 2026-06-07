@@ -1,0 +1,21 @@
+#!/bin/sh
+# Bob — block commits that weaken doc/product contracts without human approval.
+# Installed by: bob install-hooks
+
+[ -n "$BOB_SKIP_PRE_COMMIT" ] && exit 0
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$ROOT" || exit 0
+
+[ -f bob.py ] && [ -f docs/contract-governance.yaml ] || exit 0
+
+python bob.py verify-contract-governance --staged
+RC=$?
+if [ "$RC" -ne 0 ]; then
+  echo "" >&2
+  echo "Bob: contract change blocked until you review and approve." >&2
+  echo "  bob contract-diff" >&2
+  echo "  bob approve-contract-change --reason \"...\"" >&2
+  exit "$RC"
+fi
+exit 0

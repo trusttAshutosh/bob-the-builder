@@ -23,10 +23,10 @@
 | Product vs host separation | A | Engine in `bob-the-builder/` only |
 | End-to-end TDD loop | A- | Ticket spec → validate → evidence |
 | Reusability / generic story | B+ | Empty `assets/`; CC in `examples/`; engine defaults still Novopay-shaped |
-| Repo cleanliness | A- | Dead code removed; staged for first publish |
-| Docs & operability | A- | Guides, cheatsheet, `bob next`, this scorecard |
+| Repo cleanliness | A | Published on GitHub; `origin` on `main` |
+| Docs & operability | A | Guides, cheatsheet, clone URL in README |
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
-| **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
+| **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
 *Last feature check: 2026-06-07 · commit `7ebebdd` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
@@ -100,7 +100,7 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 
 ## Now (P0 — blocks “works for any team”)
 
-- [ ] **Publish product repo** — initial commit + GitHub remote; document clone URL in README
+_None open._
 
 ## Next (P1 — reusability / less CC bias)
 
@@ -111,7 +111,6 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 
 - [ ] **Windows validate-ticket** — document bash requirement; expand Python fallback parity with `run-tdd.sh`
 - [ ] **Orchestration-less hosts** — discovery today requires `deploy/application/orchestration/`; support OpenAPI-only or Gradle route scan as alternative
-- [ ] **Agent skill pointer** — builder-analyst skill should cite `docs/NEXT.md` when scoping work
 
 ---
 
@@ -140,6 +139,11 @@ Source: [`docs/product-features.yaml`](product-features.yaml) · Verifier: `runn
 | 2026-06-06 | **`bob onboard`** — one-command dev bootstrap: setup + install + squad Cursor kit; see [ONBOARDING_DEVELOPER.md](ONBOARDING_DEVELOPER.md) |
 | 2026-06-06 | **`bob meta-review`** — monthly usage audit (pass rates, boot failures, rule/skill drift); suggestions only |
 | 2026-06-06 | **KT doc for teammates** — [KT_CURSOR_AND_BOB.md](KT_CURSOR_AND_BOB.md) |
+| 2026-06-08 | **Publish product repo** — GitHub remote live; canonical `git clone` URL in [README.md](../README.md) |
+| 2026-06-08 | **Agent skill scoping** — `builder-analyst` + [skills/README.md](../skills/README.md): host ticket bundle vs Bob `NEXT.md` (product backlog only) |
+| 2026-06-08 | **Two-backlog doc pass** — index/cheatsheet/KT/onboarding/TDD guide, builder skills, `bob next` product-only path, META_REVIEW stale banner |
+| 2026-06-08 | **Doc invariants** — `docs/doc-invariants.yaml`, `bob verify-docs`, `bob verify-all`, CI + `.cursor/rules/bob-doc-contract.mdc` |
+| 2026-06-08 | **Contract governance** — weakening YAML requires `bob contract-diff` + human `APPROVE` + `docs/contract-approvals/`; pre-commit + CI |
 
 ---
 

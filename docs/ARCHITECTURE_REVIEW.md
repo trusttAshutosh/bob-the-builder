@@ -52,6 +52,6 @@ Human report: `REPORT.md` (not legacy `RUN_SUMMARY.md`).
 
 Keeps orchestration XML, `deploy/tdd/`, `docs/tdd-runs/<ticket>/`.
 
-## Improvement backlog
+## Improvement backlog (Bob product)
 
-Living list of next product work: [NEXT.md](NEXT.md) — `bob next`.
+Living list of next **engine** work: [NEXT.md](NEXT.md) — `bob next`. Host tickets use `<host>/docs/tdd-runs/<id>/`, not this file.

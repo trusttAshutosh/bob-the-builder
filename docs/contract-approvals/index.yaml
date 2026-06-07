@@ -1,0 +1,10 @@
+# Contract approvals index
+#
+# Each entry records intentional weakening of docs/doc-invariants.yaml or
+# docs/product-features.yaml. CI fails if contracts are weakened without a
+# matching approval for the current file hashes.
+#
+# Create via: bob approve-contract-change --reason "..."
+version: 1
+
+approvals: []

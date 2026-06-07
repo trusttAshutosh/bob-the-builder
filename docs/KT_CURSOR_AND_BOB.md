@@ -116,9 +116,9 @@ bob setup
 bob init-ticket <id> "Title"
 bob validate-ticket <id>
 bob memory-budget
-bob open-report <id>        # GATE_SUMMARY, REPORT, paths
+bob open-report <id>        # GATE_SUMMARY, REPORT, paths — ticket "what's next"
 bob ticket-status <id>
-bob next                     # improvement backlog
+bob next                     # Bob product backlog only (bob-the-builder/docs/NEXT.md)
 ```
 
 Cursor slash skills (when relevant): `/verification-before-completion`, `/thermo-nuclear-code-quality-review`, `/workflow-from-chats`.

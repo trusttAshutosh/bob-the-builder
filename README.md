@@ -4,6 +4,12 @@ Ticket-driven local TDD for backend services: ticket specs, API discovery, valid
 
 **This is the only repository for Bob.** Service repos (e.g. credit-card-management) do not ship the engine — they only hold ticket folders and host-specific deploy config.
 
+**Clone:**
+
+```bash
+git clone https://github.com/trusttAshutosh/bob-the-builder.git
+```
+
 ## Layout
 
 ```text
@@ -32,6 +38,12 @@ One command after clone. Everything squad-owned is in `templates/onboarding/` an
 | **Cursor 2.5+** | IDE + agent |
 
 ### 1. Clone under one parent folder
+
+```bash
+mkdir -p ~/Desktop/novopay && cd ~/Desktop/novopay
+git clone https://github.com/trusttAshutosh/bob-the-builder.git
+# clone your host service repo(s) alongside Bob (CC example below)
+```
 
 Example layout (adjust drive/path; onboard asks you to confirm the parent):
 
@@ -183,6 +195,7 @@ Full index: [docs/README.md](docs/README.md).
 - [docs/MCP_TOOL_BRIDGE.md](docs/MCP_TOOL_BRIDGE.md) — optional MCP backend for tools (`BOB_TOOL_BACKEND=local` default)
 - [docs/GRAPH_OBSIDIAN.md](docs/GRAPH_OBSIDIAN.md) — Obsidian graph export
 - [docs/DATA_LAYOUT.md](docs/DATA_LAYOUT.md) — paths; **Bob never commits or pushes**
-- [docs/NEXT.md](docs/NEXT.md) — backlog + scorecard (`bob next`)
+- [docs/doc-invariants.yaml](docs/doc-invariants.yaml) — doc contract checked by `bob verify-docs`
+- [docs/NEXT.md](docs/NEXT.md) — **Bob product** backlog + scorecard (`bob next`; not host-ticket scope)
 - [runner/ARCHITECTURE.md](runner/ARCHITECTURE.md) — runner internals
 - **Architecture diagram:** mermaid in [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md#architecture-end-to-end); live graph via [docs/GRAPH_OBSIDIAN.md](docs/GRAPH_OBSIDIAN.md)

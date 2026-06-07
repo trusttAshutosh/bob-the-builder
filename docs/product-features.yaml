@@ -138,8 +138,16 @@ features:
 
   - id: product-verify
     name: Feature integrity verifier
+    commands: [verify-product, verify-docs, verify-all, verify-contract-governance]
     paths:
       - runner/ci/verify-product.py
+      - runner/ci/verify-docs.py
+      - runner/ci/verify-contract-governance.py
+      - runner/lib/contract_governance.py
+      - docs/doc-invariants.yaml
+      - docs/contract-governance.yaml
+      - docs/CONTRACT_GOVERNANCE.md
+      - docs/contract-approvals/index.yaml
       - runner/lib/product_reminder.py
       - docs/product-features.yaml
 

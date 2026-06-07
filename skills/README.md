@@ -11,6 +11,11 @@ Copy or symlink these into your Cursor skills folder, or open `bob-the-builder` 
 
 **User habit:** none — agent runs `python bob.py remind --fix` before commit/push in this repo.
 
-Before scoping work, check [`docs/NEXT.md`](../docs/NEXT.md) (`bob next`).
+**Scoping — two backlogs:**
+
+| Work | What to read |
+|------|----------------|
+| **Host ticket** (default) | `<host>/docs/tdd-runs/<id>/` — `ticket-spec.yaml`, `TEST_PLAN.md`, `CONTEXT_PACK.md`, `TICKET_RESUME.md`, `GATE_SUMMARY.md` |
+| **Bob product** (engine/docs/CI in `bob-the-builder/`) | [`docs/NEXT.md`](../docs/NEXT.md) (`bob next`) |
 
 Guides: [`docs/README.md`](../docs/README.md) (index) · [`docs/EVIDENCE_AND_VERIFY.md`](../docs/EVIDENCE_AND_VERIFY.md) · [`docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`](../docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)

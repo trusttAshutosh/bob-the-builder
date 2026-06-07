@@ -69,7 +69,12 @@ CMD_ALIASES: dict[str, str] = {
     "roadmap": "next",
     "backlog": "next",
     "verify-product": "verify-product",
+    "verify-docs": "verify-docs",
+    "verify-all": "verify-all",
     "verify-fresh-install": "verify-fresh-install",
+    "contract-diff": "contract-diff",
+    "approve-contract-change": "approve-contract-change",
+    "verify-contract-governance": "verify-contract-governance",
     "fresh-install": "verify-fresh-install",
     "start-services": "start-services",
     "boot-services": "start-services",
@@ -158,8 +163,13 @@ def _print_help() -> None:
     print("  ticket-status ID   Show last run PASS/FAIL + decision trace")
     print("  open-report ID     Print paths to GATE_SUMMARY.md, REPORT.md, REPORT.html, run-summary.json")
     print("  list-tickets       List ticket folders in host repo")
-    print("  next [--edit|-e]   Improvement backlog (docs/NEXT.md); --edit opens in $EDITOR")
+    print("  next [--edit|-e]   Bob product backlog (bob-the-builder/docs/NEXT.md); --edit opens in $EDITOR")
     print("  verify-product     Check feature registry; --update refreshes NEXT.md sections")
+    print("  verify-docs        Check docs vs doc-invariants.yaml + CLI (wrong/incomplete product docs)")
+    print("  verify-all         Run verify-product, verify-docs, verify-contract-governance")
+    print("  verify-contract-governance  Block contract weakening without human approval record")
+    print("  contract-diff [--vs REF]    Show contract weakenings vs base (default: main)")
+    print("  approve-contract-change --reason \"...\"  Record human approval (type APPROVE)")
     print("  verify-fresh-install  Clean install + non-CC discover-apis (CI fixture; see docs/FRESH_INSTALL_VERIFY.md)")
     print("  remind [--fix]     One-line status; --fix refreshes docs/NEXT.md for you")
     print("  start-services [--ticket ID | --profile NAME] [service-key...]")
@@ -188,7 +198,8 @@ def _print_help() -> None:
     print(f"Paths: {WORKSPACE_ENV}, BOB_HOME (assets), BOB_LOCAL (secrets/session)")
     print("Bob never runs git commit or git push.")
     print("Guide: docs/TDD_SYSTEM_DEVELOPER_GUIDE.md")
-    print("Backlog: docs/NEXT.md  (bob next)")
+    print("Bob product backlog: bob-the-builder/docs/NEXT.md  (bob next)")
+    print("Doc contract: docs/doc-invariants.yaml  (bob verify-docs)")
     print("You do not memorize workflows — use bob remind, or ask Cursor to commit/push.")
 
 
@@ -777,6 +788,132 @@ def cmd_verify_product(args: list[str]) -> int:
     return subprocess.run(cmd, cwd=str(bob_product_root())).returncode
 
 
+def cmd_verify_docs(args: list[str]) -> int:
+    _banner("verify-docs")
+    script = tdd_root() / "ci" / "verify-docs.py"
+    cmd = [sys.executable, str(script), "--check"]
+    from bob_home import bob_product_root
+
+    return subprocess.run(cmd, cwd=str(bob_product_root())).returncode
+
+
+def cmd_verify_all(args: list[str]) -> int:
+    _banner("verify-all")
+    rc_product = cmd_verify_product(args)
+    rc_docs = cmd_verify_docs(args)
+    rc_gov = cmd_verify_contract_governance(args)
+    return rc_product or rc_docs or rc_gov
+
+
+def cmd_verify_contract_governance(args: list[str]) -> int:
+    _banner("verify-contract-governance")
+    if "--staged" in args:
+        from contract_governance import verify_staged_commit
+
+        rc, msg = verify_staged_commit()
+        print(msg)
+        return rc
+    script = tdd_root() / "ci" / "verify-contract-governance.py"
+    cmd = [sys.executable, str(script), "--check"]
+    if "--base" in args:
+        i = args.index("--base")
+        if i + 1 < len(args):
+            cmd.extend(["--base", args[i + 1]])
+    from bob_home import bob_product_root
+
+    return subprocess.run(cmd, cwd=str(bob_product_root())).returncode
+
+
+def cmd_contract_diff(args: list[str]) -> int:
+    _banner("contract-diff")
+    from contract_governance import diff_contracts, format_contract_diff_report, product_root, resolve_base_ref
+
+    root = product_root()
+    vs = None
+    if "--vs" in args:
+        i = args.index("--vs")
+        if i + 1 < len(args):
+            vs = args[i + 1]
+    head = "WORKTREE" if "--worktree" in args else "HEAD"
+    base = resolve_base_ref(root, vs)
+    diff = diff_contracts(root, base_ref=base, head_ref=head)
+    print(format_contract_diff_report(diff))
+    return 1 if diff.weakened else 0
+
+
+def cmd_approve_contract_change(args: list[str]) -> int:
+    _banner("approve-contract-change")
+    import getpass
+
+    try:
+        import yaml
+    except ImportError:
+        print("PyYAML required.", file=sys.stderr)
+        return 1
+
+    from contract_governance import (
+        diff_contracts,
+        format_contract_diff_report,
+        product_root,
+        write_approval,
+    )
+
+    if os.environ.get("CI", "").lower() in ("1", "true", "yes"):
+        print("Cannot record contract approval in CI — run locally after review.", file=sys.stderr)
+        return 1
+
+    reason = ""
+    if "--reason" in args:
+        i = args.index("--reason")
+        if i + 1 < len(args):
+            reason = args[i + 1].strip()
+    if len(reason) < 20:
+        print('Required: --reason "..." (at least 20 characters explaining impact).', file=sys.stderr)
+        return 1
+
+    root = product_root()
+    diff = diff_contracts(root, base_ref="HEAD", head_ref="WORKTREE")
+    if not diff.weakened:
+        print("No contract weakening vs HEAD — approval not needed.")
+        return 0
+
+    print(format_contract_diff_report(diff))
+    print()
+
+    gov_path = root / "docs" / "contract-governance.yaml"
+    gov = yaml.safe_load(gov_path.read_text(encoding="utf-8")) if gov_path.is_file() else {}
+    token = str((gov or {}).get("approve_token") or "APPROVE")
+    if "--yes" in args or "-y" in args:
+        print(
+            "Refusing --yes on approve-contract-change. Type the token interactively after review.",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        typed = input(f"Type {token} to record intentional contract weakening: ").strip()
+    except EOFError:
+        print("Interactive approval required.", file=sys.stderr)
+        return 1
+    if typed != token:
+        print("Approval aborted — token mismatch.", file=sys.stderr)
+        return 1
+
+    approver = ""
+    if "--approver" in args:
+        i = args.index("--approver")
+        if i + 1 < len(args):
+            approver = args[i + 1].strip()
+    if not approver:
+        approver = getpass.getuser() or os.environ.get("USER", "") or os.environ.get("USERNAME", "human")
+
+    out_path = write_approval(root, reason=reason, approver=approver, diff=diff)
+    rel = out_path.relative_to(root)
+    print(f"Recorded approval: {rel}")
+    print("Stage and commit this file together with your contract changes.")
+    return 0
+
+
 def cmd_verify_fresh_install(args: list[str]) -> int:
     _banner("verify-fresh-install")
     from fresh_install_verify import main as verify_main
@@ -1217,14 +1354,7 @@ def cmd_version(_: list[str]) -> int:
 def _next_doc_path() -> Path:
     from bob_home import bob_product_root
 
-    candidates = (
-        bob_product_root() / "docs" / "NEXT.md",
-        tdd_root().parent / "docs" / "NEXT.md",
-    )
-    for path in candidates:
-        if path.is_file():
-            return path
-    return candidates[0]
+    return bob_product_root() / "docs" / "NEXT.md"
 
 
 def _resolve_editor_argv() -> list[str]:
@@ -1264,7 +1394,7 @@ def cmd_next(args: list[str]) -> int:
         print(f"Opening backlog in editor: {path}")
         return _open_path_in_editor(path)
     text = path.read_text(encoding="utf-8")
-    print(f"Improvement backlog: {path}")
+    print(f"Bob product backlog: {path}")
     print()
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
@@ -1325,6 +1455,11 @@ def main() -> int:
         "open-report": cmd_open_report,
         "next": cmd_next,
         "verify-product": cmd_verify_product,
+        "verify-docs": cmd_verify_docs,
+        "verify-all": cmd_verify_all,
+        "verify-contract-governance": cmd_verify_contract_governance,
+        "contract-diff": cmd_contract_diff,
+        "approve-contract-change": cmd_approve_contract_change,
         "verify-fresh-install": cmd_verify_fresh_install,
         "remind": cmd_remind,
         "start-services": cmd_start_services,
@@ -1353,6 +1488,11 @@ def main() -> int:
         "version",
         "next",
         "verify-product",
+        "verify-docs",
+        "verify-all",
+        "verify-contract-governance",
+        "contract-diff",
+        "approve-contract-change",
         "verify-fresh-install",
         "remind",
         "plugins",

@@ -101,12 +101,12 @@ Meta loop (squad-level, not per-developer):
 
 | Cadence | Job | Output |
 |---------|-----|--------|
-| Weekly | `workflow-from-chats` + Bob `NEXT.md` review | `AGENTS.md` updates, hygiene PR |
+| Weekly | `workflow-from-chats` + **Bob product** [`NEXT.md`](NEXT.md) review (squad maintainers — not per-ticket scope) | `AGENTS.md` updates, hygiene PR |
 | Session start | `bob chat-hygiene --auto --hook session` | Archive stale/overflow chats (never delete) |
 | Weekly stop | `bob chat-hygiene --hook stop --learn` | Learn reminder + archive nudge |
 | Monthly stop hook | `bob meta-review --hook stop` (auto when 30d due) | [META_REVIEW.md](META_REVIEW.md) + [CONTEXT_USAGE_AUDIT.md](CONTEXT_USAGE_AUDIT.md) - human approves changes |
 | Monthly manual | `bob meta-review` | Same reports on demand |
-| Per release | `bob verify-product` + scorecard | [NEXT.md](NEXT.md) grades |
+| Per release | `bob verify-all` + scorecard | [NEXT.md](NEXT.md) **product** grades; [doc-invariants.yaml](doc-invariants.yaml) via `verify-docs` |
 
 ### `bob meta-review`
 

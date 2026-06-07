@@ -1,0 +1,61 @@
+---
+description: Bob product repo — doc contract + human approval for rule weakening
+globs:
+  - "docs/**"
+  - "skills/**"
+  - "README.md"
+alwaysApply: false
+---
+
+# Bob doc contract (agent duty)
+
+When editing Bob **product** docs or builder skills under `bob-the-builder/`:
+
+## Two backlogs (never mix)
+
+| Scope | Source of truth |
+|-------|-----------------|
+| **Host ticket** | `<host>/docs/tdd-runs/<id>/` — `ticket-spec.yaml`, `TEST_PLAN.md`, `GATE_SUMMARY.md`, `TICKET_RESUME.md` |
+| **Bob product** | `bob-the-builder/docs/NEXT.md` (`bob next`) — engine/docs/CI only |
+
+Do not tell users or agents to use `NEXT.md` for ticket Plan/Build/Prove/Ship.
+
+## Never weaken contracts to green CI
+
+**Forbidden without human approval:**
+
+- Removing or softening rules in `docs/doc-invariants.yaml`
+- Removing features/paths/commands in `docs/product-features.yaml`
+- Expanding skip lists to hide missing docs
+
+If doc checks fail, **fix the docs** or ask the **human** to run the approval flow — do not silently weaken YAML.
+
+## Before commit or push in `bob-the-builder/`
+
+```bash
+python bob.py verify-all
+```
+
+## If the human intentionally weakens a contract
+
+You may help edit YAML **only after** they review impact:
+
+1. Human runs `bob contract-diff` and reads weakenings.
+2. **Human alone** runs `bob approve-contract-change --reason "..."` and types **`APPROVE`**.
+3. Commit the generated `docs/contract-approvals/*.yaml` **with** the contract change.
+
+**Agents must not:**
+
+- Run `approve-contract-change` (interactive token is human-only)
+- Pass `--yes` / `-y` to approval commands
+- Weaken contracts "to unblock CI"
+
+## Adding new product facts (strengthening)
+
+When shipping a new command or path:
+
+1. Register in `docs/product-features.yaml` if it is a feature.
+2. Document in `docs/BOB_CHEATSHEET.md`.
+3. Add rules to `docs/doc-invariants.yaml`.
+
+Strengthening does **not** need approval.
