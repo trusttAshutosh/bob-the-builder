@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=d19a15f -->
+<!-- PRODUCT-VERIFY:COMMIT=6a25303 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,19 +28,29 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `d19a15f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `6a25303` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `d19a15f` — docs: clarify Cursor vs Bob roles in README and KT
+**Commit:** `6a25303` — docs: add BOB_GUIDE as single team KT doc with full vs minimal TDD
 **Date:** 2026-06-08
 
 ### Files changed
 - `README.md`
+- `docs/BOB_GUIDE.md`
+- `docs/CURSOR_PLUGINS.md`
 - `docs/KT_CURSOR_AND_BOB.md`
+- `docs/ONBOARDING_DEVELOPER.md`
+- `docs/README.md`
+- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
+- `docs/doc-invariants.yaml`
+- `runner/lib/builder_cli.py`
+- `runner/lib/cursor_plugins.py`
+- `runner/lib/onboard.py`
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Core CLI entry (`cli-core`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
