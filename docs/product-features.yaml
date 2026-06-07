@@ -127,6 +127,7 @@ features:
 
   - id: path-shim
     name: PATH shim (bob on PATH)
+    commands: [path-shim, doctor]
     paths:
       - runner/lib/path_shim.py
 
@@ -149,7 +150,9 @@ features:
       - docs/CONTRACT_GOVERNANCE.md
       - docs/contract-approvals/index.yaml
       - runner/lib/product_reminder.py
+      - runner/lib/builder_intel_sync.py
       - docs/product-features.yaml
+      - docs/internal/BUILDER_INTEL.md
 
   - id: evidence-and-verify
     name: Evidence bundle + verify docs (DB, logs, Kafka, Redis)

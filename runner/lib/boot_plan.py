@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from host_repo import host_repo_root
 
@@ -77,6 +78,37 @@ def changed_repos_for_spec(spec: dict) -> set[str]:
     except ImportError:
         pass
 
+    return names
+
+
+def repos_requiring_fresh_boot(spec: dict) -> set[str]:
+    """Repo folder names that need bootRun restart before proof (git-detected code changes).
+
+    Unlike ``changed_repos_for_spec`` (boot plan), this does **not** always include the host
+    repo — only repos with ``.java`` / ``.xml`` / ``.properties`` diffs. When a dependency
+    repo (e.g. platform-lib) changed, the host primary is included so composite builds reload.
+    """
+    try:
+        from kafka_discovery import _git_changed_files, _repos_for_ticket
+    except ImportError:
+        return set()
+
+    host = host_repo_root()
+    names: set[str] = set()
+    changed_resolved: list[Path] = []
+    for repo in _repos_for_ticket(spec):
+        if _git_changed_files(repo):
+            names.add(repo.name)
+            changed_resolved.append(repo.resolve())
+
+    if not changed_resolved or not host:
+        return names
+
+    host_res = host.resolve()
+    host_dirty = host_res in changed_resolved
+    dep_dirty = any(r != host_res for r in changed_resolved)
+    if host_dirty or dep_dirty:
+        names.add(host.name)
     return names
 
 

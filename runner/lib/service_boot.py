@@ -453,7 +453,7 @@ def start_service(
         try:
             old = int(pf.read_text(encoding="utf-8").strip())
             if _process_alive(old):
-                if health_up(svc_cfg):
+                if health_up(svc_cfg) and not force:
                     return True, f"{service_key}: already running (pid {old})"
                 stop_service(service_key)
         except ValueError:
@@ -701,6 +701,25 @@ def _resolve_boot_repo(service_key: str, svc_cfg: dict, cfg: dict) -> Path | Non
     return None
 
 
+def _boot_force_for_service(cfg: dict, spec: dict, repo: Path | None, *, cli_force: bool) -> bool:
+    """Restart running service when CLI --force or git-detected code changes require fresh JVM."""
+    if cli_force:
+        return True
+    from boot_plan import repos_requiring_fresh_boot
+
+    fresh = repos_requiring_fresh_boot(spec)
+    if not fresh:
+        return False
+    repo_dir = str(cfg.get("repo_dir") or "").strip()
+    if repo_dir and repo_dir in fresh:
+        return True
+    if repo is not None and repo.name in fresh:
+        return True
+    ws_key = str(cfg.get("workspace_key") or cfg.get("service_key") or "")
+    rd = repo_dir_for_service(ws_key)
+    return bool(rd and rd in fresh)
+
+
 def ensure_services_running(spec: dict, *, force: bool = False) -> dict[str, tuple[bool, str]]:
     wait = boot_wait_seconds(spec)
     outcomes: dict[str, tuple[bool, str]] = {}
@@ -708,11 +727,18 @@ def ensure_services_running(spec: dict, *, force: bool = False) -> dict[str, tup
         key = str(cfg.get("service_key") or cfg.get("repo_dir") or "service")
         svc_cfg = _to_svc_cfg(cfg)
         repo_path = _resolve_boot_repo(key, svc_cfg, cfg)
+        should_force = _boot_force_for_service(cfg, spec, repo_path, cli_force=force)
+        if should_force and not force and health_up(svc_cfg):
+            repo_label = str(cfg.get("repo_dir") or (repo_path.name if repo_path else key))
+            print(
+                f"Bob: restarting {key} — code changes detected in {repo_label}",
+                flush=True,
+            )
         outcomes[key] = start_service(
             key,
             svc_cfg,
             wait_seconds=wait,
-            force=force,
+            force=should_force,
             repo=repo_path,
         )
     return outcomes

@@ -19,6 +19,7 @@ required_files:
   - docs/DATA_LAYOUT.md
   - docs/EVIDENCE_AND_VERIFY.md
   - docs/BOB_GUIDE.md
+  - docs/internal/BUILDER_INTEL.md
   - docs/KT_CURSOR_AND_BOB.md
   - skills/builder-analyst/SKILL.md
   - skills/builder-implementer/SKILL.md
@@ -133,6 +134,26 @@ content_rules:
       - "type **`APPROVE`**"
       - "Weakening either file to silence CI is blocked"
 
+  - id: builder-intel-ego-boost
+    files: [docs/internal/BUILDER_INTEL.md]
+    must_contain:
+      - "ego boost"
+      - "product-features.yaml"
+      - "Interview Q&A"
+      - "vibecoding"
+      - "github.com/trusttAshutosh/bob-the-builder"
+      - "BUILDER_INTEL:AUTO:START"
+      - "auto-maintained"
+      - "Interview walkthrough"
+      - "bob builder-intel"
+
+  - id: public-docs-no-builder-intel
+    files: [README.md, docs/README.md, docs/BOB_GUIDE.md, docs/BOB_CHEATSHEET.md]
+    must_not_contain:
+      - "BUILDER_INTEL"
+      - "builder-intel"
+      - "docs/internal/"
+
   - id: evidence-master-map
     files: [docs/EVIDENCE_AND_VERIFY.md]
     must_contain:
@@ -169,6 +190,7 @@ forbidden_in_docs:
     - "skills/**/*.md"
     - "README.md"
   exclude_files:
+    - docs/internal/BUILDER_INTEL.md
     - docs/NEXT.md
     - docs/META_REVIEW.md
     - docs/CONTEXT_USAGE_AUDIT.md

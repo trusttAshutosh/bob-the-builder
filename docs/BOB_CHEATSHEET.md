@@ -13,6 +13,8 @@
 | `bob chat-hygiene [--dry-run] [--auto]` | Archive stale/overflow Cursor chats (never delete) |
 | `bob onboard` | Setup + install + full squad Cursor kit (skills, rules, hooks, CC junction) + plugin notice |
 | `bob setup` | Workspace, MySQL, `{SERVICE}_BASE` URLs from host `deploy/tdd` → `BOB_LOCAL/user.env` |
+| `bob path-shim [--force]` | Put `bob` + hyphenated commands on PATH (`validate-ticket`, `verify-all`, …) |
+| `bob doctor` | Diagnose PATH/python/shims; shows exact fix if commands fail |
 | `bob host` | Show `BOB_HOST_REPO`, workspace repos, active `deploy/tdd` profile |
 | `bob install` | Seed **empty** `assets/` from `_seed` + `local/`; install post-commit hook |
 | `bob install-hooks` | Re-install git post-commit hook (auto NEXT.md after commit) |

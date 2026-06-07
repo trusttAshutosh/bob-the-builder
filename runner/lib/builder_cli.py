@@ -99,6 +99,14 @@ CMD_ALIASES: dict[str, str] = {
     "refresh-samples": "refresh-samples",
     "refresh-examples": "refresh-samples",
     "tools": "tools",
+    "builder-intel": "builder-intel",
+    "ego-boost": "builder-intel",
+    "egoboost": "builder-intel",
+    "path-shim": "path-shim",
+    "path_shim": "path-shim",
+    "pathshim": "path-shim",
+    "doctor": "doctor",
+    "bob-doctor": "doctor",
     "s": "setup",
     "i": "init-ticket",
     "r": "validate-ticket",
@@ -139,6 +147,9 @@ def _print_help() -> None:
     print(TAGLINE)
     print()
     print(f"Usage: {CLI_SHORT} <command> [args]     e.g. python bob.py <command>")
+    print("  Windows: bob builder-intel --open   OR   .\\bob.cmd builder-intel --open")
+    print("  Flat shims (after path-shim): builder-intel --open   validate-ticket <id>")
+    print("  Broken command? Run: bob doctor")
     print()
     print("Commands (name = purpose):")
     print("  setup              Reconfigure prefs only (onboard runs this on first use)")
@@ -704,6 +715,91 @@ def cmd_refresh_samples(_: list[str]) -> int:
 
     refresh_sample_outputs()
     return 0
+
+
+def cmd_builder_intel(args: list[str]) -> int:
+    """Maintainer ego-boost doc — not listed in public help."""
+    from builder_intel_sync import BUILDER_INTEL_REL, sync_builder_intel
+    from bob_home import bob_product_root
+
+    root = bob_product_root()
+    changed, msg = sync_builder_intel(root, write=True)
+    path = (root / BUILDER_INTEL_REL).resolve()
+    print(msg)
+    print(f"BUILDER_INTEL: {path}")
+    if "--open" in args or "-o" in args:
+        try:
+            if sys.platform == "win32":
+                os.startfile(str(path))  # type: ignore[attr-defined]
+            elif sys.platform == "darwin":
+                subprocess.run(["open", str(path)], check=False)
+            else:
+                subprocess.run(["xdg-open", str(path)], check=False)
+        except OSError as ex:
+            print(f"Could not open editor: {ex}", file=sys.stderr)
+    elif changed:
+        print("Tip: bob builder-intel --open")
+    return 0
+
+
+def cmd_path_shim(args: list[str]) -> int:
+    _banner("path-shim")
+    from path_shim import ensure_bob_on_path, flat_shim_commands, path_shim_status
+
+    force = "--force" in args or "-f" in args
+    ensure_bob_on_path(quiet=False, force=force)
+    st = path_shim_status()
+    print(f"  bin: {st['bin_dir']}")
+    print(f"  on PATH: {st['on_path']}")
+    print(f"  flat shims: {st['flat_shim_count']} (e.g. {', '.join(flat_shim_commands()[:3])}, …)")
+    if sys.platform == "win32" and not st["on_path"]:
+        print("  Open a new PowerShell window, then: bob doctor")
+    return 0
+
+
+def cmd_doctor(_: list[str]) -> int:
+    _banner("doctor")
+    import shutil
+
+    from path_shim import ensure_bob_on_path, flat_shim_commands, is_path_configured, path_shim_status
+
+    ensure_bob_on_path(quiet=True)
+    st = path_shim_status()
+    ok = True
+
+    def line(good: bool, label: str, detail: str) -> None:
+        nonlocal ok
+        mark = "OK" if good else "FIX"
+        if not good:
+            ok = False
+        print(f"  [{mark}] {label}: {detail}")
+
+    line(bool(st["bob_py_exists"]), "bob.py", str(st["bob_py"]))
+    line(bool(shutil.which("python") or sys.executable), "python", sys.executable)
+    line(bool(st["bin_dir_exists"]), "shim dir", str(st["bin_dir"]))
+    line(bool(st["on_path"]), "PATH", "local/bin on PATH" if st["on_path"] else "NOT on PATH — run: bob path-shim --force")
+    line(bool(st["marker_exists"]), "marker", ".path-configured" if st["marker_exists"] else "missing — run: bob path-shim")
+
+    bob_which = shutil.which("bob") or shutil.which("bob.cmd")
+    line(bool(bob_which), "bob command", bob_which or "not found")
+    intel_which = shutil.which("builder-intel") or shutil.which("builder-intel.cmd")
+    line(bool(intel_which), "builder-intel shim", intel_which or "not found — run: bob path-shim --force")
+
+    print()
+    print("How to run (always works from bob-the-builder/):")
+    print("  python bob.py builder-intel --open")
+    print("  .\\bob.cmd builder-intel --open")
+    if sys.platform == "win32":
+        print("  .\\bob.ps1 builder-intel --open")
+    print()
+    print("After PATH shim (new terminal may be required):")
+    print("  bob builder-intel --open")
+    print("  builder-intel --open")
+    print()
+    print(f"Flat shims installed: {len(flat_shim_commands())} hyphenated commands")
+    if not is_path_configured():
+        print("Run once: bob path-shim")
+    return 0 if ok else 1
 
 
 def cmd_tools(args: list[str]) -> int:
@@ -1421,6 +1517,9 @@ def _load_prefs_early() -> None:
 
 def main() -> int:
     _load_prefs_early()
+    from path_shim import ensure_bob_on_path, is_path_configured
+
+    ensure_bob_on_path(quiet=is_path_configured())
     if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help", "help"):
         _print_help()
         return 0 if len(sys.argv) >= 2 else 1
@@ -1453,6 +1552,9 @@ def main() -> int:
         "list-tickets": cmd_list_tickets,
         "ticket-status": cmd_ticket_status,
         "open-report": cmd_open_report,
+        "builder-intel": cmd_builder_intel,
+        "path-shim": cmd_path_shim,
+        "doctor": cmd_doctor,
         "next": cmd_next,
         "verify-product": cmd_verify_product,
         "verify-docs": cmd_verify_docs,
@@ -1479,7 +1581,14 @@ def main() -> int:
     }
     h = handlers.get(cmd)
     if not h:
-        print(f"Unknown command: {sys.argv[1]}  (try: {CLI_SHORT} help)", file=sys.stderr)
+        hint = ""
+        bare = sys.argv[1].replace("_", "-").lower()
+        if bare in CMD_ALIASES or bare in {v for v in CMD_ALIASES.values()}:
+            hint = f"\n  Did you mean: {CLI_SHORT} {bare} {' '.join(args)}?"
+        elif "-" in bare:
+            hint = f"\n  Commands need the bob prefix: {CLI_SHORT} {bare} {' '.join(args)}"
+        print(f"Unknown command: {sys.argv[1]}  (try: {CLI_SHORT} help){hint}", file=sys.stderr)
+        print(f"  Or run: {CLI_SHORT} doctor", file=sys.stderr)
         _print_help()
         return 1
     rc = h(args)
@@ -1507,9 +1616,6 @@ def main() -> int:
     from product_reminder import print_nudge_after_command
 
     print_nudge_after_command(cmd)
-    from path_shim import ensure_bob_on_path
-
-    ensure_bob_on_path(quiet=False)
     return rc
 
 

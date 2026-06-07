@@ -328,8 +328,18 @@ def cmd_check(args: argparse.Namespace) -> int:
             print("Strict mode: run bob verify-product --update and commit docs/NEXT.md.", file=sys.stderr)
             return 1
 
+    from builder_intel_sync import verify_builder_intel_sync
+
+    intel_ok, intel_msg = verify_builder_intel_sync(ROOT)
+    if not intel_ok:
+        print(intel_msg, file=sys.stderr)
+        if args.strict:
+            return 1
+
     print(f"Product features OK ({len(ok_list)}/{len(ok_list)} intact).")
     print(f"NEXT.md verify stamp: {stored} (HEAD: {head_short})")
+    if intel_ok:
+        print(intel_msg)
     return 0
 
 
@@ -347,6 +357,11 @@ def cmd_update(args: argparse.Namespace) -> int:
     print(f"Updated {NEXT_MD}")
     print(f"  Features: {len(ok_list)} intact, {len(fail_list)} missing")
     print(f"  Commit stamp: {info['hash_short']}")
+
+    from builder_intel_sync import sync_builder_intel
+
+    changed, msg = sync_builder_intel(ROOT, write=True)
+    print(msg)
 
     from sample_outputs import refresh_sample_outputs, should_refresh_samples
 

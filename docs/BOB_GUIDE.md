@@ -217,9 +217,9 @@ bob open-report MY-123
 bob ticket-status MY-123
 ```
 
-First `bob` use adds `local/bin` to PATH; until then: `python bob.py <cmd>` from `bob-the-builder/`.
+First `bob` use adds `local/bin` to PATH (plus flat shims for hyphenated commands). Until then: `python bob.py <cmd>` or `.\bob.cmd <cmd>` from `bob-the-builder/`. If commands fail: `bob doctor` or `bob path-shim --force`, then open a **new** terminal.
 
-**Service boot:** `validate-ticket` can auto-boot peers (`run.auto_boot_services: true` by default). Bank stays WireMock. See commands: `bob ensure-peers`, `bob services-status`, `bob stop-services`.
+**Service boot:** `validate-ticket` can auto-boot peers (`run.auto_boot_services: true` by default). Bank stays WireMock. If services are already up but **git shows `.java` / `.xml` / `.properties` changes** in the ticket flow (including platform-lib), Bob **restarts** those boot targets so API proof hits fresh code; with no code changes, healthy services are reused for faster "test again" runs. See commands: `bob ensure-peers`, `bob services-status`, `bob stop-services`.
 
 ---
 

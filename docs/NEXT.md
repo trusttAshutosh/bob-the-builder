@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=6a25303 -->
+<!-- PRODUCT-VERIFY:COMMIT=2b7036f -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,29 +28,18 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `6a25303` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `2b7036f` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `6a25303` — docs: add BOB_GUIDE as single team KT doc with full vs minimal TDD
+**Commit:** `2b7036f` — docs: refresh NEXT.md and sample validate output [bob]
 **Date:** 2026-06-08
 
 ### Files changed
-- `README.md`
-- `docs/BOB_GUIDE.md`
-- `docs/CURSOR_PLUGINS.md`
-- `docs/KT_CURSOR_AND_BOB.md`
-- `docs/ONBOARDING_DEVELOPER.md`
-- `docs/README.md`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
-- `docs/doc-invariants.yaml`
-- `runner/lib/builder_cli.py`
-- `runner/lib/cursor_plugins.py`
-- `runner/lib/onboard.py`
+- `docs/NEXT.md`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).

@@ -9,6 +9,7 @@ from boot_plan import (
     _classify_entry,
     boot_policy,
     build_boot_plan,
+    repos_requiring_fresh_boot,
 )
 
 
@@ -102,3 +103,45 @@ def test_boot_plan_boot_configs() -> None:
     )
     assert len(plan.boot_configs) == 1
     assert plan.boot_configs[0]["repo_dir"] == "novopay-platform-creditcard-management"
+
+
+def test_repos_requiring_fresh_boot_empty_when_clean(monkeypatch) -> None:
+    monkeypatch.setattr("kafka_discovery._git_changed_files", lambda _repo: [])
+    monkeypatch.setattr("kafka_discovery._repos_for_ticket", lambda _spec: [])
+    assert repos_requiring_fresh_boot({}) == set()
+
+
+def test_repos_requiring_fresh_boot_includes_host_when_lib_dirty(monkeypatch, tmp_path) -> None:
+    host = tmp_path / "novopay-platform-creditcard-management"
+    lib = tmp_path / "novopay-platform-lib"
+    host.mkdir()
+    lib.mkdir()
+
+    def fake_repos(_spec: dict) -> list:
+        return [host, lib]
+
+    def fake_diff(repo) -> list:
+        return [repo / "src/main/java/Foo.java"] if repo == lib else []
+
+    monkeypatch.setattr("kafka_discovery._repos_for_ticket", fake_repos)
+    monkeypatch.setattr("kafka_discovery._git_changed_files", fake_diff)
+    monkeypatch.setattr("boot_plan.host_repo_root", lambda: host)
+
+    fresh = repos_requiring_fresh_boot({"impacted": {}})
+    assert lib.name in fresh
+    assert host.name in fresh
+
+
+def test_repos_requiring_fresh_boot_host_only_when_host_dirty(monkeypatch, tmp_path) -> None:
+    host = tmp_path / "novopay-platform-creditcard-management"
+    host.mkdir()
+
+    monkeypatch.setattr("kafka_discovery._repos_for_ticket", lambda _spec: [host])
+    monkeypatch.setattr(
+        "kafka_discovery._git_changed_files",
+        lambda repo: [repo / "src/main/java/Bar.java"],
+    )
+    monkeypatch.setattr("boot_plan.host_repo_root", lambda: host)
+
+    fresh = repos_requiring_fresh_boot({})
+    assert fresh == {host.name}
