@@ -64,7 +64,9 @@ def install_git_hooks(*, force: bool = False) -> tuple[bool, str]:
             _make_executable(dest)
         installed.append(src.name)
 
-    return True, f"Installed git hooks: {', '.join(installed)}" if installed else True, "Git hooks already up to date (pre-commit, post-commit)."
+    if installed:
+        return True, f"Installed git hooks: {', '.join(installed)}"
+    return True, "Git hooks already up to date (pre-commit, post-commit)."
 
 
 def post_commit_refresh_next_md() -> tuple[bool, str]:
