@@ -1,6 +1,6 @@
 # Bob the Builder
 
-Ticket-driven local TDD for backend services: ticket specs, API discovery, validation, evidence, and Cursor agent skills.
+Ticket-driven local TDD for backend services: **Bob proves** work from `ticket-spec.yaml`; **Cursor** (the IDE agent) plans and implements. This repo ships the Bob CLI, evidence tooling, and optional Cursor `builder-*` skill playbooks.
 
 **This is the only repository for Bob.** Service repos (e.g. credit-card-management) do not ship the engine — they only hold ticket folders and host-specific deploy config.
 
@@ -9,6 +9,30 @@ Ticket-driven local TDD for backend services: ticket specs, API discovery, valid
 ```bash
 git clone https://github.com/trusttAshutosh/bob-the-builder.git
 ```
+
+## Cursor vs Bob
+
+Bob is **not** a second AI and does **not** write Java. It is a **CLI + ticket layout** for standardized local proof. Cursor is the agent that thinks, drafts specs, and writes code.
+
+| | **Cursor** (IDE + agent) | **Bob** (`bob.py` CLI) |
+|---|--------------------------|-------------------------|
+| **Role** | Plan, implement, review in chat | Run `validate-ticket` and write evidence |
+| **Typical work** | Raw requirement → `ticket-spec.yaml`, `TEST_PLAN.md`, Java/tests | Boot services + WireMock, hit APIs, DB/log/Kafka/Redis checks |
+| **Skills** | Workspace skills + optional `builder-analyst`, `builder-implementer`, `builder-verifier` (playbooks for the agent — not auto-on) | Commands: `init-ticket`, `discover-apis`, `validate-ticket`, … |
+| **Output** | Code, unit tests, ticket docs under `<host>/docs/tdd-runs/<id>/` | `REPORT.md`, `GATE_SUMMARY.md`, `evidence/` |
+
+**Full squad loop (ideal for non-trivial tickets):**
+
+```text
+raw thoughts → (Cursor) ticket-spec + TEST_PLAN → (Cursor) code + unit tests
+             → (Bob) validate-ticket → evidence/ → (you) GATE_SUMMARY gates → ship
+```
+
+**Minimal loop (also valid):** implement in Cursor, then `bob validate-ticket <id>` when you want proof — you still need a ticket folder/spec for Bob to run scenarios.
+
+Saying **"bob"** in chat does not switch modes automatically; it nudges the agent toward this workflow. Explicit commands work best: *"plan only: init adhoc-foo, no code"* or *"bob validate-ticket adhoc-foo"*.
+
+More detail: [docs/KT_CURSOR_AND_BOB.md](docs/KT_CURSOR_AND_BOB.md) · [docs/TDD_SYSTEM_DEVELOPER_GUIDE.md](docs/TDD_SYSTEM_DEVELOPER_GUIDE.md)
 
 ## Layout
 

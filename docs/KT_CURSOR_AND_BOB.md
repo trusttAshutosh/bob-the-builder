@@ -22,6 +22,8 @@ AGENTS.md + rules     → durable memory (not chat history)
 
 **Bob is not redundant.** Cursor does not replace booting Gradle services, WireMock, DB asserts, and PASS/FAIL reports.
 
+**Cursor vs Bob (read this first):** [README.md](../README.md#cursor-vs-bob) — Cursor plans and implements; Bob CLI proves from `ticket-spec.yaml`. Builder skills are Cursor playbooks, not a separate bot. Typing "bob" in chat does not auto-run the full loop.
+
 ---
 
 ## 2. What to install (Cursor)
