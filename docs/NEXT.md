@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=9885ae1 -->
+<!-- PRODUCT-VERIFY:COMMIT=7ebebdd -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-07 -->
 
 <!-- SCORECARD:START -->
@@ -28,31 +28,39 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-07 · commit `9885ae1` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-07 · commit `7ebebdd` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `9885ae1` — feat: CI install/discover smoke and bob next --edit
+**Commit:** `7ebebdd` — feat: verify-fresh-install, reference pack docs, host profile fix
 **Date:** 2026-06-07
 
 ### Files changed
 - `.github/workflows/bob-smoke.yml`
+- `README.md`
+- `assets/examples/README.md`
+- `docs/ADOPTING_BOB_FOR_ANOTHER_SERVICE.md`
 - `docs/BOB_CHEATSHEET.md`
+- `docs/CONTRIBUTING_REFERENCE_PACKS.md`
+- `docs/FRESH_INSTALL_VERIFY.md`
 - `docs/NEXT.md`
+- `docs/README.md`
+- `docs/product-features.yaml`
 - `runner/ci/smoke-install-discover.py`
+- `runner/ci/verify-fresh-install.py`
 - `runner/lib/builder_cli.py`
-- `runner/lib/setup_prefs.py`
-- `runner/lib/tdd_engine.py`
+- `runner/lib/fresh_install_verify.py`
+- `runner/lib/host_profile.py`
 - `runner/tests/fixtures/ci-host/README.md`
-- `runner/tests/fixtures/ci-host/deploy/application/orchestration/smoke-flow.xml`
 - `runner/tests/fixtures/ci-host/deploy/tdd/env-local-dsa.yaml`
-- `runner/tests/test_next_backlog.py`
+- `runner/tests/test_fresh_install.py`
 
 ### Features touched in this commit
 - Core CLI entry (`cli-core`) — files touched
 - Workspace setup & install (`workspace-setup`) — files touched
-- API catalog discovery (`api-discovery`) — files touched
+- CC reference pack (examples only) (`examples-novopay-cc`) — files touched
 - Improvement backlog & reminders (`improvement-backlog`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
