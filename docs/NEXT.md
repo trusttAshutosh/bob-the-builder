@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=7aa7a37 -->
+<!-- PRODUCT-VERIFY:COMMIT=823e714 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
 
 <!-- SCORECARD:START -->
@@ -28,52 +28,19 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `7aa7a37` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-08 · commit `823e714` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `7aa7a37` — feat: doc invariants, contract governance, and two-backlog clarity
+**Commit:** `823e714` — fix: install-hooks return tuple (was 3-tuple parse bug)
 **Date:** 2026-06-08
 
 ### Files changed
-- `.cursor/rules/bob-doc-contract.mdc`
-- `.cursor/rules/bob-zero-cognitive-load.mdc`
-- `.github/workflows/product-verify.yml`
-- `README.md`
-- `docs/ARCHITECTURE_REVIEW.md`
-- `docs/BOB_CHEATSHEET.md`
-- `docs/CONTRACT_GOVERNANCE.md`
-- `docs/DATA_LAYOUT.md`
-- `docs/KT_CURSOR_AND_BOB.md`
-- `docs/NEXT.md`
-- `docs/ONBOARDING_DEVELOPER.md`
-- `docs/README.md`
-- `docs/TDD_SYSTEM_DEVELOPER_GUIDE.md`
-- `docs/contract-approvals/index.yaml`
-- `docs/contract-governance.yaml`
-- `docs/doc-invariants.yaml`
-- `docs/product-features.yaml`
-- `runner/ci/verify-contract-governance.py`
-- `runner/ci/verify-docs.py`
-- `runner/hooks/pre-commit`
-- `runner/lib/builder_cli.py`
-- `runner/lib/contract_governance.py`
 - `runner/lib/git_hooks.py`
-- `runner/tests/test_contract_governance.py`
-- `runner/tests/test_next_backlog.py`
-- `runner/tests/test_verify_docs.py`
-- `skills/README.md`
-- `skills/builder-analyst/SKILL.md`
-- `skills/builder-implementer/SKILL.md`
-- `skills/builder-one-shot/SKILL.md`
-- `skills/builder-verifier/SKILL.md`
+- `runner/tests/test_git_hooks.py`
 
 ### Features touched in this commit
-- Core CLI entry (`cli-core`) — files touched
 - Workspace setup & install (`workspace-setup`) — files touched
-- Improvement backlog & reminders (`improvement-backlog`) — files touched
-- Cursor builder skills (`agent-skills`) — files touched
-- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
