@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=17ac102 -->
+<!-- PRODUCT-VERIFY:COMMIT=9885ae1 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-07 -->
 
 <!-- SCORECARD:START -->
@@ -28,18 +28,31 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product B+ · one commit from ship** | |
 
-*Last feature check: 2026-06-07 · commit `17ac102` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-07 · commit `9885ae1` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `17ac102` — docs(readme): neutral squad setup heading and trim clone section
+**Commit:** `9885ae1` — feat: CI install/discover smoke and bob next --edit
 **Date:** 2026-06-07
 
 ### Files changed
-- `README.md`
+- `.github/workflows/bob-smoke.yml`
+- `docs/BOB_CHEATSHEET.md`
+- `docs/NEXT.md`
+- `runner/ci/smoke-install-discover.py`
+- `runner/lib/builder_cli.py`
+- `runner/lib/setup_prefs.py`
+- `runner/lib/tdd_engine.py`
+- `runner/tests/fixtures/ci-host/README.md`
+- `runner/tests/fixtures/ci-host/deploy/application/orchestration/smoke-flow.xml`
+- `runner/tests/fixtures/ci-host/deploy/tdd/env-local-dsa.yaml`
+- `runner/tests/test_next_backlog.py`
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Core CLI entry (`cli-core`) — files touched
+- Workspace setup & install (`workspace-setup`) — files touched
+- API catalog discovery (`api-discovery`) — files touched
+- Improvement backlog & reminders (`improvement-backlog`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
