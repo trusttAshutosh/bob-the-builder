@@ -54,3 +54,20 @@ def test_merge_hooks_json_upgrades_legacy(tmp_path) -> None:
     stop_cmds = [e["command"] for e in merged["hooks"]["stop"]]
     assert "./hooks/orchestrator-hygiene-stop.sh" not in stop_cmds
     assert "./hooks/bob-hook-runner.sh stop" in stop_cmds
+
+
+def test_deploy_cursor_hooks_makes_runner_readonly(tmp_path, monkeypatch) -> None:
+    import stat
+
+    from cursor_hook import HOOK_RUNNER_NAME, cursor_hooks_dir, deploy_cursor_hooks
+
+    hooks = tmp_path / "hooks"
+    hooks.mkdir()
+    monkeypatch.setattr("cursor_hook.cursor_hooks_dir", lambda: hooks)
+    monkeypatch.setattr("cursor_hook.resolve_bob_py", lambda _ws=None: tmp_path / "bob.py")
+    (tmp_path / "bob.py").write_text("# stub\n", encoding="utf-8")
+
+    deploy_cursor_hooks(force=True)
+    runner = hooks / HOOK_RUNNER_NAME
+    assert runner.is_file()
+    assert not (runner.stat().st_mode & stat.S_IWUSR)

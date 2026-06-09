@@ -731,7 +731,7 @@ def ensure_services_running(spec: dict, *, force: bool = False) -> dict[str, tup
         if should_force and not force and health_up(svc_cfg):
             repo_label = str(cfg.get("repo_dir") or (repo_path.name if repo_path else key))
             print(
-                f"Bob: restarting {key} — code changes detected in {repo_label}",
+                f"Bob: restarting {key} — unstaged Java change(s) in {repo_label}",
                 flush=True,
             )
         outcomes[key] = start_service(

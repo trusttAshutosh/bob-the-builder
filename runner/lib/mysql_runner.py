@@ -57,3 +57,62 @@ def mysql_exec_script(sql_text: str, schema: str | None = None) -> tuple[int, st
         if rc != 0:
             return rc, last_out
     return 0, last_out
+
+
+def ensure_dsa_masterdata_configuration_schema() -> tuple[bool, str]:
+    """Add permission_code to dsa_masterdata.configuration when missing (local Bob drift)."""
+    rc, out = mysql_query(
+        "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS "
+        "WHERE TABLE_SCHEMA='dsa_masterdata' AND TABLE_NAME='configuration' "
+        "AND COLUMN_NAME='permission_code'",
+        schema="platform_master",
+    )
+    if rc != 0:
+        return False, out[-300:]
+    scalar = None
+    for line in reversed((out or "").splitlines()):
+        token = line.strip()
+        if token.isdigit():
+            scalar = token
+            break
+    if scalar != "0":
+        return True, "permission_code column present"
+    rc, out = mysql_query(
+        "ALTER TABLE dsa_masterdata.configuration ADD COLUMN permission_code VARCHAR(64) NULL",
+        schema="platform_master",
+    )
+    if rc != 0:
+        return False, out[-300:]
+    mysql_query(
+        "CREATE INDEX idx_permission_code ON dsa_masterdata.configuration(permission_code(64))",
+        schema="platform_master",
+    )
+    return True, "added permission_code column to dsa_masterdata.configuration"
+
+
+def ensure_dsa_notifications_sms_log_schema() -> tuple[bool, str]:
+    """Add gateway_response_code to dsa_notifications.sms_log when missing (local Bob drift)."""
+    rc, out = mysql_query(
+        "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS "
+        "WHERE TABLE_SCHEMA='dsa_notifications' AND TABLE_NAME='sms_log' "
+        "AND COLUMN_NAME='gateway_response_code'",
+        schema="platform_master",
+    )
+    if rc != 0:
+        return False, out[-300:]
+    scalar = None
+    for line in reversed((out or "").splitlines()):
+        token = line.strip()
+        if token.isdigit():
+            scalar = token
+            break
+    if scalar != "0":
+        return True, "sms_log.gateway_response_code present"
+    rc, out = mysql_query(
+        "ALTER TABLE dsa_notifications.sms_log "
+        "ADD COLUMN gateway_response_code VARCHAR(64) NULL AFTER status",
+        schema="platform_master",
+    )
+    if rc != 0:
+        return False, out[-300:]
+    return True, "added gateway_response_code to dsa_notifications.sms_log"

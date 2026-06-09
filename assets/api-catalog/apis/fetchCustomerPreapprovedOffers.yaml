@@ -1,0 +1,29 @@
+api_id: fetchCustomerPreapprovedOffers
+service: creditcard-management
+source:
+  orchestration: deploy/application/orchestration/common_vkyc_retrigger.xml
+  request_template: deploy/application/templates/request/product/fetchCustomerPreapprovedOffers_requestTemplate.json
+http:
+  method: POST
+  path: /api/v1/fetchCustomerPreapprovedOffers
+  base_env: CC_BASE
+envelope:
+  request_key: fetchCustomerPreapprovedOffers
+header_defaults:
+  tenant_code: '{TENANT}'
+  client_code: '{CLIENT}'
+  channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  user_id: LOCAL_QA
+  stan: '{STAN}'
+request_defaults:
+  client_reference_number: ''
+  is_income_based_offer: ''
+  is_final_offer: ''
+  journey_type: ''
+  employment_type_code: ''
+  preapproved_card_type: ''
+  selected_card_code: ''
+notes: "Auto-discovered \u2014 fill request_defaults and bank_calls for your ticket."

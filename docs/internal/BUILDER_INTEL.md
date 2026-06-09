@@ -85,7 +85,7 @@ flowchart LR
 <!-- BUILDER_INTEL:AUTO:START -->
 ## Auto-maintained inventory (do not edit this section)
 
-**Synced:** 2026-06-08 · commit `fd0f812` · **20** registered features · **48** CLI handler commands.
+**Synced:** 2026-06-08 · commit `4065541` · **20** registered features · **48** CLI handler commands.
 
 Source of truth: [`product-features.yaml`](../product-features.yaml). Refreshed by `bob verify-product --update` and the post-commit hook.
 
@@ -119,7 +119,7 @@ Source of truth: [`product-features.yaml`](../product-features.yaml). Refreshed 
 - **[Later]** **Windows validate-ticket** — document bash requirement; expand Python fallback parity with `run-tdd.sh`
 - **[Later]** **Orchestration-less hosts** — discovery today requires `deploy/application/orchestration/`; support OpenAPI-only or Gradle route scan as alternative
 
-<!-- BUILDER_INTEL:SYNC=2026-06-08:fd0f812 -->
+<!-- BUILDER_INTEL:SYNC=2026-06-08:4065541 -->
 <!-- BUILDER_INTEL:AUTO:END -->
 
 ---
@@ -355,7 +355,9 @@ Repo: https://github.com/trusttAshutosh/bob-the-builder · User doc: `docs/BOB_G
 **Senior engineering**
 
 - Architected **agent + deterministic prover split**: Cursor for plan/implement; Python CLI for replayable proof (`run_flow.py`); CI registry (20 features), doc-invariants, contract governance with human approval.
-- Hardened proof correctness: **fresh JVM on code change** (`repos_requiring_fresh_boot`), boot remediation from logs, eval regression on scenario PASS/FAIL; pytest + `verify-all` on the runner.
+- Hardened proof correctness: **fresh JVM on unstaged Java only** (`git_boot_changes.java_unstaged_boot_changes`; host restarts when composite lib changes, not peer services), boot remediation from logs, eval regression on scenario PASS/FAIL; pytest + `verify-all` on the runner.
+- **E2E-first validate-ticket** (`run.e2e_first`, `run.fail_fast_on_e2e_block`): integration/e2e scenarios before unit; skip unit when E2E is blocked so agents fix env/WireMock instead of substituting Gradle tests.
+- **Cursor hook runner read-only** after `bob onboard` / `deploy_cursor_hooks` — prevents accidental edits when the tab opens during hooks.
 
 **AI / applied agentic**
 

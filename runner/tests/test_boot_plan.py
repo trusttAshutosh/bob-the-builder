@@ -106,7 +106,7 @@ def test_boot_plan_boot_configs() -> None:
 
 
 def test_repos_requiring_fresh_boot_empty_when_clean(monkeypatch) -> None:
-    monkeypatch.setattr("kafka_discovery._git_changed_files", lambda _repo: [])
+    monkeypatch.setattr("git_boot_changes.java_unstaged_boot_changes", lambda _repo: [])
     monkeypatch.setattr("kafka_discovery._repos_for_ticket", lambda _spec: [])
     assert repos_requiring_fresh_boot({}) == set()
 
@@ -120,11 +120,11 @@ def test_repos_requiring_fresh_boot_includes_host_when_lib_dirty(monkeypatch, tm
     def fake_repos(_spec: dict) -> list:
         return [host, lib]
 
-    def fake_diff(repo) -> list:
+    def fake_java(repo) -> list:
         return [repo / "src/main/java/Foo.java"] if repo == lib else []
 
     monkeypatch.setattr("kafka_discovery._repos_for_ticket", fake_repos)
-    monkeypatch.setattr("kafka_discovery._git_changed_files", fake_diff)
+    monkeypatch.setattr("git_boot_changes.java_unstaged_boot_changes", fake_java)
     monkeypatch.setattr("boot_plan.host_repo_root", lambda: host)
 
     fresh = repos_requiring_fresh_boot({"impacted": {}})
@@ -138,10 +138,28 @@ def test_repos_requiring_fresh_boot_host_only_when_host_dirty(monkeypatch, tmp_p
 
     monkeypatch.setattr("kafka_discovery._repos_for_ticket", lambda _spec: [host])
     monkeypatch.setattr(
-        "kafka_discovery._git_changed_files",
+        "git_boot_changes.java_unstaged_boot_changes",
         lambda repo: [repo / "src/main/java/Bar.java"],
     )
     monkeypatch.setattr("boot_plan.host_repo_root", lambda: host)
 
     fresh = repos_requiring_fresh_boot({})
     assert fresh == {host.name}
+
+
+def test_repos_requiring_fresh_boot_peer_change_does_not_restart_host(monkeypatch, tmp_path) -> None:
+    host = tmp_path / "novopay-platform-creditcard-management"
+    notif = tmp_path / "novopay-platform-notifications"
+    host.mkdir()
+    notif.mkdir()
+
+    def fake_java(repo) -> list:
+        return [repo / "src/main/java/N.java"] if repo == notif else []
+
+    monkeypatch.setattr("kafka_discovery._repos_for_ticket", lambda _spec: [host, notif])
+    monkeypatch.setattr("git_boot_changes.java_unstaged_boot_changes", fake_java)
+    monkeypatch.setattr("boot_plan.host_repo_root", lambda: host)
+
+    fresh = repos_requiring_fresh_boot({})
+    assert notif.name in fresh
+    assert host.name not in fresh

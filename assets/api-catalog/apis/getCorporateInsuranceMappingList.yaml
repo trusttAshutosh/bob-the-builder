@@ -1,0 +1,26 @@
+api_id: getCorporateInsuranceMappingList
+service: creditcard-management
+source:
+  orchestration: deploy/application/orchestration/common_vkyc_retrigger.xml
+  request_template: deploy/application/templates/request/product/getCorporateInsuranceMappingList_requestTemplate.json
+http:
+  method: POST
+  path: /api/v1/getCorporateInsuranceMappingList
+  base_env: CC_BASE
+envelope:
+  request_key: getCorporateInsuranceMappingList
+header_defaults:
+  tenant_code: '{TENANT}'
+  client_code: '{CLIENT}'
+  channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  user_id: LOCAL_QA
+  stan: '{STAN}'
+request_defaults:
+  page_size: ''
+  offset: ''
+  empl_code: ''
+  search_criteria: ''
+notes: "Auto-discovered \u2014 fill request_defaults and bank_calls for your ticket."

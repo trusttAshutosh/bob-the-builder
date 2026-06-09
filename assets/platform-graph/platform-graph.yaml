@@ -1,7 +1,7 @@
 meta:
   version: 1
   repo: novopay-platform-creditcard-management
-  updated_at: '2026-05-25T10:26:02'
+  updated_at: '2026-06-09T18:52:55'
 repos:
   novopay-platform-creditcard-management:
     role: host-service
@@ -81,6 +81,10 @@ gateway_apis:
     - dummyProcessor
     - decryptUsingPrivateKeyProcessor
     - getTransactionAuditProcessor
+    - checkPoliticallyExposedProcessor
+    - fintechOtpGenerationProcessor
+    - fintechOtpValidationProcessor
+    - executeDedupeApplicationProcessor
   customerOTPLoc:
     path: /api/v1/customerOTPLoc
     processor_beans: &id011
@@ -89,6 +93,11 @@ gateway_apis:
     - dummyProcessor
     - decryptUsingPrivateKeyProcessor
     - fetchAgentDetailsProcessor
+    - getTransactionAuditProcessor
+    - locPersistConsentWebCustomerIpAuditProcessor
+    - getTransactionAuditAttrProcessor
+    - ensureGatewayClientIpProcessor
+    - locManageSameNetworkIpProcessor
   fetchCustomerPreapprovedOffers:
     path: /api/v1/fetchCustomerPreapprovedOffers
     processor_beans: &id012
@@ -240,9 +249,15 @@ gateway_apis:
     path: /api/v1/createOrUpdateLoanTransaction
     processor_beans: &id035
     - createOrUpdateLoanTransactionProcessor
+  m2pGenerateLink:
+    path: /api/v1/m2pGenerateLink
+    processor_beans: &id036
+    - dummyProcessor
+    - decryptUsingPrivateKeyProcessor
+    - m2PGenerateLinkProcessor
   manageCreditCardApplication:
     path: /api/v1/manageCreditCardApplication
-    processor_beans: &id036
+    processor_beans: &id037
     - mandatoryFieldValidator
     - patternFieldValidator
     - stringLengthValidator
@@ -262,56 +277,64 @@ gateway_apis:
     - updateTransactionAuditStatusProcessor
   manageLOCTransactionAudit:
     path: /api/v1/manageLOCTransactionAudit
-    processor_beans: &id037
+    processor_beans: &id038
     - mandatoryFieldValidator
+    - locMapClientReferenceCodeProcessor
+    - getTransactionAuditProcessor
+    - getTransactionAuditAttrProcessor
     - fetchAgentDetailsProcessor
+    - ensureGatewayClientIpProcessor
     - manageLOCTransactionAuditProcessor
+    - hydrateCustomerSystemIpFromTransactionAuditAttrsProcessor
   generatePerfiosLink:
     path: /api/v1/generatePerfiosLink
-    processor_beans: &id038
+    processor_beans: &id039
     - mandatoryFieldValidator
     - dummyProcessor
     - generatePerfiosLinkProcessor
   checkPerfiosTxnStatus:
     path: /api/v1/checkPerfiosTxnStatus
-    processor_beans: &id039
+    processor_beans: &id040
     - mandatoryFieldValidator
     - dummyProcessor
     - checkPerfiosTxnStatusProcessor
   prePopulateHierarchyLog:
     path: /api/v1/prePopulateHierarchyLog
-    processor_beans: &id040
+    processor_beans: &id041
     - prePopulateHierarchyAuditLogsProcessor
   resumeApplication:
     path: /api/v1/resumeApplication
-    processor_beans: &id041
+    processor_beans: &id042
     - mandatoryFieldValidator
     - patternFieldValidator
     - getPendingTransactionProcessor
+    - hydrateCustomerSystemIpFromTransactionAuditAttrsProcessor
+    - validateConsentPortalIpProcessor
+    - backfillCustomerIpFromConsentStatusProcessor
     - pushDraftApplicationProcessor
     - getDraftApplicationProcessor
   updateCorporateInsuranceMappingList:
     path: /api/v1/updateCorporateInsuranceMappingList
-    processor_beans: &id042
+    processor_beans: &id043
     - mandatoryFieldValidator
     - updateCorporateInsuranceMappingListProcessor
   updateCreditCardStatusBatch:
     path: /api/v1/updateCreditCardStatusBatch
-    processor_beans: &id043
+    processor_beans: &id044
     - updateCreditCardStatusBatchProcessor
   updateCreditCardDeclinedStatusBatch:
     path: /api/v1/updateCreditCardDeclinedStatusBatch
-    processor_beans: &id044
+    processor_beans: &id045
     - updateCreditCardStatusBatchProcessor
   updateCreditCardStatus:
     path: /api/v1/updateCreditCardStatus
-    processor_beans: &id045
+    processor_beans: &id046
     - mandatoryFieldValidator
     - dummyProcessor
     - updateCreditCardStatusProcessor
   uploadCreditCardDocument:
     path: /api/v1/uploadCreditCardDocument
-    processor_beans: &id046
+    processor_beans: &id047
     - mandatoryFieldValidator
     - patternFieldValidator
     - getTransactionAuditProcessor
@@ -319,7 +342,7 @@ gateway_apis:
     - dummyProcessor
   uploadBkycFile:
     path: /api/v1/uploadBkycFile
-    processor_beans: &id047
+    processor_beans: &id048
     - mandatoryFieldValidator
     - uniqueFileNameCheckProcessor
     - uploadBkycFileProcessor
@@ -327,7 +350,7 @@ gateway_apis:
     - dummyProcessor
   uploadDvkycFile:
     path: /api/v1/uploadDvkycFile
-    processor_beans: &id048
+    processor_beans: &id049
     - mandatoryFieldValidator
     - uniqueFileNameCheckForDvkycProcessor
     - uploadDvkycFileProcessor
@@ -335,33 +358,40 @@ gateway_apis:
     - dummyProcessor
   uploadLeadReassignFile:
     path: /api/v1/uploadLeadReassignFile
-    processor_beans: &id049
+    processor_beans: &id050
     - mandatoryFieldValidator
     - uniqueFileNameCheckForLeadReassignProcessor
     - uploadLeadReassignFileProcessor
     - leadReassignAuditProcessor
     - dummyProcessor
+  validateCreditCardConsentPortalIp:
+    path: /api/v1/validateCreditCardConsentPortalIp
+    processor_beans: &id051
+    - mandatoryFieldValidator
+    - validateConsentPortalIpProcessor
+    - persistConsentPortalCustomerIpAuditProcessor
   validateField:
     path: /api/v1/validateField
-    processor_beans: &id050
+    processor_beans: &id052
     - mandatoryFieldValidator
     - patternFieldValidator
     - checkWorkEmailIdProcessor
     - dummyProcessor
   validatePanForCC:
     path: /api/v1/validatePanForCC
-    processor_beans: &id051
+    processor_beans: &id053
     - mandatoryFieldValidator
     - patternFieldValidator
     - decryptUsingPrivateKeyProcessor
     - validatePanDetailsProcessor
   vkycRetrigger:
     path: /api/v1/vkycRetrigger
-    processor_beans: &id052
+    processor_beans: &id054
     - mandatoryFieldValidator
     - patternFieldValidator
     - getTransactionAuditProcessor
     - getTransactionAuditAttrProcessor
+    - validateVkycLinkProcessor
     - sendSMSProcessor
 orchestration:
   getBkycFileList:
@@ -469,57 +499,63 @@ orchestration:
   createOrUpdateLoanTransaction:
     file: deploy/application/orchestration/common_loanOnCards.xml
     processor_beans: *id035
+  m2pGenerateLink:
+    file: deploy/application/orchestration/common_m2pGenerateLink.xml
+    processor_beans: *id036
   manageCreditCardApplication:
     file: deploy/application/orchestration/common_manageCreditCardApplication.xml
-    processor_beans: *id036
+    processor_beans: *id037
   manageLOCTransactionAudit:
     file: deploy/application/orchestration/common_manageLOCTransactionAudit.xml
-    processor_beans: *id037
+    processor_beans: *id038
   generatePerfiosLink:
     file: deploy/application/orchestration/common_perfiosTxn.xml
-    processor_beans: *id038
+    processor_beans: *id039
   checkPerfiosTxnStatus:
     file: deploy/application/orchestration/common_perfiosTxn.xml
-    processor_beans: *id039
+    processor_beans: *id040
   prePopulateHierarchyLog:
     file: deploy/application/orchestration/common_prePopulateHierarchyLog_orc.xml
-    processor_beans: *id040
+    processor_beans: *id041
   resumeApplication:
     file: deploy/application/orchestration/common_resumeApplication.xml
-    processor_beans: *id041
+    processor_beans: *id042
   updateCorporateInsuranceMappingList:
     file: deploy/application/orchestration/common_updateCorporateInsuranceMappingList.xml
-    processor_beans: *id042
+    processor_beans: *id043
   updateCreditCardStatusBatch:
     file: deploy/application/orchestration/common_updateCreditCardStatus.xml
-    processor_beans: *id043
+    processor_beans: *id044
   updateCreditCardDeclinedStatusBatch:
     file: deploy/application/orchestration/common_updateCreditCardStatus.xml
-    processor_beans: *id044
+    processor_beans: *id045
   updateCreditCardStatus:
     file: deploy/application/orchestration/common_updateCreditCardStatus.xml
-    processor_beans: *id045
+    processor_beans: *id046
   uploadCreditCardDocument:
     file: deploy/application/orchestration/common_uploadCreditCardDocument.xml
-    processor_beans: *id046
+    processor_beans: *id047
   uploadBkycFile:
     file: deploy/application/orchestration/common_upload_bkyc_file.xml
-    processor_beans: *id047
+    processor_beans: *id048
   uploadDvkycFile:
     file: deploy/application/orchestration/common_upload_dvkyc_file.xml
-    processor_beans: *id048
+    processor_beans: *id049
   uploadLeadReassignFile:
     file: deploy/application/orchestration/common_upload_lead_reassign_file.xml
-    processor_beans: *id049
+    processor_beans: *id050
+  validateCreditCardConsentPortalIp:
+    file: deploy/application/orchestration/common_validateCreditCardConsentPortalIp.xml
+    processor_beans: *id051
   validateField:
     file: deploy/application/orchestration/common_validateField.xml
-    processor_beans: *id050
+    processor_beans: *id052
   validatePanForCC:
     file: deploy/application/orchestration/common_validatePanForCC.xml
-    processor_beans: *id051
+    processor_beans: *id053
   vkycRetrigger:
     file: deploy/application/orchestration/common_vkyc_retrigger.xml
-    processor_beans: *id052
+    processor_beans: *id054
 processors:
   getBkycFileDetailsProcessor:
     class: in.novopay.creditcard.transaction.GetBkycFileDetailsProcessor
@@ -701,6 +737,10 @@ processors:
     class: in.novopay.creditcard.loc.processors.LocManageSameNetworkIpProcessor
     file: src/main/java/in/novopay/creditcard/loc/processors/LocManageSameNetworkIpProcessor.java
     extends: AbstractProcessor
+  locMapClientReferenceCodeProcessor:
+    class: in.novopay.creditcard.loc.processors.LocMapClientReferenceCodeProcessor
+    file: src/main/java/in/novopay/creditcard/loc/processors/LocMapClientReferenceCodeProcessor.java
+    extends: AbstractProcessor
   locPersistConsentWebCustomerIpAuditProcessor:
     class: in.novopay.creditcard.loc.processors.LocPersistConsentWebCustomerIpAuditProcessor
     file: src/main/java/in/novopay/creditcard/loc/processors/LocPersistConsentWebCustomerIpAuditProcessor.java
@@ -708,6 +748,10 @@ processors:
   submitLoanOnCardsProcessor:
     class: in.novopay.creditcard.loc.processors.SubmitLoanOnCardsProcessor
     file: src/main/java/in/novopay/creditcard/loc/processors/SubmitLoanOnCardsProcessor.java
+    extends: AbstractProcessor
+  backfillCustomerIpFromConsentStatusProcessor:
+    class: in.novopay.creditcard.common.processors.BackfillCustomerIpFromConsentStatusProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/BackfillCustomerIpFromConsentStatusProcessor.java
     extends: AbstractProcessor
   checkIfConsentApprovedProcessor:
     class: in.novopay.creditcard.common.processors.CheckIfConsentApprovedProcessor
@@ -728,6 +772,10 @@ processors:
   decryptUsingPrivateKeyProcessor:
     class: in.novopay.creditcard.common.processors.DecryptUsingPrivateKeyProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/DecryptUsingPrivateKeyProcessor.java
+    extends: AbstractProcessor
+  ensureGatewayClientIpProcessor:
+    class: in.novopay.creditcard.common.processors.EnsureGatewayClientIpProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/EnsureGatewayClientIpProcessor.java
     extends: AbstractProcessor
   fetchAadhaarFromReferenceProcessor:
     class: in.novopay.creditcard.common.processors.FetchAadhaarFromReferenceProcessor
@@ -789,13 +837,25 @@ processors:
     class: in.novopay.creditcard.common.processors.GetTransactionDetailsProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/GetTransactionDetailsProcessor.java
     extends: AbstractProcessor
+  hydrateCustomerSystemIpFromTransactionAuditAttrsProcessor:
+    class: in.novopay.creditcard.common.processors.HydrateCustomerSystemIpFromTransactionAuditAttrsProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/HydrateCustomerSystemIpFromTransactionAuditAttrsProcessor.java
+    extends: AbstractProcessor
   leadReassignAuditProcessor:
     class: in.novopay.creditcard.common.processors.LeadReassignAuditProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/LeadReassignAuditProcessor.java
     extends: AbstractProcessor
+  m2PGenerateLinkProcessor:
+    class: in.novopay.creditcard.common.processors.M2PGenerateLinkProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/M2PGenerateLinkProcessor.java
+    extends: AbstractProcessor
   manageLOCTransactionAuditProcessor:
     class: in.novopay.creditcard.common.processors.ManageLOCTransactionAuditProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/ManageLOCTransactionAuditProcessor.java
+    extends: AbstractProcessor
+  persistConsentPortalCustomerIpAuditProcessor:
+    class: in.novopay.creditcard.common.processors.PersistConsentPortalCustomerIpAuditProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/PersistConsentPortalCustomerIpAuditProcessor.java
     extends: AbstractProcessor
   populateChannelSourceProcessor:
     class: in.novopay.creditcard.common.processors.PopulateChannelSourceProcessor
@@ -849,6 +909,10 @@ processors:
     class: in.novopay.creditcard.common.processors.ValidateAadhaarLinkedMobileNumberProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/ValidateAadhaarLinkedMobileNumberProcessor.java
     extends: AbstractProcessor
+  validateConsentPortalIpProcessor:
+    class: in.novopay.creditcard.common.processors.ValidateConsentPortalIpProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/ValidateConsentPortalIpProcessor.java
+    extends: AbstractProcessor
   validateCustomerIPAddressProcessor:
     class: in.novopay.creditcard.common.processors.ValidateCustomerIPAddressProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/ValidateCustomerIPAddressProcessor.java
@@ -857,5 +921,11 @@ processors:
     class: in.novopay.creditcard.common.processors.ValidatePanDetailsProcessor
     file: src/main/java/in/novopay/creditcard/common/processors/ValidatePanDetailsProcessor.java
     extends: AbstractCreditCardManager
+  validateVkycLinkProcessor:
+    class: in.novopay.creditcard.common.processors.ValidateVkycLinkProcessor
+    file: src/main/java/in/novopay/creditcard/common/processors/ValidateVkycLinkProcessor.java
+    extends: AbstractProcessor
 features: {}
-bank_operation_stubs: {}
+bank_operation_stubs:
+  getCardSummary:
+  - success-200

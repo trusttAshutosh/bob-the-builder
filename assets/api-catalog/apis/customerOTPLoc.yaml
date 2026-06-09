@@ -1,0 +1,22 @@
+api_id: customerOTPLoc
+service: creditcard-management
+source:
+  orchestration: deploy/application/orchestration/common_vkyc_retrigger.xml
+http:
+  method: POST
+  path: /api/v1/customerOTPLoc
+  base_env: CC_BASE
+envelope:
+  request_key: customerOTPLoc
+header_defaults:
+  tenant_code: '{TENANT}'
+  client_code: '{CLIENT}'
+  channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  user_id: LOCAL_QA
+  stan: '{STAN}'
+request_defaults:
+  client_reference_code: '{CRN}'
+notes: "Auto-discovered \u2014 fill request_defaults and bank_calls for your ticket."

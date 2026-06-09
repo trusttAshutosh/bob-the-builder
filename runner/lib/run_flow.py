@@ -166,6 +166,12 @@ def _write_db_verify_queries(
             lines.append(f"-- expect prefix: {db_expect['internal_txn_desc_prefix']}")
         lines.append(build_scenario_audit_select(sid, name, crn, spec, db_expect) + ";")
         lines.append("")
+    supplement = ticket_dir / "sql" / "db_verify_supplement.sql"
+    if supplement.is_file():
+        lines.append("-- Supplement (ticket sql/db_verify_supplement.sql)")
+        lines.append("")
+        lines.append(supplement.read_text(encoding="utf-8").strip())
+        lines.append("")
     out = ticket_dir / "DB_VERIFY_QUERIES.sql"
     out.write_text("\n".join(lines), encoding="utf-8")
     return out
@@ -397,9 +403,29 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         rec.end_step("pass" if md_pre_ok else "fail", md_pre_msg)
         if not md_pre_ok:
             summary.append("  WARN: masterdata apply failed — CC may still call real HDFC")
+        from mysql_runner import ensure_dsa_masterdata_configuration_schema, ensure_dsa_notifications_sms_log_schema
+
+        rec.begin_step("dsa_masterdata_schema_preboot", "Ensure dsa_masterdata.configuration schema")
+        schema_ok, schema_msg = ensure_dsa_masterdata_configuration_schema()
+        summary.append(f"  dsa_masterdata schema: {schema_msg}")
+        rec.end_step("pass" if schema_ok else "fail", schema_msg[:300])
+        rec.begin_step("dsa_notifications_schema_preboot", "Ensure dsa_notifications.sms_log schema")
+        notif_schema_ok, notif_schema_msg = ensure_dsa_notifications_sms_log_schema()
+        summary.append(f"  dsa_notifications schema: {notif_schema_msg}")
+        rec.end_step("pass" if notif_schema_ok else "fail", notif_schema_msg[:300])
         platform_sql = ticket_dir / "sql" / "seed_platform_get_agent_wiremock.sql"
+        fix_platform_sql = ticket_dir / "sql" / "fix_platform_master_service_urls.sql"
+        if fix_platform_sql.is_file():
+            rec.begin_step("platform_sql_preboot", "Fix platform_master service URLs (local HTTP)")
+            plat_schema = os.environ.get("MYSQL_PLATFORM_SCHEMA", "platform_master")
+            fix_rc, fix_out = mysql_exec_script(
+                fix_platform_sql.read_text(encoding="utf-8"), schema=plat_schema
+            )
+            fix_ok = fix_rc == 0
+            summary.append(f"  platform fix ({plat_schema}): {'ok' if fix_ok else fix_out[:200]}")
+            rec.end_step("pass" if fix_ok else "fail", fix_out[:300] if not fix_ok else "MASTERDATA -> http://localhost:8015")
         if platform_sql.is_file():
-            rec.begin_step("platform_sql_preboot", "Route getAgentDetails to WireMock (platform_master)")
+            rec.begin_step("platform_wiremock_preboot", "Route getAgentDetails to WireMock (platform_master)")
             plat_schema = os.environ.get("MYSQL_PLATFORM_SCHEMA", "platform_master")
             plat_rc, plat_out = mysql_exec_script(
                 platform_sql.read_text(encoding="utf-8"), schema=plat_schema
@@ -614,32 +640,55 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         rec.end_step("skip", "run.apply_masterdata: false")
 
     unit_ids: set[str] = set()
+    e2e_levels = ("integration", "e2e")
+    planned_e2e = [
+        sc
+        for sc in scenarios(spec)
+        if (sc.get("verification_level") or "e2e").lower() in e2e_levels
+    ]
+    e2e_first = run_cfg.get("e2e_first", True) is not False
+    fail_fast_e2e = run_cfg.get("fail_fast_on_e2e_block", True) is not False
+    scenario_order = list(scenarios(spec))
+    if e2e_first:
+        scenario_order.sort(
+            key=lambda sc: (
+                0
+                if (sc.get("verification_level") or "e2e").lower() in e2e_levels
+                else 1
+            )
+        )
 
-    unit_list = [s for s in scenarios(spec) if (s.get("verification_level") or "").lower() == "unit"]
-    if len(unit_list) > 1 and run_cfg.get("batch_unit_tests", True):
-        _bob_progress(f"unit tests (batched {len(unit_list)} scenarios, one Gradle run)")
-        all_tests: list[str] = []
-        for sc in unit_list:
-            for t in sc.get("gradle_tests") or []:
-                if str(t).strip() and str(t).strip() not in all_tests:
-                    all_tests.append(str(t).strip())
-        batch_rc, batch_out = _run_unit_tests(all_tests)
-        save_unit_evidence(ticket_dir, batch_out)
-        for sc in unit_list:
-            sid = sc.get("id", "?")
-            sc_ok = batch_rc == 0
-            rec.begin_step(f"unit_{sid}", f"Unit tests ({sid})")
-            rec.end_step("pass" if sc_ok else "fail", f"batched gradle rc={batch_rc}")
-            rec.add_scenario(sid, "unit", "pass" if sc_ok else "fail", f"batched rc={batch_rc}", 0)
-            results[sid] = {"pass": sc_ok, "level": "unit"}
-            summary.append(f"Scenario {sid}: level=unit batched rc={batch_rc}")
-        unit_ids = {str(s.get("id")) for s in unit_list}
+    def _run_unit_batch() -> None:
+        nonlocal unit_ids
+        unit_list = [
+            s for s in scenarios(spec) if (s.get("verification_level") or "").lower() == "unit"
+        ]
+        if len(unit_list) > 1 and run_cfg.get("batch_unit_tests", True):
+            _bob_progress(f"unit tests (batched {len(unit_list)} scenarios, one Gradle run)")
+            all_tests: list[str] = []
+            for sc in unit_list:
+                for t in sc.get("gradle_tests") or []:
+                    if str(t).strip() and str(t).strip() not in all_tests:
+                        all_tests.append(str(t).strip())
+            batch_rc, batch_out = _run_unit_tests(all_tests)
+            save_unit_evidence(ticket_dir, batch_out)
+            for sc in unit_list:
+                sid = sc.get("id", "?")
+                sc_ok = batch_rc == 0
+                rec.begin_step(f"unit_{sid}", f"Unit tests ({sid})")
+                rec.end_step("pass" if sc_ok else "fail", f"batched gradle rc={batch_rc}")
+                rec.add_scenario(sid, "unit", "pass" if sc_ok else "fail", f"batched rc={batch_rc}", 0)
+                results[sid] = {"pass": sc_ok, "level": "unit"}
+                summary.append(f"Scenario {sid}: level=unit batched rc={batch_rc}")
+            unit_ids = {str(s.get("id")) for s in unit_list}
 
-    for sc in scenarios(spec):
+    for sc in scenario_order:
         sid = sc.get("id", "?")
         if sid in unit_ids:
             continue
         level = (sc.get("verification_level") or "e2e").lower()
+        if level == "unit" and e2e_first:
+            continue
         sc_t0 = time.time()
         summary.append(f"Scenario {sid}: level={level}")
         sc_ok = True
@@ -826,6 +875,57 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         )
         if sid not in results:
             results[sid] = {"pass": sc_ok, "level": level, "api_executed": False}
+
+    skip_unit_after_e2e_block = (
+        require_e2e
+        and fail_fast_e2e
+        and planned_e2e
+        and e2e_blockers
+    )
+    if skip_unit_after_e2e_block:
+        summary.append(
+            "  unit: skipped — E2E blocked; fix WireMock/boot/env and re-run validate-ticket "
+            "(unit does not replace E2E proof)"
+        )
+        rec.set_decisions(unit_skipped_e2e_blocked=True)
+    else:
+        _run_unit_batch()
+        for sc in scenario_order:
+            sid = sc.get("id", "?")
+            if sid in unit_ids:
+                continue
+            level = (sc.get("verification_level") or "e2e").lower()
+            if level != "unit":
+                continue
+            sc_t0 = time.time()
+            summary.append(f"Scenario {sid}: level={level}")
+            sc_ok = True
+            sc_detail: list[str] = []
+            _bob_progress(f"unit tests {sid}")
+            rec.begin_step(f"unit_{sid}", f"Unit tests ({sid})")
+            filt = sc.get("gradle_tests")
+            if not filt:
+                rec.end_step("fail", "missing gradle_tests in scenario")
+                sc_ok = False
+                sc_detail.append("unit: no gradle_tests")
+            else:
+                rc, out = _run_unit_tests(filt)
+                save_unit_evidence(ticket_dir, out)
+                summary.append(f"  unit tests rc={rc}")
+                sc_ok = rc == 0
+                rec.end_step("pass" if sc_ok else "fail", f"gradle rc={rc}")
+                sc_detail.append(f"unit rc={rc}")
+            sc_ms = int((time.time() - sc_t0) * 1000)
+            rec.add_scenario(
+                sid,
+                level,
+                "pass" if sc_ok else "fail",
+                "; ".join(sc_detail),
+                sc_ms,
+                name=sc.get("name", ""),
+                apis=[],
+            )
+            results[sid] = {"pass": sc_ok, "level": level}
 
     if kafka_enabled(spec, kafka_discovery) or (spec.get("kafka_scenarios") or []):
         rec.begin_step("kafka_scenarios", "Kafka fixture scenarios (produce/consume/assert)")

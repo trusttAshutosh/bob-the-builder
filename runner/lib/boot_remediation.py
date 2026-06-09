@@ -176,6 +176,7 @@ def build_spring_args(
             parts.append(f"--novopay.cache.port={redis_port}")
         parts.append("--management.health.redis.enabled=false")
         parts.append("--management.health.kafka.enabled=false")
+        parts.append("--management.health.mail.enabled=false")
 
     if profile == BOOT_PROFILE_AGGRESSIVE:
         parts.append("--spring.jpa.hibernate.ddl-auto=none")

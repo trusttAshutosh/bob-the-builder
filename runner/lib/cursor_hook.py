@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -132,6 +133,23 @@ esac
 """
 
 
+def _make_readonly(path: Path) -> None:
+    """Prevent accidental edits when Cursor opens hook scripts."""
+    try:
+        mode = path.stat().st_mode
+        path.chmod(mode & ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH)
+    except OSError:
+        pass
+
+
+def _make_writable(path: Path) -> None:
+    try:
+        mode = path.stat().st_mode
+        path.chmod(mode | stat.S_IWUSR)
+    except OSError:
+        pass
+
+
 def deploy_cursor_hooks(workspace: Path | None = None, *, force: bool = False) -> list[Path]:
     """Install single hook runner + pointer; remove legacy hook scripts."""
     written: list[Path] = []
@@ -146,12 +164,17 @@ def deploy_cursor_hooks(workspace: Path | None = None, *, force: bool = False) -
     runner_dest = hooks_dir / HOOK_RUNNER_NAME
     runner_text = hook_runner_script()
     if force or not runner_dest.is_file() or runner_dest.read_text(encoding="utf-8") != runner_text:
+        if runner_dest.is_file():
+            _make_writable(runner_dest)
         runner_dest.write_text(runner_text, encoding="utf-8")
         try:
             runner_dest.chmod(runner_dest.stat().st_mode | 0o111)
         except OSError:
             pass
+        _make_readonly(runner_dest)
         written.append(runner_dest)
+    else:
+        _make_readonly(runner_dest)
 
     for legacy in ("orchestrator-hygiene-stop.sh", "session-chat-hygiene.sh"):
         legacy_path = hooks_dir / legacy

@@ -196,7 +196,7 @@ def write_log_verify_commands(
 
 
 def run_log_search_script(ticket_dir: Path, spec_path: Path | None = None) -> tuple[bool, str]:
-    """Run search-logs.sh when LOGS_DIR is set; writes log-search.txt."""
+    """Run log search when LOGS_DIR is set; writes log-search.txt (Python on Windows)."""
     logs_dir = _logs_dir()
     if not logs_dir:
         return False, "LOGS_DIR not set (skip log search)"
@@ -205,6 +205,8 @@ def run_log_search_script(ticket_dir: Path, spec_path: Path | None = None) -> tu
     spec_path = spec_path or ticket_dir / "ticket-spec.yaml"
     if not spec_path.exists():
         return False, "ticket-spec.yaml missing"
+    if os.name == "nt":
+        return _run_log_search_python(ticket_dir, spec_path, logs_dir)
     script = Path(__file__).resolve().parents[1] / "search-logs.sh"
     if not script.exists():
         return False, "search-logs.sh not found"
@@ -222,3 +224,53 @@ def run_log_search_script(ticket_dir: Path, spec_path: Path | None = None) -> tu
         return False, f"search-logs.sh exit {r.returncode}: {msg}"
     except Exception as e:
         return False, str(e)
+
+
+def _run_log_search_python(ticket_dir: Path, spec_path: Path, logs_dir: str) -> tuple[bool, str]:
+    """Windows-safe log grep without invoking search-logs.sh."""
+    from ticket_spec import load
+
+    try:
+        spec = load(spec_path)
+    except Exception as exc:
+        return False, f"ticket-spec load failed: {exc}"
+    base_crn = ""
+    summary_path = ticket_dir / "run-summary.json"
+    if summary_path.is_file():
+        try:
+            import json
+
+            data = json.loads(summary_path.read_text(encoding="utf-8"))
+            base_crn = str((data.get("decisions") or {}).get("crn") or "")
+        except (OSError, json.JSONDecodeError):
+            pass
+    scenario_crns = e2e_scenario_crns(spec, base_crn or "TDD")
+    lines: list[str] = [f"# log-search (python) LOGS_DIR={logs_dir}", ""]
+    root = Path(logs_dir)
+    for sc in scenarios(spec):
+        sid = sc.get("id", "?")
+        if sid not in scenario_crns:
+            continue
+        crn = scenario_crns[sid]
+        lines.append(f"## {sid} CRN={crn}")
+        for pat in scenario_log_patterns(sc, crn):
+            hits = 0
+            for log in root.rglob("*.log"):
+                try:
+                    text = log.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                for i, line in enumerate(text.splitlines(), 1):
+                    if pat in line:
+                        lines.append(f"{log.name}:{i}:{line[:200]}")
+                        hits += 1
+                        if hits >= 20:
+                            break
+                if hits >= 20:
+                    break
+            if hits == 0:
+                lines.append(f"(no matches for {pat!r})")
+        lines.append("")
+    out_path = ticket_dir / "log-search.txt"
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    return True, f"log-search.txt written ({logs_dir}, python)"

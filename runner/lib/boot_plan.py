@@ -61,19 +61,16 @@ def boot_confirm_mode(spec: dict) -> str:
 
 
 def changed_repos_for_spec(spec: dict) -> set[str]:
-    """Repo folder names with ticket-impacted code (impacted.repos + git diff + host)."""
+    """Repo folder names that must bootRun (impacted.repos) plus unstaged Java edits."""
     imp = spec.get("impacted") or {}
     names = {str(n).strip() for n in (imp.get("repos") or []) if str(n).strip()}
 
-    host = host_repo_root()
-    if host:
-        names.add(host.name)
-
     try:
-        from kafka_discovery import _git_changed_files, _repos_for_ticket
+        from git_boot_changes import java_unstaged_boot_changes
+        from kafka_discovery import _repos_for_ticket
 
         for repo in _repos_for_ticket(spec):
-            if _git_changed_files(repo):
+            if java_unstaged_boot_changes(repo):
                 names.add(repo.name)
     except ImportError:
         pass
@@ -82,32 +79,29 @@ def changed_repos_for_spec(spec: dict) -> set[str]:
 
 
 def repos_requiring_fresh_boot(spec: dict) -> set[str]:
-    """Repo folder names that need bootRun restart before proof (git-detected code changes).
+    """Repo folder names that need bootRun restart (unstaged Java only).
 
-    Unlike ``changed_repos_for_spec`` (boot plan), this does **not** always include the host
-    repo — only repos with ``.java`` / ``.xml`` / ``.properties`` diffs. When a dependency
-    repo (e.g. platform-lib) changed, the host primary is included so composite builds reload.
+    Host primary restarts only when it has unstaged Java or a composite dependency
+    (e.g. novopay-platform-lib via includeBuild) changed - not when a peer service changed.
     """
     try:
-        from kafka_discovery import _git_changed_files, _repos_for_ticket
+        from git_boot_changes import (
+            host_restarts_for_dependency_change,
+            java_unstaged_boot_changes,
+        )
+        from kafka_discovery import _repos_for_ticket
     except ImportError:
         return set()
 
     host = host_repo_root()
     names: set[str] = set()
-    changed_resolved: list[Path] = []
+    changed_repos: list[Path] = []
     for repo in _repos_for_ticket(spec):
-        if _git_changed_files(repo):
+        if java_unstaged_boot_changes(repo):
             names.add(repo.name)
-            changed_resolved.append(repo.resolve())
+            changed_repos.append(repo.resolve())
 
-    if not changed_resolved or not host:
-        return names
-
-    host_res = host.resolve()
-    host_dirty = host_res in changed_resolved
-    dep_dirty = any(r != host_res for r in changed_resolved)
-    if host_dirty or dep_dirty:
+    if host and host.name not in names and host_restarts_for_dependency_change(host, changed_repos):
         names.add(host.name)
     return names
 

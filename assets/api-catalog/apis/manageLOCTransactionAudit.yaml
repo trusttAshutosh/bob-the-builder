@@ -1,0 +1,27 @@
+api_id: manageLOCTransactionAudit
+service: creditcard-management
+source:
+  orchestration: deploy/application/orchestration/common_vkyc_retrigger.xml
+  request_template: deploy/application/templates/request/product/manageLOCTransactionAudit_requestTemplate.json
+http:
+  method: POST
+  path: /api/v1/manageLOCTransactionAudit
+  base_env: CC_BASE
+envelope:
+  request_key: manageLOCTransactionAudit
+header_defaults:
+  tenant_code: '{TENANT}'
+  client_code: '{CLIENT}'
+  channel_code: WEB
+  function_code: DEFAULT
+  function_sub_code: DEFAULT
+  run_mode: REAL
+  user_id: LOCAL_QA
+  stan: '{STAN}'
+request_defaults:
+  client_reference_code: '{CLIENT_REFERENCE_CODE}'
+  mobile_no: '{MOBILE_NO}'
+  hybrid_journey_data: ''
+  is_assisted: ''
+  system_ip_address: ''
+notes: "Auto-discovered \u2014 fill request_defaults and bank_calls for your ticket."
