@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=4065541 -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-06-08 -->
+<!-- PRODUCT-VERIFY:COMMIT=ab690ae -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-10 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,18 +28,18 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-08 · commit `4065541` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-10 · commit `ab690ae` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `4065541` — docs: sync BUILDER_INTEL auto stamp after feat commit
-**Date:** 2026-06-08
+**Commit:** `ab690ae` — fix: restore empty live api-catalog for CI assets-empty-live check
+**Date:** 2026-06-10
 
 ### Files changed
-- `docs/internal/BUILDER_INTEL.md`
+- `assets/api-catalog/index.yaml`
 
 ### Features touched in this commit
-- Feature integrity verifier (`product-verify`) — files touched
+- Empty live BOB_HOME catalogs (`assets-empty-live`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
