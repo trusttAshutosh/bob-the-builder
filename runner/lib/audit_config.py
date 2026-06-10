@@ -55,6 +55,13 @@ def audit_attribute_keys(spec: dict) -> list[str]:
     return []
 
 
+def audit_time_column(audit: dict[str, Any]) -> str:
+    """First column in order_by (default updated_on) - latest audit row timestamp."""
+    order_by = str(audit.get("order_by") or "updated_on DESC").strip()
+    token = order_by.split()[0] if order_by else "updated_on"
+    return token or "updated_on"
+
+
 def _audit_attr_scalar_sql(attr_key: str, audit_table: str) -> str:
     key_safe = str(attr_key).replace("'", "''")
     col = re.sub(r"[^a-zA-Z0-9_]", "_", key_safe)
@@ -72,7 +79,7 @@ def db_verify_sql_header(
 ) -> list[str]:
     crn_safe = base_crn.replace("'", "''")
     dash_cols = (
-        "txn_status, txn_result_code, txn_result_description, internal_txn_desc"
+        "test_run_time, txn_status, txn_result_code, txn_result_description, internal_txn_desc"
     )
     keys = attribute_keys or []
     if keys:
@@ -148,6 +155,7 @@ def build_scenario_audit_select(
     """Build latest audit row SELECT. Use for_union=True for UNION ALL branches (MySQL requires subquery)."""
     a = audit_settings(spec)
     audit_cols = ", ".join(a["columns"])
+    time_col = audit_time_column(a)
     crn_safe = crn.replace("'", "''")
     sid_safe = str(scenario_id).replace("'", "''")
     desc_safe = scenario_description(scenario_id, scenario_name).replace("'", "''")
@@ -160,7 +168,8 @@ def build_scenario_audit_select(
         )
     inner = (
         f"SELECT '{sid_safe}' AS scenario_id, '{desc_safe}' AS scenario_description, "
-        f"'{crn_safe}' AS client_reference_code, {audit_cols}{attr_sql}, {pass_expr} "
+        f"'{crn_safe}' AS client_reference_code, {time_col} AS test_run_time, "
+        f"{audit_cols}{attr_sql}, {pass_expr} "
         f"FROM {a['table']} WHERE {a['crn_column']}='{crn_safe}' "
         f"ORDER BY {a['order_by']} LIMIT 1"
     )
