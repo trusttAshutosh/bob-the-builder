@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=89ff5f1 -->
+<!-- PRODUCT-VERIFY:COMMIT=ec03cbc -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-10 -->
 
 <!-- SCORECARD:START -->
@@ -28,55 +28,17 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-10 · commit `89ff5f1` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-10 · commit `ec03cbc` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `89ff5f1` — fix: remove populated api-catalog yaml files from live assets tree
+**Commit:** `ec03cbc` — feat: add test_run_time column to DB_VERIFY_QUERIES.sql
 **Date:** 2026-06-10
 
 ### Files changed
-- `assets/api-catalog/apis/checkPerfiosTxnStatus.yaml`
-- `assets/api-catalog/apis/createOrUpdateLoanTransaction.yaml`
-- `assets/api-catalog/apis/creditCardTransactionReport.yaml`
-- `assets/api-catalog/apis/customerEmailValidationForCC.yaml`
-- `assets/api-catalog/apis/customerEmailValidationStatusForCC.yaml`
-- `assets/api-catalog/apis/customerOTPLoc.yaml`
-- `assets/api-catalog/apis/dvkycRetrigger.yaml`
-- `assets/api-catalog/apis/fetchCustomerDetailsWithDedupe.yaml`
-- `assets/api-catalog/apis/fetchCustomerPreapprovedOffers.yaml`
-- `assets/api-catalog/apis/fetchDemogDetails.yaml`
-- `assets/api-catalog/apis/fetchEkycDetailsForCC.yaml`
-- `assets/api-catalog/apis/fetchEkycDetailsForCCDSA.yaml`
-- `assets/api-catalog/apis/fintechOtp.yaml`
-- `assets/api-catalog/apis/generatePerfiosLink.yaml`
-- `assets/api-catalog/apis/getBankBranchDetails.yaml`
-- `assets/api-catalog/apis/getBankMasterList.yaml`
-- `assets/api-catalog/apis/getBkycFileList.yaml`
-- `assets/api-catalog/apis/getBkycLeadList.yaml`
-- `assets/api-catalog/apis/getCCTransactionAttributes.yaml`
-- `assets/api-catalog/apis/getCompanyDomainId.yaml`
-- `assets/api-catalog/apis/getCompanyNameList.yaml`
-- `assets/api-catalog/apis/getCorporateInsuranceMappingList.yaml`
-- `assets/api-catalog/apis/getCreditCardStats.yaml`
-- `assets/api-catalog/apis/getCreditCardTransactionDetails.yaml`
-- `assets/api-catalog/apis/getCreditCardTransactionHistory.yaml`
-- `assets/api-catalog/apis/getCustomerLeadByDseCode.yaml`
-- `assets/api-catalog/apis/getDseReassignFileList.yaml`
-- `assets/api-catalog/apis/getDseReassignLeadList.yaml`
-- `assets/api-catalog/apis/getDvkycFileList.yaml`
-- `assets/api-catalog/apis/getDvkycLeadList.yaml`
-- `assets/api-catalog/apis/getInsuranceDetails.yaml`
-- `assets/api-catalog/apis/getKFSPdf.yaml`
-- `assets/api-catalog/apis/getLOCOffers.yaml`
-- `assets/api-catalog/apis/getLoanOnCardTransactionHistory.yaml`
-- `assets/api-catalog/apis/idcomAuthentication.yaml`
-- `assets/api-catalog/apis/inquireCardEligibility.yaml`
-- `assets/api-catalog/apis/m2pGenerateLink.yaml`
-- `assets/api-catalog/apis/manageCreditCardApplication.yaml`
-- `assets/api-catalog/apis/manageLOCTransactionAudit.yaml`
-- `assets/api-catalog/apis/prePopulateHierarchyLog.yaml`
-- … and 14 more
+- `assets/examples/sample-validate-output/DB_VERIFY_QUERIES.sql`
+- `runner/lib/audit_config.py`
+- `runner/tests/test_audit_config.py`
 
 ### Features touched in this commit
 - (none mapped — docs-only or infra)
