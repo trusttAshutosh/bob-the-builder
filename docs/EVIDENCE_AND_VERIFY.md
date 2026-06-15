@@ -11,7 +11,7 @@ Every `bob validate-ticket` run can produce **human verification docs** (copy-pa
 | **Kafka** | `KAFKA_VERIFY.md` | `evidence/kafka/` | `run.kafka.mode` auto/on or `kafka_scenarios`; see [KAFKA_FOR_BOB.md](KAFKA_FOR_BOB.md) |
 | **Redis** | `REDIS_VERIFY.md` | `evidence/redis/` | `run.redis.mode` auto/on, `evidence_required: redis`, or `masterdata[]`/stubs; see [REDIS_FOR_BOB.md](REDIS_FOR_BOB.md) |
 | **API** | (in `REPORT.md`) | `evidence/api/` | Gateway steps executed |
-| **Unit** | (in `REPORT.md`) | `evidence/unit/` | `verification_level: unit` |
+| **Unit** | (in `REPORT.md`) | `evidence/unit/` | `run.unit_tests: true` and `verification_level: unit` (opt-in; default is E2E only) |
 
 ## Host ticket folder (typical)
 

@@ -26,7 +26,7 @@ Bob is **not** a second AI and does **not** write Java. It is a **CLI + ticket l
 | Need | Cursor alone | Bob |
 |------|--------------|-----|
 | Understand requirement, write Java | Yes | No |
-| Unit tests (`gradle test`) | Yes | Can run from spec, but not magic |
+| Unit tests (`gradle test`) | Yes (when you ask) | Opt-in via `run.unit_tests: true`; default proof is E2E |
 | WireMock bank APIs in a repeatable run | Painful / manual | **Core Bob** |
 | Boot CC + peers + same proof every time | Manual | **Core Bob** |
 | `REPORT.md` / `GATE_SUMMARY` for the squad | No standard | **Core Bob** |

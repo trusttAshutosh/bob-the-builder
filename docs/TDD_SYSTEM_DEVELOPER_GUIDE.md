@@ -375,7 +375,7 @@ CI in the host repo may smoke-check orchestration XML only; **catalogs are local
 | Partner stubs | `stubs[].ref` under Bob home registry |
 | DB | `scenarios[].db` + optional assertion catalog feature file |
 | Services | `impacted.repos` + workspace map |
-| Unit tests | `verification_level: unit` + `gradle_tests` |
+| Unit tests | Opt-in: `run.unit_tests: true` + `verification_level: unit` + `gradle_tests` (default is E2E only) |
 
 ---
 

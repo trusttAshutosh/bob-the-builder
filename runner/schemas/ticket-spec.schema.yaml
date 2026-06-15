@@ -33,6 +33,9 @@ run:
   auto_discover_services: true  # host properties + Java imports + local/agent/required-services.yaml
   boot_policy: changed_only  # changed_only | all — boot only impacted repos; mock unchanged peers via WireMock
   boot_confirm: prompt  # prompt | never — confirm boot plan before bootRun (default yes; type 'all' to boot everything)
+  e2e_first: true  # run integration/e2e scenarios before any unit scenarios
+  fail_fast_on_e2e_block: true  # skip unit when E2E cannot run (unit does not replace live proof)
+  unit_tests: false  # Gradle test only when true; default proof is E2E (API + DB + logs)
   boot_wait_seconds: 180
   audit_db: dsa_credit_card_mgmt  # override per service; see deploy/tdd mysql.schemas.audit
   wiremock_port: 9090

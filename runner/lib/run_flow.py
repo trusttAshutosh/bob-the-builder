@@ -40,6 +40,7 @@ from audit_config import (  # noqa: E402
     audit_settings,
     audit_attribute_keys,
     build_audit_attributes_raw_query,
+    check_audit_attributes,
     build_audit_dashboard_query,
     build_audit_query,
     build_scenario_audit_select,
@@ -85,7 +86,7 @@ from service_health_report import (  # noqa: E402
     summarize_boot_outcomes,
     summarize_health_map,
 )
-from ticket_spec import load_spec, scenarios, wiremock_port  # noqa: E402
+from ticket_spec import load_spec, scenarios, unit_tests_enabled, wiremock_port  # noqa: E402
 from workspace import list_service_hints, properties_files_for_ticket, workspace_root  # noqa: E402
 
 
@@ -296,9 +297,11 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
     wiremock_detail = ""
     run_cfg = spec.get("run") or {}
     require_e2e = not run_cfg.get("allow_unit_only_evidence", False)
+    run_unit = unit_tests_enabled(spec)
     rec.set_decisions(
         branch=_git_branch(),
         env_profile=spec.get("env_profile", "local-dsa"),
+        unit_tests_enabled=run_unit,
         header_profile=_header_profile(spec),
         workspace_root=str(workspace_root()) if workspace_root() else None,
         workspace_services=list_service_hints(),
@@ -687,7 +690,7 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         if sid in unit_ids:
             continue
         level = (sc.get("verification_level") or "e2e").lower()
-        if level == "unit" and e2e_first:
+        if level == "unit" and (not run_unit or e2e_first):
             continue
         sc_t0 = time.time()
         summary.append(f"Scenario {sid}: level={level}")
@@ -828,24 +831,33 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
                 }
 
         db_expect = resolve_db_expect(sc, spec)
-        if db_expect:
+        expect_attrs = db_expect.get("expect_attributes") or {}
+        if db_expect or expect_attrs:
             rec.begin_step(f"db_{sid}", f"DB check ({sid})")
             audit = audit_settings(spec)
             query_crn = crn
             if level in ("integration", "e2e"):
                 query_crn = sc.get("crn") or f"{crn}-{sid}"
-            sql = build_audit_query(query_crn, spec)
-            _rc, out = mysql_query(sql, schema=audit["schema"])
-            save_db_evidence(ticket_dir, sid, out)
-            row = parse_audit_row(out, spec)
-            ok, errs = check_db_row(db_expect, row)
+            ok = True
+            errs: list[str] = []
+            row: dict[str, str] = {}
+            if db_expect.get("expect") or db_expect.get("internal_txn_desc_prefix") or db_expect.get("internal_txn_desc") or db_expect.get("expect_internal_txn_desc_pattern"):
+                sql = build_audit_query(query_crn, spec)
+                _rc, out = mysql_query(sql, schema=audit["schema"])
+                save_db_evidence(ticket_dir, sid, out)
+                row = parse_audit_row(out, spec)
+                ok, errs = check_db_row(db_expect, row)
+            if expect_attrs:
+                attr_ok, attr_errs = check_audit_attributes(query_crn, spec, expect_attrs)
+                ok = ok and attr_ok
+                errs = errs + attr_errs
             summary.append(f"  db {'PASS' if ok else 'FAIL'}: {errs}")
             sc_ok = ok and sc_ok
             rec.add_assertion(
                 sid,
                 "db",
                 ok,
-                db_expect.get("expect") or db_expect,
+                {**(db_expect.get("expect") or {}), **expect_attrs},
                 row,
                 errs,
             )
@@ -882,7 +894,12 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         and planned_e2e
         and e2e_blockers
     )
-    if skip_unit_after_e2e_block:
+    if not run_unit:
+        summary.append(
+            "  unit: skipped — run.unit_tests is false (default); E2E/API+DB proof only"
+        )
+        rec.set_decisions(unit_skipped_by_policy=True)
+    elif skip_unit_after_e2e_block:
         summary.append(
             "  unit: skipped — E2E blocked; fix WireMock/boot/env and re-run validate-ticket "
             "(unit does not replace E2E proof)"

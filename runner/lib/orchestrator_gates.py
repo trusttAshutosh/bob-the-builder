@@ -64,10 +64,13 @@ def _assess_plan(ticket_dir: Path, spec: dict | None) -> dict[str, Any]:
     }
 
 
-def _assess_build(run_data: dict) -> dict[str, Any]:
+def _assess_build(run_data: dict, spec: dict | None = None) -> dict[str, Any]:
     steps = run_data.get("steps") or []
     scenarios = run_data.get("scenarios") or []
     units = _unit_scenarios(scenarios)
+    from ticket_spec import unit_tests_enabled
+
+    run_unit = unit_tests_enabled(spec)
 
     compile_fail = _step_failed(steps, ("compile", "gradle", "build"))
     unit_fail = any(str(s.get("status", "")).lower() != "pass" for s in units)
@@ -84,7 +87,10 @@ def _assess_build(run_data: dict) -> dict[str, Any]:
         detail = "unit scenarios present but not all passed"
     else:
         e2e_only = [s for s in scenarios if str(s.get("level", "")).lower() in ("e2e", "integration")]
-        if e2e_only and not compile_fail:
+        if e2e_only and not compile_fail and not run_unit:
+            status = "PASS"
+            detail = "e2e-first proof; unit tests skipped (Bob default)"
+        elif e2e_only and not compile_fail:
             status = "REVIEW"
             detail = "no unit scenarios; e2e/integration only"
         else:
@@ -178,7 +184,7 @@ def build_orchestrator_gates(
             spec = None
 
     plan = _assess_plan(ticket_dir, spec)
-    build = _assess_build(run_data)
+    build = _assess_build(run_data, spec)
     prove = _assess_prove(run_data)
     ship = _assess_ship(run_data, [plan, build, prove])
     gates = [plan, build, prove, ship]
@@ -216,7 +222,7 @@ def render_gate_summary_md(ticket_id: str, gate_payload: dict[str, Any]) -> str:
         "## What you decide at each gate",
         "",
         "1. **Plan** — Scope and acceptance criteria match what you want built.",
-        "2. **Build** — Implementation approach and unit compile/test evidence look right.",
+        "2. **Build** — Implementation approach looks right (E2E proof is default; unit tests are opt-in).",
         "3. **Prove** — Bob PASS is enough proof for this ticket (not just unit-only).",
         "4. **Ship** — OK to commit and open PR.",
         "",

@@ -42,7 +42,7 @@ That was the full TDD loop we designed. It is still the recommended path for non
 | Need | Cursor alone | Bob |
 |------|--------------|-----|
 | Understand requirement, write Java | Yes | No |
-| Unit tests (`gradle test`) | Yes | Can run from spec, but not magic |
+| Unit tests (`gradle test`) | Yes (when you ask) | Opt-in via `run.unit_tests: true`; **not** default proof |
 | WireMock bank APIs in a repeatable run | Painful / manual | **Core Bob** |
 | Boot CC + peers + same proof every time | Manual | **Core Bob** |
 | `REPORT.md` / `GATE_SUMMARY` for the squad | No standard | **Core Bob** |
@@ -107,7 +107,7 @@ raw thoughts
 
 - Typing **"bob"** in chat does not switch modes or run `validate-ticket`.
 - **`builder-analyst` / `builder-implementer` / `builder-verifier`** are Cursor skill playbooks (`disable-model-invocation: true`) - they are not auto-on; invoke them explicitly or ask the agent to follow them.
-- **"bob let's test"** (or explicit `bob validate-ticket`) ≈ minimal prove step - still needs a ticket id and folder under `docs/tdd-runs/<id>/`.
+- **"bob let's test"**, **"validate"**, or **"test this ticket"** (or explicit `bob validate-ticket`) ≈ E2E prove step - still needs a ticket id and folder under `docs/tdd-runs/<id>/`. Do not substitute `gradle test` unless the user explicitly asks for unit tests.
 
 ---
 
@@ -230,7 +230,7 @@ At a high level:
 1. Read **`ticket-spec.yaml`** (APIs, stubs, DB/log/Kafka/Redis scenarios).
 2. Ensure WireMock mappings for bank/partner calls.
 3. Boot required Novopay services (discovered from code + profile).
-4. Run scenarios (HTTP, SQL, log grep, optional Kafka/Redis).
+4. Run **E2E** scenarios first (HTTP, SQL, log grep, optional Kafka/Redis). Gradle unit tests run only when `run.unit_tests: true` in ticket-spec.
 5. Write **`evidence/`**, **`REPORT.md`**, update gate-oriented summaries.
 
 You bring **MySQL** (and Redis/Kafka when the ticket needs them). Evidence paths and verify doc names are standardized so any teammate can review without watching your terminal.

@@ -32,7 +32,7 @@ Postman plugin is optional and redundant with Bob for local TDD unless the user 
 1. **Workspace**: For Novopay work, use `move_agent_to_root` to `{{WORKSPACE_ROOT}}` before edits if not already there.
 2. **Memory**: Read `{{WORKSPACE_ROOT}}/AGENTS.md` at session start. Continual Learning updates it on stop; do not maintain parallel preference lists.
 3. **Skills**: Canonical path is `{{WORKSPACE_ROOT}}/.cursor/skills/` only. Never create duplicate skill copies in service repos.
-4. **Testing**: Saying "bob let's test" or finishing a ticket triggers `bob validate-ticket <id>` with autoboot; encode boot fixes in Bob, do not re-prompt.
+4. **Testing**: Saying "bob let's test", "validate", or "test this ticket" triggers `bob validate-ticket <id>` with autoboot (E2E proof by default — no `gradle test` unless the user explicitly asks for unit tests). Encode boot fixes in Bob, do not re-prompt.
 5. **Hygiene**: When a stop-hook follow-up requests `/workflow-from-chats`, run it and merge into `AGENTS.md` / project rules without asking permission for routine dedupe.
 
 ## Hard preferences (do not re-learn)

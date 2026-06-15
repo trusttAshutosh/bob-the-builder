@@ -24,7 +24,7 @@ Plain bullets below are for Continual Learning. Keep section names exactly as na
 ## Learned User Preferences
 
 - Do not commit or push changes unless explicitly asked.
-- Prefer `bob validate-ticket <ticket-id>` when testing; Bob autoboot should be true and boot fixes should be encoded in Bob, not re-prompted each session.
+- Prefer `bob validate-ticket <ticket-id>` when testing; default proof is E2E (API + DB + logs), not Gradle unit tests. Bob autoboot should be true and boot fixes should be encoded in Bob, not re-prompted each session.
 - Stay on the active ticket; do not mix docs or test artifacts from unrelated tickets.
 - For security fixes, prove the vulnerability before fixing, then re-run the same checks after.
 - Fix failing unit tests by updating tests, not production classes, unless prod code is genuinely wrong.

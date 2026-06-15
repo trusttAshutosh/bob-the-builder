@@ -130,6 +130,13 @@ def scenarios(spec: dict) -> list[dict]:
     return spec.get("scenarios") or []
 
 
+def unit_tests_enabled(spec: dict | None) -> bool:
+    """Gradle unit tests during validate-ticket are opt-in (default: E2E proof only)."""
+    if not spec:
+        return False
+    return (spec.get("run") or {}).get("unit_tests", False) is True
+
+
 def git_checkout_env(spec: dict) -> dict[str, str]:
     g = spec.get("git") or {}
     return {
