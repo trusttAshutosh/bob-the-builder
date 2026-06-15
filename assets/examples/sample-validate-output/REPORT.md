@@ -9,14 +9,14 @@
 
 ## Orchestrator gates
 
-**One or more gates need attention before Ship** | [GATE_SUMMARY.md](./GATE_SUMMARY.md)
+**All automated gates PASS — review Ship to commit/PR** | [GATE_SUMMARY.md](./GATE_SUMMARY.md)
 
 | # | Gate | Bob (auto) | You approve |
 |---|------|------------|-------------|
 | 1 | **Plan** | **PASS** — 2 scenario(s), 2 acceptance criteria | [x] |
-| 2 | **Build** | **REVIEW** — no unit scenarios; e2e/integration only | [ ] |
+| 2 | **Build** | **PASS** — e2e-first proof; unit tests skipped (Bob default) | [x] |
 | 3 | **Prove** | **PASS** — overall PASS; 2/2 scenarios passed | [x] |
-| 4 | **Ship** | **REVIEW** — review upstream gates first | [ ] |
+| 4 | **Ship** | **REVIEW** — ready for orchestrator commit/PR decision | [ ] |
 
 ## Test plan
 

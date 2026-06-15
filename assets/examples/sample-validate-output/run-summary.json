@@ -129,10 +129,10 @@
       {
         "id": "build",
         "name": "Build",
-        "status": "REVIEW",
-        "detail": "no unit scenarios; e2e/integration only",
+        "status": "PASS",
+        "detail": "e2e-first proof; unit tests skipped (Bob default)",
         "evidence": "pipeline steps in REPORT.md",
-        "orchestrator_checkbox": false
+        "orchestrator_checkbox": true
       },
       {
         "id": "prove",
@@ -146,12 +146,12 @@
         "id": "ship",
         "name": "Ship",
         "status": "REVIEW",
-        "detail": "review upstream gates first",
+        "detail": "ready for orchestrator commit/PR decision",
         "evidence": "commit/PR only when you check this box",
         "orchestrator_checkbox": false
       }
     ],
-    "ready_for_ship_review": false,
-    "orchestrator_summary": "One or more gates need attention before Ship"
+    "ready_for_ship_review": true,
+    "orchestrator_summary": "All automated gates PASS \u2014 review Ship to commit/PR"
   }
 }

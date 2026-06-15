@@ -238,3 +238,41 @@ def parse_audit_row(out: str, spec: dict) -> dict[str, str]:
     if len(parts) < len(cols):
         return {}
     return {str(cols[i]): parts[i].strip() for i in range(len(cols))}
+
+
+def _parse_mysql_scalar(out: str) -> str:
+    lines = [
+        ln.strip()
+        for ln in out.splitlines()
+        if ln.strip() and "Warning" not in ln and "mysql" not in ln.lower()
+    ]
+    if len(lines) < 2:
+        return ""
+    return lines[-1].split("\t")[0].strip()
+
+
+def check_audit_attributes(crn: str, spec: dict, expect_attrs: dict) -> tuple[bool, list[str]]:
+    """Live DB proof for transaction_audit_attributes (e.g. Superset count-table flags)."""
+    if not expect_attrs:
+        return True, []
+    audit = audit_settings(spec)
+    errors: list[str] = []
+    crn_safe = crn.replace("'", "''")
+    for key, expected in expect_attrs.items():
+        key_safe = str(key).replace("'", "''")
+        sql = (
+            f"SELECT taa.attr_value FROM {audit['table']} ta "
+            f"JOIN transaction_audit_attributes taa ON taa.transaction_audit_id = ta.id "
+            f"WHERE ta.{audit['crn_column']}='{crn_safe}' AND taa.attr_key='{key_safe}' "
+            f"ORDER BY taa.id DESC LIMIT 1"
+        )
+        from mysql_runner import mysql_query
+
+        rc, out = mysql_query(sql, schema=audit["schema"])
+        if rc != 0:
+            errors.append(f"{key}: query failed")
+            continue
+        actual = _parse_mysql_scalar(out)
+        if str(actual) != str(expected):
+            errors.append(f"{key}: want={expected} got={actual or '(missing)'}")
+    return len(errors) == 0, errors

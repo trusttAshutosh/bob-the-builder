@@ -53,6 +53,8 @@ def validate_evidence_contract(spec: dict, ticket_dir: Path | None = None) -> tu
                 has_e2e_db = True
             if db.get("expect_internal_txn_desc_pattern"):
                 has_e2e_db = True
+            if db.get("expect_attributes"):
+                has_e2e_db = True
         if not has_e2e_db:
             errors.append(
                 "transaction_audit evidence requires at least one E2E scenario with db.expect "
