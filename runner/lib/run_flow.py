@@ -697,6 +697,8 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         sc_ok = True
         sc_detail: list[str] = []
         scenario_crn = sc.get("crn") or f"{crn}-{sid}"
+        if "{CRN}" in scenario_crn:
+            scenario_crn = scenario_crn.replace("{CRN}", crn)
         if level in ("integration", "e2e"):
             scenario_crns[sid] = scenario_crn
 
@@ -835,9 +837,7 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
         if db_expect or expect_attrs:
             rec.begin_step(f"db_{sid}", f"DB check ({sid})")
             audit = audit_settings(spec)
-            query_crn = crn
-            if level in ("integration", "e2e"):
-                query_crn = sc.get("crn") or f"{crn}-{sid}"
+            query_crn = scenario_crn if level in ("integration", "e2e") else crn
             ok = True
             errs: list[str] = []
             row: dict[str, str] = {}

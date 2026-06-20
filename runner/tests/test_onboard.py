@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from cursor_hook import bob_hook_runner_command
 from onboard import (
     HOST_CC_FOLDER,
     WORKSPACE_CURSOR_BUNDLE,
@@ -46,14 +47,14 @@ def test_merge_hooks_json_appends_stop_hook(tmp_path: Path) -> None:
         {
             "version": 1,
             "hooks": {
-                "stop": [{"command": "./hooks/bob-hook-runner.sh stop", "loop_limit": 1}]
+                "stop": [{"command": bob_hook_runner_command("stop"), "loop_limit": 1}]
             },
         }
     )
     merged = json.loads(merge_hooks_json(dest, template))
     cmds = [e["command"] for e in merged["hooks"]["stop"]]
     assert "./hooks/other.sh" in cmds
-    assert "./hooks/bob-hook-runner.sh stop" in cmds
+    assert bob_hook_runner_command("stop") in cmds
 
 
 def test_merge_hooks_json_idempotent(tmp_path: Path) -> None:
@@ -62,7 +63,7 @@ def test_merge_hooks_json_idempotent(tmp_path: Path) -> None:
         {
             "version": 1,
             "hooks": {
-                "stop": [{"command": "./hooks/bob-hook-runner.sh stop", "loop_limit": 1}]
+                "stop": [{"command": bob_hook_runner_command("stop"), "loop_limit": 1}]
             },
         }
     )

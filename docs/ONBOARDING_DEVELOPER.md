@@ -148,7 +148,7 @@ python bob.py prune-overhead --apply     # apply Bob squad keep/disable policy
 
 Bob does **not** run MCP servers or replace Cursor. It reads local `~/.cursor` state on **any** machine where Bob is installed, prints keep/disable recommendations for Novopay backend work, and optionally applies them. Reload Cursor after `prune-overhead --apply`.
 
-Cursor lifecycle hooks use one silent runner: `~/.cursor/hooks/bob-hook-runner.sh` (logic in `bob cursor-hook`). Close the tab if it appears - you do not edit it during normal work. Re-install via `bob onboard`.
+Cursor lifecycle hooks use one silent runner: `~/.cursor/hooks/bob-hook-runner.py` (invoked via `pythonw` on Windows so no console flashes; logic in `bob cursor-hook`). Re-install via `bob onboard`.
 
 ### `bob chat-hygiene`
 

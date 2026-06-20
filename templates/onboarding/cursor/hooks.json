@@ -3,12 +3,12 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "./hooks/bob-hook-runner.sh session"
+        "command": "python3 ./hooks/bob-hook-runner.py session"
       }
     ],
     "stop": [
       {
-        "command": "./hooks/bob-hook-runner.sh stop",
+        "command": "python3 ./hooks/bob-hook-runner.py stop",
         "loop_limit": 1
       }
     ]

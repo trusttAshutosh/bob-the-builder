@@ -32,3 +32,21 @@ runner/tests/_scratch_context_audit/
 
 # Marker file (runtime)
 assets/.bob-initialized
+
+# Host-specific catalogs (discover-apis / sync-graph on local machine)
+assets/api-catalog/apis/
+assets/platform-graph/platform-graph.yaml
+
+# Ticket-local WireMock stubs (validate-ticket / discover-apis; keep committed samples)
+assets/stub-registry/bank-operations/*/
+!assets/stub-registry/bank-operations/getCardSummary/
+
+# Bob hygiene reports (context-audit, memory-budget, meta-review, mcp-audit)
+docs/CONTEXT_USAGE_AUDIT.md
+docs/CONTEXT_ALL_CHATS_CUMULATIVE.md
+docs/CONTEXT_ALL_CHATS_CUMULATIVE.json
+docs/CONTEXT_CONVERSATION_BREAKDOWN.md
+docs/CONTEXT_CONVERSATION_BREAKDOWN.json
+docs/MEMORY_BUDGET.md
+docs/MCP_AUDIT.md
+docs/META_REVIEW.md

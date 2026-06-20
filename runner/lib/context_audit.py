@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from chat_hygiene import global_state_db
+from chat_hygiene import global_state_db, is_subagent_composer
 from host_repo import runner_bootstrap_repo
 
 CONTEXT_AUDIT_DOC = "docs/CONTEXT_USAGE_AUDIT.md"
@@ -41,6 +41,7 @@ class ChatContextRecord:
     name: str
     pct: float
     archived: bool
+    is_subagent: bool = False
     transcript_lines: int = 0
 
 
@@ -50,6 +51,8 @@ class ContextAuditReport:
     db_available: bool
     total_chats: int = 0
     active_chats: int = 0
+    active_regular_chats: int = 0
+    active_subagent_chats: int = 0
     archived_chats: int = 0
     with_pct: int = 0
     transcript_count: int = 0
@@ -138,6 +141,7 @@ def normalize_header(header: dict) -> dict:
         "name": header.get("name") or header.get("subtitle") or "(untitled)",
         "pct": header.get("contextUsagePercent"),
         "archived": header.get("isArchived", False),
+        "is_subagent": is_subagent_composer(header),
         "mode": header.get("unifiedMode"),
         "created": ts_to_date(header.get("createdAt")),
         "updated": ts_to_date(header.get("lastUpdatedAt")),
@@ -171,6 +175,8 @@ def build_context_audit(
 
     report.total_chats = len(records)
     report.active_chats = len(active)
+    report.active_subagent_chats = sum(1 for r in active if r["is_subagent"])
+    report.active_regular_chats = report.active_chats - report.active_subagent_chats
     report.archived_chats = len(archived)
     report.with_pct = len(with_pct)
     report.transcript_count = len(transcripts)
@@ -193,7 +199,9 @@ def build_context_audit(
             report.archived_avg_pct = sum(r["pct"] for r in arch_with) / len(arch_with)
         report.buckets = Counter(context_bucket(r["pct"]) for r in with_pct)
 
-    act_high = [r for r in with_pct if not r["archived"] and r["pct"] >= 60]
+    act_high = [
+        r for r in with_pct if not r["archived"] and not r["is_subagent"] and r["pct"] >= 60
+    ]
     arch_high = [r for r in with_pct if r["archived"] and r["pct"] >= 60]
     report.active_high_count = len(act_high)
     report.archived_high_count = len(arch_high)
@@ -205,6 +213,7 @@ def build_context_audit(
             name=r["name"],
             pct=r["pct"],
             archived=r["archived"],
+            is_subagent=r["is_subagent"],
             transcript_lines=t.get("lines", 0),
         )
 
@@ -271,7 +280,9 @@ def render_context_audit_md(report: ContextAuditReport) -> str:
             "| Metric | Count |",
             "|--------|------:|",
             f"| Composer headers (non-draft) | {report.total_chats} |",
-            f"| Active chats | {report.active_chats} |",
+            f"| Active chats (all) | {report.active_chats} |",
+            f"| Active regular chats | {report.active_regular_chats} |",
+            f"| Active subagent chats | {report.active_subagent_chats} |",
             f"| Archived chats | {report.archived_chats} |",
             f"| With `contextUsagePercent` | {report.with_pct} |",
             f"| Parent agent transcripts | {report.transcript_count} |",

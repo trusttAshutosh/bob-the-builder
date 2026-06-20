@@ -11,14 +11,33 @@ from pathlib import Path
 from host_repo import infer_workspace_root, runner_bootstrap_repo
 
 BOB_PY_POINTER = Path.home() / ".cursor" / "hooks" / ".bob-py"
-HOOK_RUNNER_NAME = "bob-hook-runner.sh"
+HOOK_RUNNER_NAME = "bob-hook-runner.py"
+LEGACY_HOOK_RUNNER_NAME = "bob-hook-runner.sh"
 LEGACY_HOOK_COMMANDS = frozenset(
     {
         "./hooks/orchestrator-hygiene-stop.sh",
         "./hooks/session-chat-hygiene.sh",
+        f"./hooks/{LEGACY_HOOK_RUNNER_NAME} session",
+        f"./hooks/{LEGACY_HOOK_RUNNER_NAME} stop",
     }
 )
-BOB_HOOK_RUNNER_CMD = f"./hooks/{HOOK_RUNNER_NAME}"
+
+
+def hook_runner_python() -> str:
+    if sys.platform == "win32":
+        pyw = Path(sys.executable).with_name("pythonw.exe")
+        if pyw.is_file():
+            return str(pyw)
+        return "pythonw"
+    return "python3"
+
+
+def bob_hook_runner_command(kind: str) -> str:
+    return f"{hook_runner_python()} ./hooks/{HOOK_RUNNER_NAME} {kind}"
+
+
+def is_bob_hook_runner_command(cmd: str) -> bool:
+    return "bob-hook-runner" in str(cmd)
 
 
 def cursor_hooks_dir() -> Path:
@@ -71,16 +90,13 @@ def normalize_hooks_payload(data: dict) -> dict:
         ]
 
     session = hooks.setdefault("sessionStart", [])
-    if not any(e.get("command") == f"{BOB_HOOK_RUNNER_CMD} session" for e in session):
-        session.append({"command": f"{BOB_HOOK_RUNNER_CMD} session"})
+    session = [e for e in session if not is_bob_hook_runner_command(e.get("command", ""))]
+    session.append({"command": bob_hook_runner_command("session")})
+    hooks["sessionStart"] = session
 
     stop = hooks.setdefault("stop", [])
-    stop = [
-        e
-        for e in stop
-        if not str(e.get("command", "")).startswith(BOB_HOOK_RUNNER_CMD)
-    ]
-    stop.append({"command": f"{BOB_HOOK_RUNNER_CMD} stop", "loop_limit": 1})
+    stop = [e for e in stop if not is_bob_hook_runner_command(e.get("command", ""))]
+    stop.append({"command": bob_hook_runner_command("stop"), "loop_limit": 1})
     hooks["stop"] = stop
     return data
 
@@ -106,31 +122,15 @@ def merge_hooks_json(dest: Path, template_text: str) -> str:
 
 
 def hook_runner_script() -> str:
-    return """#!/usr/bin/env bash
-# Bob Cursor hook runner - do not edit; logic lives in `bob cursor-hook`.
-set -euo pipefail
-KIND="${1:-}"
-BOB_PY_FILE="${HOME}/.cursor/hooks/.bob-py"
-if [ ! -f "$BOB_PY_FILE" ]; then
-  exit 0
-fi
-BOB_PY="$(tr -d '\\r\\n' < "$BOB_PY_FILE")"
-if [ -z "$BOB_PY" ] || [ ! -f "$BOB_PY" ]; then
-  exit 0
-fi
-case "$KIND" in
-  session)
-    python3 "$BOB_PY" cursor-hook session >/dev/null 2>&1 || true
-    ;;
-  stop)
-    export HOOK_STOP_JSON="$(cat)"
-    exec python3 "$BOB_PY" cursor-hook stop
-    ;;
-  *)
-    exit 0
-    ;;
-esac
-"""
+    template = (
+        runner_bootstrap_repo()
+        / "templates"
+        / "onboarding"
+        / "cursor"
+        / "hooks"
+        / HOOK_RUNNER_NAME
+    )
+    return template.read_text(encoding="utf-8")
 
 
 def _make_readonly(path: Path) -> None:
@@ -176,10 +176,15 @@ def deploy_cursor_hooks(workspace: Path | None = None, *, force: bool = False) -
     else:
         _make_readonly(runner_dest)
 
-    for legacy in ("orchestrator-hygiene-stop.sh", "session-chat-hygiene.sh"):
+    for legacy in (
+        "orchestrator-hygiene-stop.sh",
+        "session-chat-hygiene.sh",
+        LEGACY_HOOK_RUNNER_NAME,
+    ):
         legacy_path = hooks_dir / legacy
         if legacy_path.is_file():
             try:
+                _make_writable(legacy_path)
                 legacy_path.unlink()
             except OSError:
                 pass
@@ -275,6 +280,6 @@ def hooks_assess_ok() -> bool | None:
         return False
     session = data.get("hooks", {}).get("sessionStart") or []
     stop = data.get("hooks", {}).get("stop") or []
-    has_session = any(f"{BOB_HOOK_RUNNER_CMD} session" in str(e.get("command", "")) for e in session)
-    has_stop = any(f"{BOB_HOOK_RUNNER_CMD} stop" in str(e.get("command", "")) for e in stop)
+    has_session = any(is_bob_hook_runner_command(e.get("command", "")) and "session" in str(e.get("command", "")) for e in session)
+    has_stop = any(is_bob_hook_runner_command(e.get("command", "")) and "stop" in str(e.get("command", "")) for e in stop)
     return has_session and has_stop

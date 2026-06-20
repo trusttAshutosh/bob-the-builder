@@ -6,7 +6,7 @@ Used by `bob onboard` to seed Cursor user files, workspace scaffolding, and the 
 |------|----------------|
 | `cursor/novopay-orchestrator.mdc` | `~/.cursor/rules/novopay-orchestrator.mdc` |
 | `cursor/hooks.json` | merged into `~/.cursor/hooks.json` (legacy hygiene hooks removed) |
-| `cursor/hooks/bob-hook-runner.sh` | `~/.cursor/hooks/bob-hook-runner.sh` (single silent runner) |
+| `cursor/hooks/bob-hook-runner.py` | `~/.cursor/hooks/bob-hook-runner.py` (single silent runner; `pythonw` on Windows) |
 | (generated) | `~/.cursor/hooks/.bob-py` (path to `bob.py` on this machine) |
 | `novopay/AGENTS.md.stub` | `{WORKSPACE_ROOT}/AGENTS.md` (if missing or `--force`) |
 | (generated) | `{WORKSPACE_ROOT}/novopay.code-workspace` |

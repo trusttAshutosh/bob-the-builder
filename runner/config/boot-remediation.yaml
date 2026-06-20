@@ -1,0 +1,49 @@
+# Bob boot remediation registry (Novopay squad).
+# When a boot failure is fixed in chat, encode it HERE — not only in AGENTS.md or chat memory.
+# boot_remediation.py loads optional `log_patterns` below; service_boot.py applies Spring args from code.
+
+version: 1
+
+# Agent rule: on new boot failure -> add/extend this file + verify with `bob start-services` / validate-ticket autoboot.
+services:
+  credit_card_management:
+    repo_dir: novopay-platform-creditcard-management
+    requires_copy_properties: true
+    dist_properties: deploy/application/dist/application.properties
+    src_properties: src/main/resources/application.properties
+    notes:
+      - CC bootRun needs dist application.properties on classpath (copyProperties pre-task).
+      - MySQL creds synced from Bob user.env via application_props_sync.
+
+  masterdata_management:
+    repo_dir: novopay-platform-masterdata-management
+    notes:
+      - Uses platform master datasource keys; Bob overrides username/password/host from user.env.
+
+  api_gateway:
+    repo_dir: novopay-platform-api-gateway
+    notes:
+      - Port bind conflicts -> stop existing gateway or use boot remediation port profile.
+
+  notifications_management:
+    repo_dir: novopay-platform-notifications
+    required_placeholders:
+      - novopay.service.name
+    notes:
+      - Boot fails without novopay.service.name; Bob standard profile injects when detected in logs.
+
+  consents_management:
+    repo_dir: novopay-platform-consents
+    required_placeholders:
+      - novopay.service.name
+    notes:
+      - Same as notifications — service.name placeholder must be set for local boot.
+
+# Optional log patterns (merged with built-in _LOG_PATTERNS in boot_remediation.py).
+log_patterns:
+  - name: cc_dist_props_missing
+    regex: "Could not resolve placeholder.*application\\.properties|config.*additional-location"
+    profile: standard
+  - name: flyway_migration
+    regex: "FlywayException|Validate failed|Migration .* failed"
+    profile: extended

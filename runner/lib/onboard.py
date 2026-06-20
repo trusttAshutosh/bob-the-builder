@@ -199,7 +199,7 @@ def plan_writes(workspace: Path, *, force: bool = False) -> list[PlannedWrite]:
     plans.append(
         PlannedWrite(
             "Cursor hook runner (single silent script)",
-            cursor_home() / "hooks" / "bob-hook-runner.sh",
+            cursor_home() / "hooks" / "bob-hook-runner.py",
             "write",
         )
     )

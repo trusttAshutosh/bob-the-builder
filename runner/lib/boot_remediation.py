@@ -3,9 +3,12 @@ from __future__ import annotations
 
 import os
 import re
+from functools import lru_cache
 from pathlib import Path
 
 from kafka_runtime import DEFAULT_BOOTSTRAP
+
+_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "boot-remediation.yaml"
 
 # Ordered escalation: each tier adds overrides on top of the previous.
 BOOT_PROFILE_STANDARD = "standard"
@@ -92,13 +95,43 @@ def repo_has_copy_properties_task(repo: Path) -> bool:
         return False
 
 
+@lru_cache(maxsize=1)
+def _configured_log_patterns() -> list[tuple[str, re.Pattern[str], str]]:
+    patterns = list(_LOG_PATTERNS)
+    if not _CONFIG_PATH.is_file():
+        return patterns
+    try:
+        from _yaml_util import load as load_yaml_file
+
+        data = load_yaml_file(_CONFIG_PATH) or {}
+    except (OSError, ImportError, ValueError):
+        return patterns
+    for row in data.get("log_patterns") or []:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("name") or "custom").strip()
+        regex = str(row.get("regex") or "").strip()
+        profile = str(row.get("profile") or BOOT_PROFILE_EXTENDED).strip()
+        if not regex or profile not in (
+            BOOT_PROFILE_STANDARD,
+            BOOT_PROFILE_EXTENDED,
+            BOOT_PROFILE_AGGRESSIVE,
+        ):
+            continue
+        try:
+            patterns.append((name, re.compile(regex, re.I), profile))
+        except re.error:
+            continue
+    return patterns
+
+
 def diagnose_boot_log(log_text: str) -> list[str]:
     """Return ordered remediation profile ids suggested from boot.log tail."""
     if not log_text.strip():
         return [BOOT_PROFILE_EXTENDED]
     tail = log_text[-12000:]
     seen: list[str] = []
-    for _name, pattern, profile in _LOG_PATTERNS:
+    for _name, pattern, profile in _configured_log_patterns():
         if pattern.search(tail) and profile not in seen:
             seen.append(profile)
     if not seen:

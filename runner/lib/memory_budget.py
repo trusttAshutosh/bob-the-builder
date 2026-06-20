@@ -30,6 +30,8 @@ class MemoryBudgetReport:
     workspace: str | None = None
     status: str = "ok"  # ok | warn | critical
     active_chats: int = 0
+    active_regular_chats: int = 0
+    active_subagent_chats: int = 0
     active_high_count: int = 0
     worst_active_pct: float | None = None
     fixed_overhead_tokens: int = FIXED_TOTAL
@@ -79,6 +81,8 @@ def build_memory_budget_report() -> MemoryBudgetReport:
         return report
 
     report.active_chats = ctx.active_chats
+    report.active_regular_chats = ctx.active_regular_chats
+    report.active_subagent_chats = ctx.active_subagent_chats
     report.active_high_count = ctx.active_high_count
     report.context_suggestions = build_context_suggestions(ctx)
 
@@ -87,7 +91,7 @@ def build_memory_budget_report() -> MemoryBudgetReport:
         if worst is None or chat.pct > worst:
             worst = chat.pct
     for chat in ctx.top_chats:
-        if chat.archived:
+        if chat.archived or chat.is_subagent:
             continue
         if worst is None or chat.pct > worst:
             worst = chat.pct
@@ -97,9 +101,15 @@ def build_memory_budget_report() -> MemoryBudgetReport:
     report.mcp_server_count = len(servers)
     report.mcp_tools_recommended_disable = len(recommended_tools_to_disable(servers))
 
-    if report.active_chats > TARGET_ACTIVE_CHATS:
+    if report.active_regular_chats > TARGET_ACTIVE_CHATS:
         report.alerts.append(
-            f"{report.active_chats} active chats (target <= {TARGET_ACTIVE_CHATS}) - run `bob chat-hygiene --auto`."
+            f"{report.active_regular_chats} active regular chats "
+            f"(target <= {TARGET_ACTIVE_CHATS}) - run `bob chat-hygiene --auto`."
+        )
+    if report.active_subagent_chats:
+        report.alerts.append(
+            f"{report.active_subagent_chats} active subagent thread(s) "
+            "(excluded from chat-hygiene cap; normal when using Task/subagents)."
         )
     if report.active_high_count:
         report.alerts.append(
@@ -112,7 +122,7 @@ def build_memory_budget_report() -> MemoryBudgetReport:
         )
     elif worst is not None and worst >= WARN_PCT:
         report.status = "warn"
-    elif report.active_high_count or report.active_chats > TARGET_ACTIVE_CHATS:
+    elif report.active_high_count or report.active_regular_chats > TARGET_ACTIVE_CHATS:
         report.status = "warn"
 
     if report.mcp_tools_recommended_disable >= 8:
@@ -144,6 +154,8 @@ def write_workspace_status(report: MemoryBudgetReport, workspace: Path | None = 
         "generated_at": report.generated_at,
         "status": report.status,
         "active_chats": report.active_chats,
+        "active_regular_chats": report.active_regular_chats,
+        "active_subagent_chats": report.active_subagent_chats,
         "active_high_count": report.active_high_count,
         "worst_active_pct": report.worst_active_pct,
         "alerts": report.alerts[:6],
@@ -167,7 +179,9 @@ def render_memory_budget_md(report: MemoryBudgetReport) -> str:
         "## Status",
         "",
         f"- **Overall:** `{report.status}`",
-        f"- **Active chats:** {report.active_chats} (target <= {TARGET_ACTIVE_CHATS})",
+        f"- **Active chats (all):** {report.active_chats} "
+        f"({report.active_regular_chats} regular + {report.active_subagent_chats} subagent)",
+        f"- **Active regular chats:** {report.active_regular_chats} (target <= {TARGET_ACTIVE_CHATS})",
         f"- **Active chats >= {WARN_PCT:.0f}% context:** {report.active_high_count}",
     ]
     if report.worst_active_pct is not None:
@@ -256,6 +270,8 @@ def run_memory_budget(args: list[str]) -> int:
                 {
                     "status": report.status,
                     "active_chats": report.active_chats,
+                    "active_regular_chats": report.active_regular_chats,
+                    "active_subagent_chats": report.active_subagent_chats,
                     "active_high_count": report.active_high_count,
                     "worst_active_pct": report.worst_active_pct,
                     "alerts": report.alerts,
