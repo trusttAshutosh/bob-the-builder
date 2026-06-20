@@ -85,7 +85,7 @@ flowchart LR
 <!-- BUILDER_INTEL:AUTO:START -->
 ## Auto-maintained inventory (do not edit this section)
 
-**Synced:** 2026-06-10 · commit `ec03cbc` · **20** registered features · **48** CLI handler commands.
+**Synced:** 2026-06-20 · commit `80dbf75` · **20** registered features · **48** CLI handler commands.
 
 Source of truth: [`product-features.yaml`](../product-features.yaml). Refreshed by `bob verify-product --update` and the post-commit hook.
 
@@ -119,7 +119,7 @@ Source of truth: [`product-features.yaml`](../product-features.yaml). Refreshed 
 - **[Later]** **Windows validate-ticket** — document bash requirement; expand Python fallback parity with `run-tdd.sh`
 - **[Later]** **Orchestration-less hosts** — discovery today requires `deploy/application/orchestration/`; support OpenAPI-only or Gradle route scan as alternative
 
-<!-- BUILDER_INTEL:SYNC=2026-06-10:ec03cbc -->
+<!-- BUILDER_INTEL:SYNC=2026-06-20:80dbf75 -->
 <!-- BUILDER_INTEL:AUTO:END -->
 
 ---

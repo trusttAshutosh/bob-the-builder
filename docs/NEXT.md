@@ -10,8 +10,8 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=ec03cbc -->
-<!-- PRODUCT-VERIFY:CHECKED=2026-06-10 -->
+<!-- PRODUCT-VERIFY:COMMIT=80dbf75 -->
+<!-- PRODUCT-VERIFY:CHECKED=2026-06-20 -->
 
 <!-- SCORECARD:START -->
 ## Current scorecard
@@ -28,20 +28,43 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-10 · commit `ec03cbc` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-20 · commit `80dbf75` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `ec03cbc` — feat: add test_run_time column to DB_VERIFY_QUERIES.sql
-**Date:** 2026-06-10
+**Commit:** `80dbf75` — feat: Python hook runners, boot remediation, and ignore local Bob outputs
+**Date:** 2026-06-20
 
 ### Files changed
-- `assets/examples/sample-validate-output/DB_VERIFY_QUERIES.sql`
-- `runner/lib/audit_config.py`
-- `runner/tests/test_audit_config.py`
+- `.gitignore`
+- `docs/ONBOARDING_DEVELOPER.md`
+- `docs/internal/BUILDER_INTEL.md`
+- `runner/config/boot-remediation.yaml`
+- `runner/lib/boot_remediation.py`
+- `runner/lib/context_audit.py`
+- `runner/lib/cursor_hook.py`
+- `runner/lib/memory_budget.py`
+- `runner/lib/onboard.py`
+- `runner/lib/run_flow.py`
+- `runner/tests/test_cursor_hook.py`
+- `runner/tests/test_onboard.py`
+- `templates/onboarding/README.onboarding.md`
+- `templates/onboarding/cursor/hooks.json`
+- `templates/onboarding/cursor/hooks/bob-hook-runner.py`
+- `templates/onboarding/cursor/hooks/bob-hook-runner.sh`
+- `templates/onboarding/host-cc/.cursor/hooks.json`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-nudge.py`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-nudge.sh`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-stop-followup.py`
+- `templates/onboarding/host-cc/.cursor/hooks/cc-backend-test-stop-followup.sh`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-nudge.py`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-nudge.sh`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-stop-followup.py`
+- `templates/onboarding/novopay/.cursor/hooks/cc-backend-test-stop-followup.sh`
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Feature integrity verifier (`product-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).
