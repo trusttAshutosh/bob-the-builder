@@ -197,6 +197,24 @@ def _run_pre_sql(sc: dict, crn: str, spec: dict, ticket_dir: Path) -> tuple[bool
     return True, f"seed ok ({audit['schema']})"
 
 
+def _masterdata_for_scenario(spec: dict, sc: dict) -> list:
+    """Merge ticket-level masterdata with optional per-scenario overrides (override wins on prop_key)."""
+    base = list(spec.get("masterdata") or [])
+    overrides = sc.get("masterdata") or []
+    if not overrides:
+        return base
+    merged: dict[str, dict] = {}
+    for row in base:
+        key = str(row.get("prop_key", "")).strip()
+        if key:
+            merged[key] = dict(row)
+    for row in overrides:
+        key = str(row.get("prop_key", "")).strip()
+        if key:
+            merged[key] = dict(row)
+    return list(merged.values())
+
+
 def _run_unit_tests(test_filter: str | list | None) -> tuple[int, str]:
     if not test_filter:
         return 1, "verification_level unit requires scenario.gradle_tests in ticket-spec"
@@ -740,7 +758,8 @@ def run(ticket_dir: Path, cli_flags: list[str] | None = None) -> int:
 
             start_wiremock(runtime, port, reload=True)
             if run_cfg.get("apply_masterdata", True):
-                prime_cc_config_cache(spec, port)
+                scenario_spec = {**spec, "masterdata": _masterdata_for_scenario(spec, sc)}
+                prime_cc_config_cache(scenario_spec, port)
             rec.begin_step(f"api_{sid}", f"API calls ({sid})")
             if steps:
                 spec_env = spec.get("_env") or {}

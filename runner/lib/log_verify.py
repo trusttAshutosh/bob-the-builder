@@ -48,6 +48,38 @@ def scenario_log_patterns(sc: dict, crn: str) -> list[str]:
     return _default_log_patterns(sc, crn)
 
 
+def scenario_crn_shell_pattern(sc: dict, sid: str) -> str:
+    """Ticket `crn` with `{CRN}` placeholder → bash `${CRN}` form for grep."""
+    raw = str(sc.get("crn") or f"{{CRN}}-{sid}").strip()
+    return raw.replace("{CRN}", "${CRN}")
+
+
+def _shell_pattern_for_grep(pattern: str) -> str:
+    """Quote literals; keep `${VAR}` segments double-quoted for bash expansion."""
+    if "${" in pattern:
+        return f'"{pattern}"'
+    return shlex.quote(pattern)
+
+
+def scenario_log_patterns_for_shell(sc: dict, sid: str) -> list[str]:
+    """Grep patterns using CRN variable + API ids from steps."""
+    pats: list[str] = [scenario_crn_shell_pattern(sc, sid)]
+    for step in sc.get("steps") or []:
+        aid = step.get("api_id") or step.get("api")
+        if aid:
+            pats.append(str(aid))
+    explicit = [str(p) for p in (sc.get("log_patterns") or []) if p]
+    if explicit:
+        return explicit
+    seen: set[str] = set()
+    out: list[str] = []
+    for p in pats:
+        if p and p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
+
+
 def _grep_one(logs_dir: str, pattern: str) -> str:
     cmd = [
         "grep",
@@ -72,20 +104,19 @@ def _grep_one(logs_dir: str, pattern: str) -> str:
         return "(search timed out after 120s)"
 
 
-def _shell_grep_line(logs_dir: str, pattern: str) -> str:
-    pat_q = shlex.quote(pattern)
-    dir_q = shlex.quote(logs_dir)
+def _shell_grep_line(logs_var: str, pattern: str) -> str:
+    pat_part = _shell_pattern_for_grep(pattern)
     return (
         f'grep -rn --include="*.log" --include="*.out" --include="*.err" '
-        f"-m 20 {pat_q} {dir_q}"
+        f"-m 20 {pat_part} \"${logs_var}\""
     )
 
 
 def _shell_grep_quick(logs_var: str, pattern: str, *, head: int) -> str:
-    pat_q = shlex.quote(pattern)
+    pat_part = _shell_pattern_for_grep(pattern)
     return (
         f'grep -rn --include="*.log" --include="*.out" --include="*.err" '
-        f"{pat_q} \"${logs_var}\" 2>/dev/null | head -{head}"
+        f"{pat_part} \"${logs_var}\" 2>/dev/null | head -{head}"
     )
 
 
@@ -131,14 +162,19 @@ def write_log_verify_commands(
         "",
     ]
     if scenario_crns:
-        crn_list = " ".join(scenario_crns.values())
         if logs_dir:
             lines.append("```bash")
+            lines.append(f'CRN="{base_crn}"  # base from last validate-ticket (decisions.crn)')
             lines.append(f'LOGS="{logs_dir}"')
-            lines.append(_shell_grep_quick("LOGS", base_crn, head=50))
-            for sid, crn in sorted(scenario_crns.items()):
-                lines.append(f'# {sid}')
-                lines.append(_shell_grep_quick("LOGS", crn, head=30))
+            lines.append(_shell_grep_quick("LOGS", "${CRN}", head=50))
+            for sc in scenarios(spec):
+                sid = sc.get("id", "?")
+                if sid not in scenario_crns:
+                    continue
+                lines.append(f"# {sid}")
+                lines.append(
+                    _shell_grep_quick("LOGS", scenario_crn_shell_pattern(sc, sid), head=30)
+                )
             lines.append("```")
         lines.append("")
 
@@ -159,7 +195,7 @@ def write_log_verify_commands(
             continue
         crn = scenario_crns[sid]
         name = (sc.get("name") or "").replace("|", "\\|")[:80]
-        pats = scenario_log_patterns(sc, crn)
+        pats = scenario_log_patterns_for_shell(sc, sid)
         lines.append(
             f"| {sid} | {name} | `{crn}` | {', '.join(f'`{p}`' for p in pats[:6])} |"
         )
@@ -174,17 +210,19 @@ def write_log_verify_commands(
         name = sc.get("name", "")
         lines.append(f"### {scenario_description(sid, name)}")
         lines.append("")
-        lines.append(f"- **CRN:** `{crn}`")
+        lines.append(f"- **CRN (last run):** `{crn}`")
+        lines.append(f"- **CRN grep pattern:** `{scenario_crn_shell_pattern(sc, sid)}`")
         if not logs_dir:
             lines.append("- _(set LOGS_DIR to enable runnable commands)_")
             lines.append("")
             continue
         lines.append("")
         lines.append("```bash")
-        lines.append(f'LOGS={shlex.quote(logs_dir)}')
-        for pat in scenario_log_patterns(sc, crn):
+        lines.append(f'CRN="{base_crn}"')
+        lines.append(f'LOGS="{logs_dir}"')
+        for pat in scenario_log_patterns_for_shell(sc, sid):
             lines.append(f"# pattern: {pat}")
-            lines.append(_shell_grep_line(logs_dir, pat))
+            lines.append(_shell_grep_line("LOGS", pat))
         lines.append("```")
         lines.append("")
 
