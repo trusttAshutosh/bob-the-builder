@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=ae54e35 -->
+<!-- PRODUCT-VERIFY:COMMIT=e695a95 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-22 -->
 
 <!-- SCORECARD:START -->
@@ -28,23 +28,20 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-22 · commit `ae54e35` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-22 · commit `e695a95` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `ae54e35` — Use grep instead of ripgrep for log verification.
+**Commit:** `e695a95` — Emit LOG_VERIFY with CRN/LOGS variables and support per-scenario masterdata.
 **Date:** 2026-06-22
 
 ### Files changed
-- `assets/examples/sample-validate-output/LOG_VERIFY_COMMANDS.md`
 - `runner/lib/log_verify.py`
-- `runner/lib/run_summary.py`
-- `runner/lib/sample_outputs.py`
-- `runner/search-logs.sh`
+- `runner/lib/run_flow.py`
+- `runner/tests/test_log_verify.py`
 
 ### Features touched in this commit
 - Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
-- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
 - Evidence bundle + verify docs (DB, logs, Kafka, Redis) (`evidence-and-verify`) — files touched
 
 ### Regression check
