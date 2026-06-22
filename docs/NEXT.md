@@ -10,7 +10,7 @@
 | **CI** | Blocks only if a **feature was removed** — not stamp drift |
 | **CLI** | `bob next` · `bob verify-product` |
 
-<!-- PRODUCT-VERIFY:COMMIT=f4f2b3b -->
+<!-- PRODUCT-VERIFY:COMMIT=ae54e35 -->
 <!-- PRODUCT-VERIFY:CHECKED=2026-06-22 -->
 
 <!-- SCORECARD:START -->
@@ -28,19 +28,24 @@
 | Team handoff | A- | KT doc + `bob onboard` bootstrap |
 | **Overall** | **Architecture PASS · Product A- · shipped for team clone** | |
 
-*Last feature check: 2026-06-22 · commit `f4f2b3b` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
+*Last feature check: 2026-06-22 · commit `ae54e35` · 20/20 features intact · auto-refreshed after commit via post-commit hook*
 <!-- SCORECARD:END -->
 
 <!-- LAST_COMMIT:START -->
-**Commit:** `f4f2b3b` — docs: add mobile Cursor relay guide and link from cheatsheet
+**Commit:** `ae54e35` — Use grep instead of ripgrep for log verification.
 **Date:** 2026-06-22
 
 ### Files changed
-- `docs/BOB_CHEATSHEET.md`
-- `docs/MOBILE_CURSOR_RELAY.md`
+- `assets/examples/sample-validate-output/LOG_VERIFY_COMMANDS.md`
+- `runner/lib/log_verify.py`
+- `runner/lib/run_summary.py`
+- `runner/lib/sample_outputs.py`
+- `runner/search-logs.sh`
 
 ### Features touched in this commit
-- (none mapped — docs-only or infra)
+- Ticket init, validate, status, reports (`ticket-lifecycle`) — files touched
+- Sample validate-ticket output bundle (`sample-validate-output`) — files touched
+- Evidence bundle + verify docs (DB, logs, Kafka, Redis) (`evidence-and-verify`) — files touched
 
 ### Regression check
 - **20/20 registered features still intact** after this commit (see below).

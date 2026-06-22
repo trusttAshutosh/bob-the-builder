@@ -100,7 +100,7 @@ This bundle is for documentation; run validate-ticket on your host repo for real
 | Kind | File |
 |------|------|
 | DB (MySQL Workbench) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) |
-| Logs (grep/rg on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |
+| Logs (grep on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |
 | Kafka (local Docker / consume) | [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) · [evidence/kafka/](./evidence/kafka/) |
 | Redis (config cache / redis-cli) | [REDIS_VERIFY.md](./REDIS_VERIFY.md) · [evidence/redis/](./evidence/redis/) |
 | Context (prefs + stale + KG) | [CONTEXT_PACK.md](./CONTEXT_PACK.md) |
@@ -117,7 +117,7 @@ _Single report file: this `REPORT.md` (no separate RUN_SUMMARY.md)._
 
 - [TEST_PLAN.md](./TEST_PLAN.md) — planned scenarios (updated each validate-ticket)
 - [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) — MySQL dashboard + per-scenario SELECTs
-- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep/rg for applogs
+- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep for applogs
 - [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce; captures in [evidence/kafka/](./evidence/kafka/)
 - [REDIS_VERIFY.md](./REDIS_VERIFY.md) — redis-cli commands; snapshots in [evidence/redis/](./evidence/redis/)
 - [CONTEXT_PACK.md](./CONTEXT_PACK.md) — prefs, staleness, hybrid KG retrieval
