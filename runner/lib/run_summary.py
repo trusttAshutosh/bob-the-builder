@@ -583,7 +583,7 @@ def _render_markdown(
         "| Kind | File |",
         "|------|------|",
         f"| DB (MySQL Workbench) | [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) |",
-        f"| Logs (grep/rg on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |",
+        f"| Logs (grep on server) | [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) |",
     ]
     if dec.get("kafka_verify_commands"):
         lines.append(
@@ -618,7 +618,7 @@ def _render_markdown(
         "",
         "- [TEST_PLAN.md](./TEST_PLAN.md) — planned scenarios (updated each validate-ticket)",
         "- [DB_VERIFY_QUERIES.sql](./DB_VERIFY_QUERIES.sql) — MySQL dashboard + per-scenario SELECTs",
-        "- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep/rg for applogs",
+        "- [LOG_VERIFY_COMMANDS.md](./LOG_VERIFY_COMMANDS.md) — copy-paste grep for applogs",
         "- [KAFKA_VERIFY.md](./KAFKA_VERIFY.md) — Kafka UI, consume/produce; captures in [evidence/kafka/](./evidence/kafka/)",
         "- [REDIS_VERIFY.md](./REDIS_VERIFY.md) — redis-cli commands; snapshots in [evidence/redis/](./evidence/redis/)",
         "- [CONTEXT_PACK.md](./CONTEXT_PACK.md) — prefs, staleness, hybrid KG retrieval",

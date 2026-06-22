@@ -4,6 +4,6 @@ Run on the host where application logs are written (`LOGS_DIR` from `bob setup`)
 
 ```bash
 cd "$LOGS_DIR"
-rg -n "inquireCardEligibility" . --glob "*.log" | head -50
+grep -rn --include="*.log" --include="*.out" --include="*.err" "inquireCardEligibility" . | head -50
 ```
 

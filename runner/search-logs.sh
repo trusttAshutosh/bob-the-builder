@@ -20,13 +20,6 @@ REPORT="$TDD_RUN_DIR/log-search.txt"
 echo "LOGS_DIR=$LOGS_DIR" | tee -a "$REPORT"
 echo "Searched: $(date -Iseconds)" | tee -a "$REPORT"
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "WARN: ripgrep (rg) not found — using grep -r" | tee -a "$REPORT"
-  SEARCH_CMD=grep
-else
-  SEARCH_CMD=rg
-fi
-
 parse_patterns() {
   local sid="$1"
   awk -v sid="$sid" '
@@ -48,11 +41,7 @@ while IFS= read -r sid; do
   while IFS= read -r pat; do
     [[ -z "$pat" ]] && continue
     echo "--- pattern: $pat ---" | tee -a "$REPORT"
-    if [[ "$SEARCH_CMD" == rg ]]; then
-      rg -n --no-heading -m 20 "$pat" "$LOGS_DIR" 2>/dev/null | tee -a "$REPORT" || echo "(no matches)" | tee -a "$REPORT"
-    else
-      grep -rn --include="*.log" --include="*.out" --include="*.err" -m 20 "$pat" "$LOGS_DIR" 2>/dev/null | tee -a "$REPORT" || echo "(no matches)" | tee -a "$REPORT"
-    fi
+    grep -rn --include="*.log" --include="*.out" --include="*.err" -m 20 "$pat" "$LOGS_DIR" 2>/dev/null | tee -a "$REPORT" || echo "(no matches)" | tee -a "$REPORT"
   done < <(parse_patterns "$sid")
 done < <(awk '/^  - id: /{print $3}' "$TC_FILE" | tr -d '"')
 

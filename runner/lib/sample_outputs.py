@@ -283,7 +283,9 @@ def _write_log_verify(ticket_dir: Path, spec: dict) -> Path:
         f"cd \"$LOGS_DIR\"",
     ]
     for p in patterns or ["inquireCardEligibility"]:
-        lines.append(f'rg -n "{p}" . --glob "*.log" | head -50')
+        lines.append(
+            f'grep -rn --include="*.log" --include="*.out" --include="*.err" "{p}" . | head -50'
+        )
     lines.extend(["```", ""])
     path = ticket_dir / "LOG_VERIFY_COMMANDS.md"
     _write_text(path, "\n".join(lines) + "\n")

@@ -1,4 +1,4 @@
-"""Generate copy-paste log grep/rg commands for manual verification (like DB_VERIFY_QUERIES.sql)."""
+"""Generate copy-paste log grep commands for manual verification (like DB_VERIFY_QUERIES.sql)."""
 from __future__ import annotations
 
 import os
@@ -48,21 +48,18 @@ def scenario_log_patterns(sc: dict, crn: str) -> list[str]:
     return _default_log_patterns(sc, crn)
 
 
-def _grep_one(logs_dir: str, pattern: str, *, use_rg: bool) -> str:
-    if use_rg:
-        cmd = ["rg", "-n", "--no-heading", "-m", "20", pattern, logs_dir]
-    else:
-        cmd = [
-            "grep",
-            "-rn",
-            "--include=*.log",
-            "--include=*.out",
-            "--include=*.err",
-            "-m",
-            "20",
-            pattern,
-            logs_dir,
-        ]
+def _grep_one(logs_dir: str, pattern: str) -> str:
+    cmd = [
+        "grep",
+        "-rn",
+        "--include=*.log",
+        "--include=*.out",
+        "--include=*.err",
+        "-m",
+        "20",
+        pattern,
+        logs_dir,
+    ]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         out = (r.stdout or "").strip()
@@ -75,14 +72,20 @@ def _grep_one(logs_dir: str, pattern: str, *, use_rg: bool) -> str:
         return "(search timed out after 120s)"
 
 
-def _shell_grep_line(logs_dir: str, pattern: str, *, use_rg: bool) -> str:
+def _shell_grep_line(logs_dir: str, pattern: str) -> str:
     pat_q = shlex.quote(pattern)
     dir_q = shlex.quote(logs_dir)
-    if use_rg:
-        return f'rg -n --no-heading -m 20 {pat_q} {dir_q}'
     return (
         f'grep -rn --include="*.log" --include="*.out" --include="*.err" '
         f"-m 20 {pat_q} {dir_q}"
+    )
+
+
+def _shell_grep_quick(logs_var: str, pattern: str, *, head: int) -> str:
+    pat_q = shlex.quote(pattern)
+    return (
+        f'grep -rn --include="*.log" --include="*.out" --include="*.err" '
+        f"{pat_q} \"${logs_var}\" 2>/dev/null | head -{head}"
     )
 
 
@@ -92,7 +95,7 @@ def write_log_verify_commands(
     base_crn: str,
     run_scenario_crns: dict[str, str] | None = None,
 ) -> Path | None:
-    """Write LOG_VERIFY_COMMANDS.md with per-scenario grep/rg commands."""
+    """Write LOG_VERIFY_COMMANDS.md with per-scenario grep commands."""
     scenario_crns = e2e_scenario_crns(spec, base_crn, run_scenario_crns)
     logs_dir = _logs_dir()
     lines = [
@@ -132,10 +135,10 @@ def write_log_verify_commands(
         if logs_dir:
             lines.append("```bash")
             lines.append(f'LOGS="{logs_dir}"')
-            lines.append(f'rg -n "{base_crn}" "$LOGS" 2>/dev/null | head -50')
+            lines.append(_shell_grep_quick("LOGS", base_crn, head=50))
             for sid, crn in sorted(scenario_crns.items()):
                 lines.append(f'# {sid}')
-                lines.append(f'rg -n "{crn}" "$LOGS" 2>/dev/null | head -30')
+                lines.append(_shell_grep_quick("LOGS", crn, head=30))
             lines.append("```")
         lines.append("")
 
@@ -162,11 +165,6 @@ def write_log_verify_commands(
         )
 
     lines += ["", "## Commands by scenario", ""]
-    use_rg = False
-    try:
-        use_rg = subprocess.run(["rg", "--version"], capture_output=True).returncode == 0
-    except (FileNotFoundError, OSError):
-        use_rg = False
 
     for sc in scenarios(spec):
         sid = sc.get("id", "?")
@@ -186,7 +184,7 @@ def write_log_verify_commands(
         lines.append(f'LOGS={shlex.quote(logs_dir)}')
         for pat in scenario_log_patterns(sc, crn):
             lines.append(f"# pattern: {pat}")
-            lines.append(_shell_grep_line(logs_dir, pat, use_rg=use_rg))
+            lines.append(_shell_grep_line(logs_dir, pat))
         lines.append("```")
         lines.append("")
 
